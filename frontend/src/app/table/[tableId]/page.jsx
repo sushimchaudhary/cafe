@@ -4,14 +4,17 @@ import { useParams } from "next/navigation";
 import { ShoppingCart, Utensils, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartSidebar from "@/components/CartSidebar";
-import { Toaster, toast } from "react-hot-toast";
 import { menuItems } from "@/data/MenuData";
 import Menufilter from "@/components/Menu-filter";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 const TableMenuPage = () => {
   const { tableId } = useParams();
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const clearCart = () => setCartItems([]);
 
   const addToCart = (item) => {
     const exists = cartItems.find((c) => c.id === item.id);
@@ -45,7 +48,16 @@ const TableMenuPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f7f3ee] to-[#fafafa]">
-      <Toaster position="top-center" />
+     
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
 
       {/* HEADER */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 shadow-md border-b border-black/5">
@@ -57,7 +69,7 @@ const TableMenuPage = () => {
             </div>
             <div>
               <h1 className="text-xl font-extrabold">Royal Dine</h1>
-              <p className="text-xs text-gray-500">Table #{tableId}</p>
+              <p className="text-xs text-gray-500">Table # {tableId}</p>
             </div>
           </div>
 
@@ -122,6 +134,8 @@ const TableMenuPage = () => {
         items={cartItems}
         onUpdateQuantity={updateQty}
         onRemove={removeItem}
+        tableId={tableId}
+        onClearCart= {clearCart}
       />
     </div>
   );

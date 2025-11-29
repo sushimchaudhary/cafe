@@ -1,33 +1,87 @@
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "./ui/scroll-area";
+import { toast, ToastContainer } from "react-toastify";
 
-const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => {
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+const CartSidebar = ({
+  isOpen,
+  onClose,
+  items,
+  onUpdateQuantity,
+  onRemove,
+  tableId,
+  onClearCart,
+}) => {
+  const total = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
+  // const placeOrder = () => {
+  //   const order = {
+  //     id: Date.now(),
+  //     items,
+  //     total,
+  //     tableId: tableId,
+  //     time: new Date().toLocaleString(),
+  //   };
 
+  //   // Save to localStorage
+  //   const existing = JSON.parse(localStorage.getItem("orders")) || [];
+  //   existing.push(order);
+  //   localStorage.setItem("orders", JSON.stringify(existing));
+
+  //   toast(`Order placed! Restaurant will receive it. ${tableId}`);
+  //   onClearCart();
+  //   onClose();
+  // };
+
+  // add this in your TableMenuPage
 
   const placeOrder = () => {
-  const order = {
-    id: Date.now(),
-    items,
-    total,
-    tableId: 1, // later dynamic banauna milcha
-    time: new Date().toLocaleString(),
+    if (cartItems.length === 0) return;
+
+    const total = cartItems.reduce((x, y) => x + y.price * y.quantity, 0);
+    const order = {
+      id: Date.now(),
+      items: cartItems,
+      total,
+      tableId: tableId,
+      time: new Date().toLocaleString(),
+      status: "Pending",
+    };
+
+    const existing = JSON.parse(localStorage.getItem("orders")) || [];
+    existing.push(order);
+    localStorage.setItem("orders", JSON.stringify(existing));
+
+    // Auto print for this device (optional)
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`<h1>Table ${tableId} Order</h1>`);
+    cartItems.forEach((i) => {
+      printWindow.document.write(
+        `<p>${i.name} x ${i.quantity} — Rs.${i.price}</p>`
+      );
+    });
+    printWindow.document.write(`<p>Total: Rs.${total}</p>`);
+    printWindow.document.close();
+    printWindow.print();
+
+    toast.success("Order placed!");
+    setCartItems([]);
   };
-
-  // Save to localStorage
-  const existing = JSON.parse(localStorage.getItem("orders")) || [];
-  existing.push(order);
-  localStorage.setItem("orders", JSON.stringify(existing));
-
-  alert("Order placed! Restaurant will receive it.");
-  onClose();
-};
-
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
       {/* Overlay */}
       {isOpen && (
         <div
@@ -62,7 +116,9 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-8">
                 <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground text-lg">Your cart is empty</p>
+                <p className="text-muted-foreground text-lg">
+                  Your cart is empty
+                </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Add items from the menu to get started
                 </p>
@@ -70,7 +126,10 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="bg-secondary/50 rounded-lg p-3 border border-border">
+                  <div
+                    key={item.id}
+                    className="bg-secondary/50 rounded-lg p-3 border border-border"
+                  >
                     <div className="flex gap-3">
                       <img
                         src={item.image}
@@ -79,7 +138,9 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
                       />
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-semibold text-foreground">{item.name}</h3>
+                          <h3 className="font-semibold text-foreground">
+                            {item.name}
+                          </h3>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -98,7 +159,10 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
                             size="icon"
                             className="h-7 w-7 rounded-full"
                             onClick={() =>
-                              onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
+                              onUpdateQuantity(
+                                item.id,
+                                Math.max(1, item.quantity - 1)
+                              )
                             }
                           >
                             <Minus className="h-3 w-3" />
@@ -110,7 +174,9 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
                             variant="outline"
                             size="icon"
                             className="h-7 w-7 rounded-full"
-                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              onUpdateQuantity(item.id, item.quantity + 1)
+                            }
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -127,11 +193,17 @@ const CartSidebar = ({ isOpen, onClose, items, onUpdateQuantity, onRemove }) => 
           {items.length > 0 && (
             <div className="p-4 border-t border-border bg-card">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold text-foreground">Total</span>
-                <span className="text-2xl font-bold text-primary">${total.toFixed(2)}</span>
+                <span className="text-lg font-semibold text-foreground">
+                  Total
+                </span>
+                <span className="text-2xl font-bold text-primary">
+                  ${total.toFixed(2)}
+                </span>
               </div>
-              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-semibold py-6 text-lg shadow-lg"
-               onClick={placeOrder}>
+              <Button
+                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-semibold py-6 text-lg shadow-lg"
+                onClick={placeOrder}
+              >
                 Place Order
               </Button>
             </div>

@@ -1,13 +1,12 @@
-import React from 'react'
-import TableMenuPage from './table/[tableId]/page'
+import React from "react";
+import TableMenuPage from "./table/[tableId]/page";
 
-
-const main = () => {
+const Main = () => {
   return (
     <div>
-      <TableMenuPage/>
+      <TableMenuPage />
     </div>
-  )
-}
+  );
+};
 
-export default main
+export default Main;
