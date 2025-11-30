@@ -1,5 +1,5 @@
 import React from "react";
-import TableMenuPage from "./table/[tableId]/page";
+import TableMenuPage from "./(users)/table/[tableId]/page";
 
 const Main = () => {
   return (

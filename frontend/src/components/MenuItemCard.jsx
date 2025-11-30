@@ -5,17 +5,17 @@ import { Card } from "@/components/ui/card";
 const MenuItemCard = ({ item, onAdd }) => {
   return (
     <div className="group relative">
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-orange-300 to-orange-200 opacity-0 group-hover:opacity-50 blur-xl transition-all duration-100"></div>
+      <div className="absolute inset-0 rounded-3xl bg-amber-300 from-amber-300 to-amber-200 opacity-0 group-hover:opacity-30 blur-xl transition-all duration-100"></div>
 
       <Card
         className="
-         relative  
+          relative  
           rounded-xl overflow-hidden
           bg-white/70 backdrop-blur-xl
-          border border-gray-200 shadow-md
-          hover:shadow-xl hover:-translate-y-2
-          transition-all duration-300  p-1
-           h-full
+          border border-gray-200 
+          hover:-translate-y-1
+          transition-all duration-300 p-1
+          h-full
         "
       >
         {/* Image Section */}
@@ -26,7 +26,7 @@ const MenuItemCard = ({ item, onAdd }) => {
             className="
               w-full h-full object-cover rounded
               transition-all duration-700
-              group-hover:scale-110 group-hover:brightness-90
+              group-hover:scale-105 group-hover:brightness-100
             "
           />
 
@@ -45,7 +45,7 @@ const MenuItemCard = ({ item, onAdd }) => {
 
         {/* Content */}
         <div className="p-3 ">
-          <h2 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition">
+          <h2 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-amber-500 transition">
             {item.name}
           </h2>
 
@@ -70,8 +70,8 @@ const MenuItemCard = ({ item, onAdd }) => {
             <button
               onClick={() => onAdd(item)}
               className="
-                text-sm font-semibold text-orange-700
-                hover:text-orange-900 hover:underline
+                text-sm font-semibold text-amber-500
+                hover:text-amber-600 hover:underline
                 transition
               "
             >

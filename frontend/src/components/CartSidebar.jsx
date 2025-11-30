@@ -162,7 +162,7 @@ const CartSidebar = ({
                 </span>
               </div>
               <Button
-                className="w-full bg-orange-500 from-primary to-accent hover:bg-orange-600  text-white cursor-pointer font-semibold py-6 text-lg shadow-lg"
+                className="w-full bg-amber-500 from-primary to-accent hover:bg-amber-600  text-white cursor-pointer font-semibold py-6 text-lg shadow-lg"
                 onClick={placeOrder}
               >
                 Place Order
