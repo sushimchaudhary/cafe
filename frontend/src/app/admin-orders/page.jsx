@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Trash2, Printer, CheckCircle, Bell } from "lucide-react";
 import Swal from "sweetalert2";
+import AdminItems from "./AdminItems";
 
 const getNepalToday = () => {
   const now = new Date();
@@ -290,6 +291,7 @@ const AdminOrdersDashboard = () => {
   ).length;
 
   return (
+    <>
     <div className="p-6 bg-gray-50 min-h-screen font-sans">
       {/* Header */}
       <div className="flex justify-between items-center mb-8 p-5 rounded-xl bg-white shadow-sm border">
@@ -467,6 +469,8 @@ const AdminOrdersDashboard = () => {
         </span>
       </div>
     </div>
+    <AdminItems/>
+    </>
   );
 };
 
