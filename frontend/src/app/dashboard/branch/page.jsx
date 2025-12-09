@@ -13,10 +13,10 @@ export default function BranchPage() {
   const [message, setMessage] = useState("");
 
   const [form, setForm] = useState({
-    branch_name: "",
-    location: "",
-    contact_number: "",
-    restaurant: "",
+    name: "",
+    address: "",
+    mobile_number: "",
+    restaurant_id: "", // backend expects this field
   });
 
   const handleChange = (e) => {
@@ -28,16 +28,24 @@ export default function BranchPage() {
     try {
       const token = localStorage.getItem("adminToken");
 
-      const res = await fetch(`${API_URL}/api/branches/`, {
+      const res = await fetch(`${API_URL}/api/restaurants/`, {
         headers: { Authorization: `Token ${token}` },
       });
 
       const data = await res.json();
 
-      if (Array.isArray(data)) setRestaurants(data);
-      else if (Array.isArray(data.data)) setRestaurants(data.data);
+      const restaurantsList = (
+        Array.isArray(data) ? data : data?.data || []
+      ).map((r) => ({
+        restaurant_id: r.reference_id,
+        restaurant_name: r.name,
+      }));
+
+      setRestaurants(restaurantsList);
+      return restaurantsList;
     } catch (err) {
-      console.log(err);
+      console.log("FETCH RESTAURANTS ERROR:", err);
+      return [];
     }
   };
 
@@ -46,21 +54,33 @@ export default function BranchPage() {
     try {
       const token = localStorage.getItem("adminToken");
 
+      const restaurantsList = restaurants.length ? restaurants : await fetchRestaurants();
+
       const res = await fetch(`${API_URL}/api/branches/`, {
         headers: { Authorization: `Token ${token}` },
       });
 
       const data = await res.json();
 
-      if (Array.isArray(data)) setBranches(data);
-      else if (Array.isArray(data.data)) setBranches(data.data);
+      const branchesList = (Array.isArray(data) ? data : data?.data || []).map((b) => {
+        const restaurant = restaurantsList.find((r) => r.restaurant_id === b.restaurant);
+        return {
+          branch_id: b.reference_id || b.id || b._id,
+          name: b.name,
+          address: b.address,
+          mobile_number: b.mobile_number,
+          restaurant_id: b.restaurant,
+          restaurant_name: restaurant ? restaurant.restaurant_name : "",
+        };
+      });
+
+      setBranches(branchesList);
     } catch (err) {
-      console.log(err);
+      console.log("FETCH BRANCHES ERROR:", err);
     }
   };
 
   useEffect(() => {
-    fetchRestaurants();
     fetchBranches();
   }, []);
 
@@ -68,6 +88,7 @@ export default function BranchPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage("");
 
     try {
       const token = localStorage.getItem("adminToken");
@@ -75,8 +96,16 @@ export default function BranchPage() {
       const url = editId
         ? `${API_URL}/api/branches/${editId}/`
         : `${API_URL}/api/branches/`;
-
       const method = editId ? "PATCH" : "POST";
+
+      const payload = {
+        name: form.name,
+        address: form.address,
+        mobile_number: form.mobile_number,
+        restaurant_id: form.restaurant_id,
+      };
+
+      console.log("Submitting payload:", payload);
 
       const res = await fetch(url, {
         method,
@@ -84,27 +113,30 @@ export default function BranchPage() {
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+      console.log("SUBMIT RESPONSE:", data);
 
-      if (!res.ok) {
-        setMessage(data.message || "Error creating branch!");
+      if (!res.ok || data.response_code === "1") {
+        setMessage(
+          data?.errors ? JSON.stringify(data.errors) : data?.response || "Error"
+        );
       } else {
         setMessage(editId ? "Branch Updated!" : "Branch Created!");
         setShowModal(false);
         setEditId(null);
         setForm({
-          branch_name: "",
-          location: "",
-          contact_number: "",
-          restaurant: "",
+          name: "",
+          address: "",
+          mobile_number: "",
+          restaurant_id: "",
         });
         fetchBranches();
       }
     } catch (err) {
-      console.log(err);
+      console.log("SUBMIT ERROR:", err);
       setMessage("Network Error");
     }
 
@@ -112,32 +144,40 @@ export default function BranchPage() {
   };
 
   // ---------------- Delete Branch ----------------
-  const handleDelete = async (id) => {
+  const handleDelete = async (branch) => {
+    const idToDelete = branch.branch_id;
+    if (!idToDelete) return alert("ID not found!");
+
     if (!confirm("Delete this branch?")) return;
 
     try {
       const token = localStorage.getItem("adminToken");
 
-      await fetch(`${API_URL}/api/branches/${id}/`, {
+      const res = await fetch(`${API_URL}/api/branches/${idToDelete}/`, {
         method: "DELETE",
         headers: { Authorization: `Token ${token}` },
       });
 
-      fetchBranches();
+      if (!res.ok) {
+        console.log("DELETE FAILED:", await res.text());
+        alert("Delete failed");
+      } else {
+        fetchBranches();
+      }
     } catch (err) {
-      console.log(err);
+      console.log("DELETE ERROR:", err);
     }
   };
 
   // ---------------- Edit Modal Fill ----------------
   const handleEdit = (b) => {
     setForm({
-      branch_name: b.branch_name,
-      location: b.location,
-      contact_number: b.contact_number,
-      restaurant: b.restaurant,
+      name: b.name,
+      address: b.address,
+      mobile_number: b.mobile_number,
+      restaurant_id: b.restaurant_id || "",
     });
-    setEditId(b.id || b._id);
+    setEditId(b.branch_id);
     setShowModal(true);
   };
 
@@ -148,10 +188,10 @@ export default function BranchPage() {
       <button
         onClick={() => {
           setForm({
-            branch_name: "",
-            location: "",
-            contact_number: "",
-            restaurant: "",
+            name: "",
+            address: "",
+            mobile_number: "",
+            restaurant_id: "",
           });
           setEditId(null);
           setShowModal(true);
@@ -167,7 +207,7 @@ export default function BranchPage() {
           <thead className="bg-amber-400 text-white">
             <tr>
               <th className="px-6 py-3 text-left">Branch Name</th>
-              <th className="px-6 py-3 text-left">Location</th>
+              <th className="px-6 py-3 text-left">Address</th>
               <th className="px-6 py-3 text-left">Contact</th>
               <th className="px-6 py-3 text-left">Restaurant</th>
               <th className="px-6 py-3 text-left">Actions</th>
@@ -176,15 +216,12 @@ export default function BranchPage() {
 
           <tbody>
             {branches.map((b) => (
-              <tr key={b.id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-3">{b.branch_name}</td>
-                <td className="px-6 py-3">{b.location}</td>
-                <td className="px-6 py-3">{b.contact_number}</td>
+              <tr key={b.branch_id} className="border-b hover:bg-gray-50">
+                <td className="px-6 py-3">{b.name}</td>
+                <td className="px-6 py-3">{b.address}</td>
+                <td className="px-6 py-3">{b.mobile_number}</td>
                 <td className="px-6 py-3">
-                  {
-                    restaurants.find((r) => r.id === b.restaurant)
-                      ?.restaurant_name
-                  }
+                  {b.restaurant_name || "-"}
                 </td>
 
                 <td className="px-6 py-3 flex gap-3">
@@ -196,7 +233,7 @@ export default function BranchPage() {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(b.id)}
+                    onClick={() => handleDelete(b)}
                     className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
                   >
                     Delete
@@ -223,20 +260,24 @@ export default function BranchPage() {
                 <label className="block mb-1">Branch Name</label>
                 <input
                   type="text"
-                  name="branch_name"
-                  value={form.branch_name}
+                  name="name"
+                  value={form.name}
                   onChange={handleChange}
+                  maxLength={100}
+                  required
                   className="w-full border p-2 rounded-lg"
                 />
               </div>
 
               <div>
-                <label className="block mb-1">Location</label>
+                <label className="block mb-1">Address</label>
                 <input
                   type="text"
-                  name="location"
-                  value={form.location}
+                  name="address"
+                  value={form.address}
                   onChange={handleChange}
+                  maxLength={100}
+                  required
                   className="w-full border p-2 rounded-lg"
                 />
               </div>
@@ -245,9 +286,13 @@ export default function BranchPage() {
                 <label className="block mb-1">Contact Number</label>
                 <input
                   type="text"
-                  name="contact_number"
-                  value={form.contact_number}
+                  name="mobile_number"
+                  value={form.mobile_number}
                   onChange={handleChange}
+                  maxLength={10}
+                  pattern="\d{10}"
+                  title="Enter 10 digit number"
+                  required
                   className="w-full border p-2 rounded-lg"
                 />
               </div>
@@ -255,14 +300,15 @@ export default function BranchPage() {
               <div>
                 <label className="block mb-1">Select Restaurant</label>
                 <select
-                  name="restaurant"
-                  value={form.restaurant}
+                  name="restaurant_id"
+                  value={form.restaurant_id || ""}
                   onChange={handleChange}
+                  required
                   className="w-full border p-2 rounded-lg"
                 >
                   <option value="">-- Choose Restaurant --</option>
                   {restaurants.map((r) => (
-                    <option key={r.id} value={r.id}>
+                    <option key={r.restaurant_id} value={r.restaurant_id}>
                       {r.restaurant_name}
                     </option>
                   ))}

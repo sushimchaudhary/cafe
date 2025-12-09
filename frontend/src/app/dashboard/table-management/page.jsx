@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import toast from "react-hot-toast";
+import DashboardLayout from "../layout";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -204,6 +205,7 @@ export default function TableManager() {
   if (loading) return <p className="p-5 text-xl">Loading tables...</p>;
 
   return (
+    
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-amber-800">Table Management</h1>
 
@@ -240,5 +242,6 @@ export default function TableManager() {
         </div>
       </div>
     </div>
+    
   );
 }

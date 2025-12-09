@@ -7,24 +7,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState([]);
   const [form, setForm] = useState({
-    restaurant_name: "",
-    location: "",
-    contact_number: "",
+    name: "",
+    address: "",
+    mobile_number: "",
   });
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [message, setMessage] = useState("");
 
+  // ================== HANDLE INPUT CHANGE ==================
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ---------------- FETCH Restaurants ----------------
+  // ================== FETCH RESTAURANTS ==================
   const fetchRestaurants = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-
       const res = await fetch(`${API_URL}/api/restaurants/`, {
         method: "GET",
         headers: {
@@ -34,18 +34,23 @@ export default function RestaurantPage() {
       });
 
       const data = await res.json();
-      console.log("API RESPONSE:", data); 
+      console.log("RAW API DATA:", data);
 
-      if (Array.isArray(data)) {
-        setRestaurants(data);
-      } else if (Array.isArray(data.data)) {
-        setRestaurants(data.data);
-      } else {
-        console.log("Unexpected API format", data);
-        setRestaurants([]);
-      }
-    } catch (err) {
-      console.log(err);
+      // Rename reference_id to restaurant_id
+      const restaurantsList = (Array.isArray(data) ? data : data?.data || []).map(
+        (r) => ({
+          restaurant_id: r.reference_id,
+          name: r.name,
+          address: r.address,
+          mobile_number: r.mobile_number,
+        })
+      );
+
+      console.log("Restaurants list with restaurant_id:", restaurantsList);
+
+      setRestaurants(restaurantsList);
+    } catch (error) {
+      console.log("FETCH ERROR:", error);
     }
   };
 
@@ -53,7 +58,7 @@ export default function RestaurantPage() {
     fetchRestaurants();
   }, []);
 
-  // ---------------- CREATE / UPDATE Restaurant ----------------
+  // ================== SUBMIT CREATE/EDIT ==================
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -68,61 +73,90 @@ export default function RestaurantPage() {
 
       const method = editId ? "PATCH" : "POST";
 
+      const payload = {
+        name: form.name.trim(),
+        address: form.address.trim(),
+        mobile_number: form.mobile_number.trim(),
+      };
+
+      console.log("Payload to API:", payload);
+
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+      console.log("SUBMIT RESPONSE:", data);
 
-      if (!res.ok) setMessage(data.message || "Error");
-      else {
-        setMessage(editId ? "Updated successfully!" : "Created successfully!");
-        setForm({ restaurant_name: "", location: "", contact_number: "" });
+      if (!res.ok || data.response_code === "1") {
+        setMessage(
+          data?.errors
+            ? JSON.stringify(data.errors)
+            : data?.response || "Something went wrong"
+        );
+      } else {
+        setMessage(editId ? "Updated!" : "Created!");
+        setForm({ name: "", address: "", mobile_number: "" });
         setShowModal(false);
         setEditId(null);
         fetchRestaurants();
       }
     } catch (err) {
-      setMessage("Network error");
+      console.log("SUBMIT ERROR:", err);
+      setMessage("Network Error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- DELETE Restaurant ----------------
-  const handleDelete = async (id) => {
+  // ================== DELETE ==================
+  const handleDelete = async (restaurant) => {
+    const idToDelete = restaurant.restaurant_id;
+    console.log("Deleting ID:", idToDelete);
+
+    if (!idToDelete) {
+      alert("ID not found! Cannot delete.");
+      return;
+    }
+
     if (!confirm("Delete this restaurant?")) return;
 
     try {
       const token = localStorage.getItem("adminToken");
 
-      await fetch(`${API_URL}/api/restaurants/${id}/`, {
+      const res = await fetch(`${API_URL}/api/restaurants/${idToDelete}/`, {
         method: "DELETE",
         headers: {
           Authorization: `Token ${token}`,
         },
       });
 
-      fetchRestaurants();
-    } catch (err) {
-      console.log(err);
+      if (!res.ok) {
+        console.log("DELETE FAILED:", await res.text());
+        alert("Delete failed");
+      } else {
+        console.log("Deleted successfully!");
+        fetchRestaurants();
+      }
+    } catch (error) {
+      console.log("DELETE ERROR:", error);
     }
   };
 
-  // ---------------- OPEN EDIT MODAL ----------------
+  // ================== EDIT ==================
   const handleEdit = (r) => {
     setForm({
-      restaurant_name: r.restaurant_name,
-      location: r.location,
-      contact_number: r.contact_number,
+      name: r.name,
+      address: r.address,
+      mobile_number: r.mobile_number,
     });
 
-    setEditId(r.id || r._id);
+    setEditId(r.restaurant_id);
     setShowModal(true);
   };
 
@@ -130,47 +164,47 @@ export default function RestaurantPage() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-6 text-amber-600">Restaurants</h1>
 
+      {/* CREATE BUTTON */}
       <button
         onClick={() => {
-          setForm({ restaurant_name: "", location: "", contact_number: "" });
+          setForm({ name: "", address: "", mobile_number: "" });
           setEditId(null);
           setShowModal(true);
         }}
-        className="mb-6 bg-amber-500 text-white px-5 py-2 rounded-lg shadow hover:bg-amber-600 transition"
+        className="mb-6 bg-amber-500 text-white px-5 py-2 rounded-lg shadow"
       >
         + Create Restaurant
       </button>
 
-      {/* Table */}
+      {/* TABLE */}
       <div className="overflow-x-auto shadow rounded-lg">
         <table className="min-w-full bg-white rounded-lg">
           <thead className="bg-amber-400 text-white">
             <tr>
-              <th className="px-6 py-3 text-left font-semibold">Name</th>
-              <th className="px-6 py-3 text-left font-semibold">Location</th>
-              <th className="px-6 py-3 text-left font-semibold">Phone</th>
-              <th className="px-6 py-3 text-left font-semibold">Actions</th>
+              <th className="px-6 py-3 text-left">Name</th>
+              <th className="px-6 py-3 text-left">Address</th>
+              <th className="px-6 py-3 text-left">Phone</th>
+              <th className="px-6 py-3 text-left">Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {restaurants.map((r) => (
-              <tr
-                key={r.id || r._id}
-                className="border-b hover:bg-gray-50 transition"
-              >
-                <td className="px-6 py-3">{r.restaurant_name}</td>
-                <td className="px-6 py-3">{r.location}</td>
-                <td className="px-6 py-3">{r.contact_number}</td>
+            {restaurants.map((r, index) => (
+              <tr key={r.restaurant_id || index} className="border-b">
+                <td className="px-6 py-3">{r.name}</td>
+                <td className="px-6 py-3">{r.address}</td>
+                <td className="px-6 py-3">{r.mobile_number}</td>
+
                 <td className="px-6 py-3 flex gap-3">
                   <button
                     onClick={() => handleEdit(r)}
-                    className="px-3 py-1 bg-amber-500 text-white rounded-md hover:bg-amber-600"
+                    className="px-3 py-1 bg-amber-500 text-white rounded"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(r.id || r._id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    onClick={() => handleDelete(r)}
+                    className="px-3 py-1 bg-red-500 text-white rounded"
                   >
                     Delete
                   </button>
@@ -181,63 +215,62 @@ export default function RestaurantPage() {
         </table>
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-amber-50 bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4 text-amber-600">
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+            <h2 className="text-xl font-bold mb-4">
               {editId ? "Edit Restaurant" : "Create Restaurant"}
             </h2>
 
-            {message && <p className="mb-4 text-red-500">{message}</p>}
+            {message && <p className="text-red-500">{message}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block mb-1 font-medium">Name</label>
+                <label>Name</label>
                 <input
-                  type="text"
                   name="name"
-                  value={form.restaurant_name}
+                  value={form.name}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-amber-400"
+                  className="w-full border p-2 rounded"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block mb-1 font-medium">Location</label>
+                <label>Address</label>
                 <input
-                  type="text"
-                  name="location"
-                  value={form.location}
+                  name="address"
+                  value={form.address}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-amber-400"
+                  className="w-full border p-2 rounded"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block mb-1 font-medium">Phone</label>
+                <label>Mobile Number</label>
                 <input
-                  type="text"
-                  name="phone"
-                  value={form.contact_number}
+                  name="mobile_number"
+                  value={form.mobile_number}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-amber-400"
+                  className="w-full border p-2 rounded"
+                  required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border rounded"
                 >
                   Cancel
                 </button>
 
                 <button
-                  type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                  className="px-4 py-2 bg-amber-500 text-white rounded"
                 >
                   {loading ? "Saving..." : editId ? "Update" : "Create"}
                 </button>

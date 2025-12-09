@@ -35,6 +35,11 @@ export default function AdminSidebar() {
 
   const sidebarWidth = collapsed ? "w-20" : "w-64";
 
+  // Function to handle link click
+  const handleLinkClick = () => {
+    if (mobileOpen) setMobileOpen(false);
+  };
+
   return (
     <>
       {/* MOBILE TOP TOGGLE BUTTON */}
@@ -42,7 +47,7 @@ export default function AdminSidebar() {
         <div className="md:hidden fixed top-5 right-2 z-50">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-3 text-amber-800 rounded-full "
+            className="p-3 text-amber-800 rounded-full"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -61,10 +66,10 @@ export default function AdminSidebar() {
       >
         {/* LOGO / HEADING */}
         <div className="p-2 flex items-center justify-between">
-          {/* Heading */}
           <h2
-            className={`text-2xl font-bold text-gray-800 transition-all duration-300
-      ${collapsed ? "opacity-0" : "opacity-100"}`}
+            className={`text-2xl font-bold text-gray-800 transition-all duration-300 ${
+              collapsed ? "opacity-0" : "opacity-100"
+            }`}
           >
             Admin
           </h2>
@@ -85,42 +90,52 @@ export default function AdminSidebar() {
             icon={<Table />}
             collapsed={collapsed}
             active={pathname === "/dashboard/resturant"}
+            onLinkClick={handleLinkClick}
           />
 
-           <SidebarLink
+          <SidebarLink
             href="/dashboard/branch"
             title="Branch"
             icon={<LayoutGrid />}
             collapsed={collapsed}
             active={pathname === "/dashboard/branch"}
+            onLinkClick={handleLinkClick}
           />
+
           <SidebarLink
             href="/dashboard"
             title="Orders Dashboard"
             icon={<List />}
             collapsed={collapsed}
             active={pathname === "/dashboard"}
+            onLinkClick={handleLinkClick}
           />
+
           <SidebarLink
             href="/dashboard/add-items"
             title="Add Menu Item"
             icon={<PlusCircle />}
             collapsed={collapsed}
             active={pathname === "/dashboard/add-items"}
+            onLinkClick={handleLinkClick}
           />
+
           <SidebarLink
             href="/dashboard/table-management"
             title="Add Table"
             icon={<Table />}
             collapsed={collapsed}
             active={pathname === "/dashboard/table-management"}
+            onLinkClick={handleLinkClick}
           />
+
           <SidebarLink
             href="/dashboard/menu-category"
             title="Menu Categories"
             icon={<LayoutGrid />}
             collapsed={collapsed}
             active={pathname === "/dashboard/menu-category"}
+            onLinkClick={handleLinkClick}
           />
         </nav>
       </div>
@@ -128,10 +143,11 @@ export default function AdminSidebar() {
   );
 }
 
-function SidebarLink({ href, title, icon, collapsed, active }) {
+function SidebarLink({ href, title, icon, collapsed, active, onLinkClick }) {
   return (
     <Link
       href={href}
+      onClick={onLinkClick} // Auto close mobile menu on click
       className={`
         flex items-center gap-4 p-3 rounded-xl transition-all group
         ${
