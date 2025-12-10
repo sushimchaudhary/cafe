@@ -1,53 +1,126 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function AdminLogin() {
-  const [email, setEmail] = useState("");
+const AdminLoginPage = () => {
+  const router = useRouter();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: call backend API
-    console.log("Admin Login:", { email, password });
-    alert("Admin Login Successful (Mock) ✅");
+    setLoading(true);
+
+    try {
+      // Basic Auth Header (optional depending on API)
+      const authHeader = "Basic " + btoa(`${username}:${password}`);
+
+      const res = await fetch(`${API_URL}/api/user/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": authHeader, // can be removed if API uses JSON payload
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+      console.log("Login response:", data);
+
+      if (res.ok) {
+        // Check if user is staff/admin
+        if (!data.is_staff) {
+          toast.error("You are not allowed to login as admin!");
+          setLoading(false);
+          return;
+        }
+
+        // Success
+        toast.success("Login successful!");
+
+        // Store tokens and IDs in localStorage
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("isSuperAdmin", data.is_superuser || false);
+        localStorage.setItem("isAdmin", data.is_staff && !data.is_superuser);
+        localStorage.setItem("companyId", data.company_id || "");
+        localStorage.setItem("branchId", data.branch_id || ""); // <-- branch added
+
+        // Redirect to dashboard
+        router.push("/dashboard");
+      } else {
+        // API returned an error
+        toast.error(data.detail || "Invalid credentials!");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Something went wrong! Please try again.");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-6 text-amber-800 text-center">Admin Login</h2>
-        <form onSubmit={handleLogin} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 px-4">
+      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-amber-600 text-center mb-4">
+          Admin Login
+        </h2>
+        <p className="text-sm text-gray-500 text-center mb-6">
+          Please login to access the dashboard
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Username */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1">Username</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@example.com"
-              className="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
+              placeholder="Enter username"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Password</label>
+
+          {/* Password */}
+          <div className="relative">
+            <label className="block text-sm font-medium mb-1">Password</label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              className="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm"
               required
+              placeholder="********"
+              className="w-full px-4 py-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
+            <div
+              className="absolute top-9 right-3 text-gray-500 cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </div>
           </div>
+
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-amber-500 text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-amber-700 transition"
+            disabled={loading}
+            className="w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition disabled:opacity-50"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default AdminLoginPage;
