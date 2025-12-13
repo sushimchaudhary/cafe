@@ -8,7 +8,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function RestaurantPage() {
   const [restaurants, setRestaurants] = useState([]);
-  const [form, setForm] = useState({ name: "", address: "", mobile_number: "" });
+  const [form, setForm] = useState({
+    name: "",
+    address: "",
+    mobile_number: "",
+  });
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -18,7 +22,10 @@ export default function RestaurantPage() {
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch(`${API_URL}/api/restaurants/`, {
-        headers: { "Content-Type": "application/json", Authorization: `Token ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
       });
       const data = await res.json();
       setRestaurants(data.data || []);
@@ -32,7 +39,8 @@ export default function RestaurantPage() {
     fetchRestaurants();
   }, []);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +69,10 @@ export default function RestaurantPage() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Token ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -98,10 +109,13 @@ export default function RestaurantPage() {
 
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/restaurants/${restaurant.reference_id}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Token ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/restaurants/${restaurant.reference_id}/`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
 
       if (!res.ok) {
         const text = await res.text();
@@ -145,7 +159,10 @@ export default function RestaurantPage() {
           </thead>
           <tbody>
             {restaurants.map((r) => (
-              <tr key={r.reference_id} className="border-b hover:bg-gray-50 transition">
+              <tr
+                key={r.reference_id}
+                className="border-b hover:bg-gray-50 transition"
+              >
                 <td className="px-6 py-3">{r.name}</td>
                 <td className="px-6 py-3">{r.address}</td>
                 <td className="px-6 py-3">{r.mobile_number}</td>
@@ -179,7 +196,9 @@ export default function RestaurantPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-            <h2 className="text-xl font-bold mb-4">{editId ? "Edit Restaurant" : "Create Restaurant"}</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {editId ? "Edit Restaurant" : "Create Restaurant"}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 name="name"

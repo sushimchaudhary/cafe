@@ -32,7 +32,21 @@ export default function BranchPage() {
         },
       });
       const data = await res.json();
+
+      console.log("✅ RESTAURANTS RAW DATA:", data);
+
       setRestaurants(data.data || []);
+
+      // Debug restaurant IDs
+      (data.data || []).forEach((r) => {
+        console.log(
+          "🍽️ Restaurant:",
+          r.name,
+          "| reference_id:",
+          r.reference_id
+        );
+      });
+
       return data.data || [];
     } catch (err) {
       console.log("❌ FETCH RESTAURANTS ERROR:", err);
@@ -52,9 +66,21 @@ export default function BranchPage() {
       });
       const data = await res.json();
 
+       console.log("🏢 BRANCHES RAW DATA:", data);
+
       const mappedBranches = (data.data || []).map((b) => {
+
+         console.log(
+          `🔗 Branch: ${b.name} | branch_ref_id=${b.reference_id} | restaurant_reference_id=${b.restaurant_reference_id}`
+        );
         const restaurant = restaurantList.find(
           (r) => r.reference_id === b.restaurant_reference_id
+        );
+
+        console.log(
+          `➡️ Mapped to Restaurant: ${
+            restaurant?.name || "NOT FOUND"
+          } (restaurant_reference_id: ${b.restaurant_reference_id})`
         );
         return {
           ...b,

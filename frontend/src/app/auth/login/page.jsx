@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ToastProvider from "@/components/ToastProvider";
 
 const AdminLoginPage = () => {
   const router = useRouter();
@@ -19,7 +20,10 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
+      // Basic Auth Header
       const authHeader = "Basic " + btoa(`${username}:${password}`);
+
+      // Login request
       const res = await fetch(`${API_URL}/api/user/login/`, {
         method: "POST",
         headers: {
@@ -32,62 +36,90 @@ const AdminLoginPage = () => {
       const data = await res.json();
       console.log("Login response:", data);
 
-      if (!res.ok || !data.is_staff) {
+      if (!res.ok || !data?.is_staff) {
         toast.error("Invalid credentials or not admin!");
         setLoading(false);
         return;
       }
 
-      // Save token and IDs
-      localStorage.setItem("adminToken", data.token);
-     localStorage.setItem("restaurantId", data.restaurant_id || "");
-      localStorage.setItem("branchId", data.branch_id || "");
-      localStorage.setItem("username", username);
-      
-if (data.restaurant_id) {
-  const resRestaurant = await fetch(
-    `${API_URL}/api/restaurants/${data.restaurant_id}/`,
-    {
-      headers: { Authorization: `Token ${data.token}` },
-    }
-  );
-  if (resRestaurant.ok) {
-    const restaurantData = await resRestaurant.json();
-    localStorage.setItem("restaurantName", restaurantData.name);
-  }
-}
+      // Save token & username
+      localStorage.setItem("adminToken", data.token || "");
+      localStorage.setItem("username", username || "");
+      localStorage.setItem("restaurant_id", data.restaurant_id || "");
+      localStorage.setItem("branch_id", data.branch_id || "");
 
-      if (data.branch_id) {
-        const resBranch = await fetch(
-          `${API_URL}/api/branches/${data.branch_id}/`,
+     
+      if (data.is_superuser) {
+        // Superuser -> fetch all restaurants
+        const r = await fetch(`${API_URL}/api/restaurants/`, {
+          headers: { Authorization: `Token ${data.token}` },
+        });
+        const rData = await r.json();
+        const restaurantData = rData.data || [];
+        localStorage.setItem("restaurants", JSON.stringify(restaurantData));
+      } else if (data.restaurant_id) {
+        // Normal staff -> fetch assigned restaurant
+        const r = await fetch(
+          `${API_URL}/api/restaurants/${data.restaurant_id}/`,
           {
             headers: { Authorization: `Token ${data.token}` },
           }
         );
-        if (resBranch.ok) {
-          const branchData = await resBranch.json();
-          localStorage.setItem("branchName", branchData.name);
+        const rData = await r.json();
+        const restaurantData = rData.response ? [rData.response] : [];
+        localStorage.setItem("restaurants", JSON.stringify(restaurantData));
+        //  save single restaurant_id for easy access
+        if (restaurantData.length > 0) {
+          localStorage.setItem(
+            "restaurant_id",
+            restaurantData[0].id || restaurantData[0]._id
+          );
         }
       }
+
+    
+      if (data.is_superuser) {
+        // Superuser -> fetch all branches
+        const b = await fetch(`${API_URL}/api/branches/`, {
+          headers: { Authorization: `Token ${data.token}` },
+        });
+        const bData = await b.json();
+        const branchData = bData.data || [];
+        localStorage.setItem("branches", JSON.stringify(branchData));
+      } else if (data.branch_id) {
+        // Normal staff -> fetch assigned branch
+        const b = await fetch(`${API_URL}/api/branches/${data.branch_id}/`, {
+          headers: { Authorization: `Token ${data.token}` },
+        });
+        const bData = await b.json();
+        const branchData = bData.response ? [bData.response] : [];
+        localStorage.setItem("branches", JSON.stringify(branchData));
+        //  save single branch_id
+        if (branchData.length > 0) {
+          localStorage.setItem(
+            "branch_id",
+            branchData[0].id || branchData[0]._id
+          );
+        }
+      }
+
+      toast.success("Login successful!");
       router.push("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
       toast.error("Something went wrong! Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 px-4">
-      <Toaster position="top-right" />
+      <ToastProvider />
       <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-amber-600 text-center mb-4">
           Admin Login
         </h2>
-        <p className="text-sm text-gray-500 text-center mb-6">
-          Please login to access the dashboard
-        </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -97,8 +129,7 @@ if (data.restaurant_id) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              placeholder="Enter username"
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2 border rounded-md"
             />
           </div>
 
@@ -109,11 +140,10 @@ if (data.restaurant_id) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="********"
-              className="w-full px-4 py-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2 border rounded-md pr-10"
             />
             <div
-              className="absolute top-9 right-3 text-gray-500 cursor-pointer"
+              className="absolute top-9 right-3 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -123,7 +153,7 @@ if (data.restaurant_id) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-600 text-white py-2 rounded-md hover:bg-amber-700 transition disabled:opacity-50"
+            className="w-full bg-amber-600 text-white py-2 rounded-md"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

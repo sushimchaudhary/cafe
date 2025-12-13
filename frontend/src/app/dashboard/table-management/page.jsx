@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import toast from "react-hot-toast";
+import ToastProvider from "@/components/ToastProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function TableManager() {
-  const [branches, setBranches] = useState([]);
+  const [setBranches] = useState([]);
   const [tables, setTables] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
@@ -19,7 +19,6 @@ export default function TableManager() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // LocalStorage states
   const [selectedBranch, setSelectedBranch] = useState("");
   const [restaurantId, setRestaurantId] = useState("");
   const [token, setToken] = useState("");
@@ -27,7 +26,7 @@ export default function TableManager() {
   // Load localStorage values
   useEffect(() => {
     setSelectedBranch(localStorage.getItem("branchId") || "");
-    setRestaurantId(localStorage.getItem("restaurantId") || "");
+    setRestaurantId(localStorage.getItem("restaurant_reference_id") || "");
     setToken(localStorage.getItem("adminToken") || "");
   }, []);
 
@@ -40,9 +39,8 @@ export default function TableManager() {
       const res = await fetch(`${API_URL}/api/branches/`, {
         headers: { Authorization: `Token ${token}` },
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error("Failed to fetch branches");
+      if (!res.ok) throw new Error(data.response || "Failed to fetch branches");
 
       setBranches(data.data || []);
 
@@ -65,16 +63,12 @@ export default function TableManager() {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        `${API_URL}/api/tables/?branch=${branchId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-        }
-      );
-
+      const res = await fetch(`${API_URL}/api/tables/?branch=${branchId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+      });
       const data = await res.json();
       setTables(data.data || []);
     } catch (err) {
@@ -89,7 +83,7 @@ export default function TableManager() {
   }, [token]);
 
   useEffect(() => {
-    if (selectedBranch) fetchTables(selectedBranch);
+    if (selectedBranch && token) fetchTables(selectedBranch);
   }, [selectedBranch, token]);
 
   // Handle input change
@@ -98,10 +92,10 @@ export default function TableManager() {
 
   // Generate QR Code
   const generateQR = async (tableName) => {
-    const url = `${API_URL}/table/${encodeURIComponent(
+    if (!tableName) return "";
+    const url = `${window.location.origin}/table/${encodeURIComponent(
       tableName.trim().replace(/\s+/g, "-")
     )}`;
-
     try {
       return await QRCode.toDataURL(url);
     } catch {
@@ -113,7 +107,6 @@ export default function TableManager() {
   const handleAddTable = async () => {
     if (!formData.table_name || !formData.capacity)
       return toast.error("Please fill required fields!");
-
     if (!selectedBranch || !restaurantId)
       return toast.error("Branch or restaurant missing!");
 
@@ -124,8 +117,8 @@ export default function TableManager() {
       capacity: formData.capacity,
       location: formData.location,
       qr_code: qr,
-      branch: selectedBranch,     // branch_reference_id
-      restaurant: restaurantId,   // restaurant_reference_id
+      branch: selectedBranch,
+      restaurant: restaurantId,
     };
 
     try {
@@ -137,9 +130,8 @@ export default function TableManager() {
         },
         body: JSON.stringify(newTable),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.response || "Failed");
+      if (!res.ok) throw new Error(data.response || "Failed to add table");
 
       toast.success("Table added successfully!");
       setFormData({ id: null, table_name: "", capacity: "", location: "", qr_code: "" });
@@ -149,10 +141,16 @@ export default function TableManager() {
     }
   };
 
-  // Edit Button
+  // Edit Table
   const handleEdit = (table) => {
     setIsEditing(true);
-    setFormData(table);
+    setFormData({
+      id: table.id,
+      table_name: table.table_name,
+      capacity: table.capacity,
+      location: table.location,
+      qr_code: table.qr_code,
+    });
   };
 
   // Update Table
@@ -177,9 +175,8 @@ export default function TableManager() {
         },
         body: JSON.stringify(updatedTable),
       });
-
       const data = await res.json();
-      if (!res.ok) throw new Error(data.response || "Failed to update");
+      if (!res.ok) throw new Error(data.response || "Failed to update table");
 
       toast.success("Table updated!");
       setIsEditing(false);
@@ -197,11 +194,8 @@ export default function TableManager() {
     try {
       const res = await fetch(`${API_URL}/api/tables/${id}/`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        headers: { Authorization: `Token ${token}` },
       });
-
       if (!res.ok) throw new Error("Delete failed");
 
       toast.success("Table deleted!");
@@ -215,33 +209,16 @@ export default function TableManager() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <ToastProvider />
       <h1 className="text-3xl font-bold mb-4 text-amber-800">Table Management</h1>
 
-      {/* Branch Select */}
-      <div className="mb-4">
-        <label className="font-semibold mr-2">Select Branch:</label>
-        <select
-          value={selectedBranch}
-          onChange={(e) => {
-            setSelectedBranch(e.target.value);
-            localStorage.setItem("branchId", e.target.value);
-          }}
-          className="border p-2 rounded"
-        >
-          {branches.map((b) => (
-            <option key={b.branch_reference_id} value={b.branch_reference_id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      
 
       {/* Add/Edit Table */}
       <div className="bg-gray-50 p-4 rounded-lg shadow mb-6">
         <h2 className="text-xl font-semibold mb-3">
           {isEditing ? "Edit Table" : "Add Table"}
         </h2>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <input
             type="text"
@@ -280,7 +257,6 @@ export default function TableManager() {
       {/* Table List */}
       <div className="bg-white p-4 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-4">All Tables</h2>
-
         {tables.length === 0 ? (
           <p>No tables available.</p>
         ) : (
@@ -290,28 +266,10 @@ export default function TableManager() {
                 <h3 className="text-lg font-bold">{table.table_name}</h3>
                 <p>Capacity: {table.capacity}</p>
                 <p>Location: {table.location || "Not set"}</p>
-
-                {table.qr_code && (
-                  <img
-                    src={table.qr_code}
-                    alt="QR Code"
-                    className="w-32 h-32 mt-3 border"
-                  />
-                )}
-
+                {table.qr_code && <img src={table.qr_code} alt="QR Code" className="w-32 h-32 mt-3 border" />}
                 <div className="flex gap-3 mt-3">
-                  <button
-                    className="px-3 py-1 bg-green-600 text-white rounded"
-                    onClick={() => handleEdit(table)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-red-600 text-white rounded"
-                    onClick={() => handleDelete(table.id)}
-                  >
-                    Delete
-                  </button>
+                  <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={() => handleEdit(table)}>Edit</button>
+                  <button className="px-3 py-1 bg-red-600 text-white rounded" onClick={() => handleDelete(table.id)}>Delete</button>
                 </div>
               </div>
             ))}

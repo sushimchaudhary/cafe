@@ -1,25 +1,28 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
+import ToastProvider from "./ToastProvider";
+import { useRef } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AdminMenuUnitPage() {
-  const [items, setItems] = useState([]);
+export default function AdminMenuManager() {
+  const formRef = useRef(null);
   const [units, setUnits] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [menus, setMenus] = useState([]);
   const [form, setForm] = useState({
-    item_name: "",
-    description: "",
-    imageFile: null,
-    is_available: true,
-    categories: [{ name: "", unit: "", price: "", imageFile: null }],
+    menu_date: "",
+    categories: [
+      { name: "", price: "", item_category: "", unit: "", imageFile: null },
+    ],
   });
-  const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [editingMenuId, setEditingMenuId] = useState(null);
 
-  // --- Fetch Units ---
+  // --- Fetch Units & Categories ---
   const fetchUnits = async () => {
     try {
       const token = localStorage.getItem("adminToken");
@@ -27,63 +30,64 @@ export default function AdminMenuUnitPage() {
       const res = await fetch(`${API_URL}/api/units/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch units");
       const data = await res.json();
-      setUnits(data || []);
+      setUnits(data.data || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch units");
     }
   };
 
-  // --- Fetch Items ---
-  const fetchItems = async () => {
+  const fetchCategories = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-      const company = localStorage.getItem("companyId");
-      if (!token || !company) return;
-
-      const res = await fetch(`${API_URL}/api/menus/`, {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${token}`,
-          Company: company,
-        },
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/item-categories/`, {
+        headers: { Authorization: `Token ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch items");
       const data = await res.json();
-      setItems(data || []);
+      setCategoriesList(data.data || []);
     } catch (err) {
       console.error(err);
-      setItems([]);
-      toast.error("Failed to fetch items");
+      toast.error("Failed to fetch categories");
+    }
+  };
+
+  const fetchMenus = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/menus/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      const data = await res.json();
+      console.log("Menus API Data:", data);
+      setMenus(data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch menus");
     }
   };
 
   useEffect(() => {
     fetchUnits();
-    fetchItems();
+    fetchCategories();
+    fetchMenus();
   }, []);
 
   // --- Form Handlers ---
-  const handleItemImage = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setForm({ ...form, imageFile: file });
+  const handleCategoryChange = (index, field, value) => {
+    const updated = [...form.categories];
+    updated[index][field] = value;
+    setForm({ ...form, categories: updated });
   };
 
   const handleCategoryImage = (index, e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const updatedCategories = [...form.categories];
-    updatedCategories[index].imageFile = file;
-    setForm({ ...form, categories: updatedCategories });
-  };
-
-  const handleCategoryChange = (index, field, value) => {
-    const updatedCategories = [...form.categories];
-    updatedCategories[index][field] = value;
-    setForm({ ...form, categories: updatedCategories });
+    const updated = [...form.categories];
+    updated[index].imageFile = file;
+    setForm({ ...form, categories: updated });
   };
 
   const handleAddCategory = () => {
@@ -91,50 +95,55 @@ export default function AdminMenuUnitPage() {
       ...form,
       categories: [
         ...form.categories,
-        { name: "", unit: "", price: "", imageFile: null },
+        { name: "", price: "", item_category: "", unit: "", imageFile: null },
       ],
     });
   };
 
-  const handleDeleteCategory = (index) => {
-    const updatedCategories = form.categories.filter((_, i) => i !== index);
-    setForm({ ...form, categories: updatedCategories });
+  const handleDeleteCategoryForm = (index) => {
+    const updated = form.categories.filter((_, i) => i !== index);
+    setForm({ ...form, categories: updated });
   };
 
-  // --- Submit Item ---
+  // --- Submit Menu ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const token = localStorage.getItem("adminToken");
-      if (!token) {
-        toast.error("Please log in as admin or staff first!");
-        setLoading(false);
-        return;
-      }
-
-      const url = editId
-        ? `${API_URL}/api/menus/${editId}/`
-        : `${API_URL}/api/menus/`;
-      const method = editId ? "PUT" : "POST";
+      if (!token) throw new Error("Login again!");
 
       const formData = new FormData();
-      formData.append("item_name", form.item_name);
-      formData.append("description", form.description);
-      formData.append("is_available", form.is_available);
-      if (form.imageFile) formData.append("image", form.imageFile);
+      formData.append("menu_date", form.menu_date);
+
+      // form.categories.forEach((cat, index) => {
+      //   if (!cat.name || !cat.price || !cat.item_category || !cat.unit) {
+      //     throw new Error(`Category ${index + 1} has empty required fields`);
+      //   }
+
+      //   formData.append("name", cat.name);
+      //   formData.append("price", cat.price);
+      //   formData.append("item_category", cat.item_category);
+      //   formData.append("unit", cat.unit);
+
+      //   if (cat.imageFile) formData.append("imageFile", cat.imageFile);
+      // });
 
       form.categories.forEach((cat, index) => {
-        formData.append(`categories[${index}][name]`, cat.name);
-        formData.append(`categories[${index}][unit]`, cat.unit);
-        formData.append(
-          `categories[${index}][price]`,
-          parseFloat(cat.price) || 0
-        );
-        if (cat.imageFile)
-          formData.append(`categories[${index}][image]`, cat.imageFile);
+        formData.append(`name_${index}`, cat.name);
+        formData.append(`price_${index}`, cat.price);
+        formData.append(`item_category_${index}`, cat.item_category);
+        formData.append(`unit_${index}`, cat.unit);
+
+        if (cat.imageFile) {
+          formData.append(`imageFile_${index}`, cat.imageFile);
+        }
       });
+
+      const url = editingMenuId
+        ? `${API_URL}/api/menus/${editingMenuId}/`
+        : `${API_URL}/api/menus/`;
+      const method = editingMenuId ? "PATCH" : "POST";
 
       const res = await fetch(url, {
         method,
@@ -142,245 +151,254 @@ export default function AdminMenuUnitPage() {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Failed to save item");
+      const resData = await res.json();
+      if (!res.ok || resData.response_code !== "0") {
+        const errorMessages = Object.values(resData.errors || {})
+          .flat()
+          .join(" | ");
+        throw new Error(errorMessages || "Failed to save menu");
+      }
 
-      await res.json();
-      fetchItems();
+      toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
       setForm({
-        item_name: "",
-        description: "",
-        imageFile: null,
-        is_available: true,
-        categories: [{ name: "", unit: "", price: "", imageFile: null }],
+        menu_date: "",
+        categories: [
+          { name: "", price: "", item_category: "", unit: "", imageFile: "" },
+        ],
       });
-      setEditId(null);
-      toast.success(editId ? "Item updated!" : "Item created!");
+      setEditingMenuId(null);
+      fetchMenus();
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Error saving item");
+      toast.error(err.message || "Error saving menu");
     }
     setLoading(false);
   };
 
-  const editItem = (item) => {
+  const handleEditMenu = (menu) => {
+    setEditingMenuId(menu.reference_id);
+
     setForm({
-      item_name: item.item_name,
-      description: item.description,
-      imageFile: null,
-      is_available: item.is_available,
-      categories: item.categories.map((c) => ({ ...c, imageFile: null })),
+      menu_date: menu.menu_date,
+      categories: [
+        {
+          name: menu.name || "",
+          price: menu.price || "",
+          item_category: menu.item_category || "",
+          unit: menu.unit || "",
+          imageFile: null,
+        },
+      ],
     });
-    setEditId(item._id || item.id);
+
+   if (formRef.current) {
+  formRef.current.scrollIntoView({
+    behavior: "smooth", 
+    block: "start",     
+  });
+}
+
   };
 
-  const deleteItem = async (id) => {
-    if (!confirm("Delete this item?")) return;
-
+  const handleDeleteMenu = async (menuId) => {
+    if (!confirm("Are you sure you want to delete this menu?")) return;
     try {
       const token = localStorage.getItem("adminToken");
-      const company = localStorage.getItem("companyId");
-      const res = await fetch(`${API_URL}/api/menus/${id}/`, {
+      const res = await fetch(`${API_URL}/api/menus/${menuId}/`, {
         method: "DELETE",
-        headers: { Authorization: `Token ${token}`, Company: company },
+        headers: { Authorization: `Token ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to delete item");
-      toast.success("Item deleted!");
-      fetchItems();
+      if (!res.ok) throw new Error("Failed to delete menu");
+      toast.success("Menu deleted!");
+      fetchMenus();
     } catch (err) {
       console.error(err);
-      toast.error("Error deleting item");
+      toast.error(err.message || "Delete failed");
     }
   };
 
   return (
-    <div className="container mx-auto p-4 font-sans">
-      <Toaster position="top-right" />
-
-      <h2 className="text-3xl font-bold text-center mb-6 text-amber-800">
-        Menu & Unit Management
+    <div className="container mx-auto p-6">
+      <ToastProvider />
+      <h2 className="text-3xl font-bold mb-6 text-amber-600">
+        {editingMenuId ? "Edit Menu" : "Create Menu"}
       </h2>
 
-      {/* --- Add / Edit Item --- */}
-      <div className="bg-white shadow-2xl rounded-3xl p-6 mb-6 border border-gray-200">
-        <h4 className="text-2xl font-semibold mb-6 text-gray-700">
-          {editId ? "Edit Item" : "Add New Item"}
-        </h4>
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block font-medium mb-2 text-gray-600">
-                Item Name
-              </label>
-              <input
-                type="text"
-                placeholder="Item Name"
-                value={form.item_name}
-                onChange={(e) =>
-                  setForm({ ...form, item_name: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-md"
-                required
-              />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <label className="block font-medium mb-2 text-gray-600">
-                Description
-              </label>
-              <textarea
-                placeholder="Optional description"
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-                className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-md"
-              />
-            </div>
+      {/* Form */}
+      <form
+      ref={formRef}
+        onSubmit={handleSubmit}
+        className="space-y-6 bg-white shadow-lg rounded-xl p-6 mb-8"
+      >
+        <div className="mb-4">
+          <label className="block mb-2 text-amber-700 font-semibold">
+            Menu Date
+          </label>
+          <input
+            type="date"
+            value={form.menu_date}
+            onChange={(e) => setForm({ ...form, menu_date: e.target.value })}
+            className="w-full border border-amber-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            required
+          />
+        </div>
 
-            <div className="flex items-center mt-6 md:mt-0">
-              <input
-                type="checkbox"
-                checked={form.is_available}
-                onChange={(e) =>
-                  setForm({ ...form, is_available: e.target.checked })
-                }
-                className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="ml-3 font-medium text-gray-700">Available</span>
-            </div>
-
-            <div className="col-span-1 md:col-span-2">
-              <h4 className="text-xl font-semibold mb-3 text-gray-700">
-                Categories
-              </h4>
-              {form.categories.map((cat, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center p-4 mb-3 rounded-2xl shadow-lg border border-gray-200"
-                >
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={cat.name}
-                    onChange={(e) =>
-                      handleCategoryChange(index, "name", e.target.value)
-                    }
-                    className="border rounded-2xl px-3 py-2 focus:ring-2 focus:ring-amber-500 shadow-sm"
-                  />
-                  <select
-                    value={cat.unit}
-                    onChange={(e) =>
-                      handleCategoryChange(index, "unit", e.target.value)
-                    }
-                    className="border rounded-2xl px-3 py-2 focus:ring-2 focus:ring-amber-500 shadow-sm"
-                  >
-                    <option value="">Select Unit</option>
-                    {units.map((u) => (
-                      <option key={u.id || u._id} value={u.name}>
-                        {u.name} ({u.price})
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={cat.price}
-                    onChange={(e) =>
-                      handleCategoryChange(index, "price", e.target.value)
-                    }
-                    className="border rounded-2xl px-3 py-2 focus:ring-2 focus:ring-amber-500 shadow-sm"
-                  />
-                  <input
-                    type="file"
-                    onChange={(e) => handleCategoryImage(index, e)}
-                    className="cursor-pointer rounded-xl px-2 py-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCategory(index)}
-                    className="text-red-500 hover:text-red-700 p-2"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                </div>
+        {form.categories.map((cat, idx) => (
+          <div
+            key={idx}
+            className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4 border border-amber-200 p-4 rounded-lg shadow-sm items-center"
+          >
+            <input
+              type="text"
+              placeholder="Name"
+              value={cat.name}
+              onChange={(e) =>
+                handleCategoryChange(idx, "name", e.target.value)
+              }
+              className="border border-amber-300 p-2 rounded-lg"
+              required
+            />
+            <input
+              type="number"
+              placeholder="Price"
+              value={cat.price}
+              onChange={(e) =>
+                handleCategoryChange(idx, "price", e.target.value)
+              }
+              className="border border-amber-300 p-2 rounded-lg"
+              required
+            />
+            <select
+              value={cat.item_category}
+              onChange={(e) =>
+                handleCategoryChange(idx, "item_category", e.target.value)
+              }
+              className="border border-amber-300 p-2 rounded-lg"
+              required
+            >
+              <option value="">Select Item Category</option>
+              {categoriesList.map((c) => (
+                <option key={c.reference_id} value={c.reference_id}>
+                  {c.name}
+                </option>
               ))}
-              <button
-                type="button"
-                onClick={handleAddCategory}
-                className="bg-amber-500 text-white px-5 py-2 rounded-2xl shadow-md hover:bg-amber-700 transition"
-              >
-                + Add Category
-              </button>
-            </div>
-
-            <div className="col-span-1 md:col-span-2 text-right mt-6">
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-amber-500 font-bold text-white px-6 py-3 rounded-2xl shadow-lg hover:bg-amber-700 transition"
-              >
-                {loading ? "Saving..." : editId ? "Update Item" : "Save"}
-              </button>
-            </div>
+            </select>
+            <select
+              value={cat.unit}
+              onChange={(e) =>
+                handleCategoryChange(idx, "unit", e.target.value)
+              }
+              className="border border-amber-300 p-2 rounded-lg"
+              required
+            >
+              <option value="">Select Unit</option>
+              {units.map((u) => (
+                <option key={u.reference_id} value={u.reference_id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleCategoryImage(idx, e)}
+              className="border border-amber-300 p-2 rounded-lg"
+            />
+            <button
+              type="button"
+              onClick={() => handleDeleteCategoryForm(idx)}
+              className="text-red-600"
+            >
+              <Trash2 size={20} />
+            </button>
           </div>
-        </form>
-      </div>
+        ))}
 
-      {/* --- Items Table --- */}
-      <h3 className="text-xl font-bold mb-4 text-gray-700">Items List</h3>
-      <div className="overflow-x-auto bg-white shadow-2xl border border-gray-200 rounded-2xl mb-6">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-800 text-white rounded-t-2xl">
+        <button
+          type="button"
+          onClick={handleAddCategory}
+          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg"
+        >
+          + Add Category
+        </button>
+
+        <div className="text-right">
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50"
+          >
+            {loading
+              ? "Saving..."
+              : editingMenuId
+              ? "Update Menu"
+              : "Create Menu"}
+          </button>
+        </div>
+      </form>
+
+      {/* Menu Table */}
+      <h2 className="text-2xl font-bold mb-4 text-amber-600">All Menus</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-amber-200 rounded-lg">
+          <thead className="bg-amber-100">
             <tr>
-              <th className="px-4 py-3 text-left">Image</th>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">Description</th>
-              <th className="px-4 py-3 text-left">Available</th>
-              <th className="px-4 py-3 text-left">Actions</th>
+              <th className="px-4 py-2 border">Menu Date</th>
+              <th className="px-4 py-2 border">Name</th>
+              <th className="px-4 py-2 border">Price</th>
+              <th className="px-4 py-2 border">Item Category</th>
+              <th className="px-4 py-2 border">Unit</th>
+              <th className="px-4 py-2 border">Image</th>
+              <th className="px-4 py-2 border">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {items.map((item) => (
-              <tr
-                key={item._id || item.id}
-                className="hover:bg-gray-50 transition"
-              >
-                <td className="px-4 py-3">
-                  {item.image && (
+          <tbody>
+            {menus.map((menu) => (
+              <tr key={menu.reference_id} className="hover:bg-amber-50">
+                <td className="px-4 py-2 border">{menu.menu_date}</td>
+                <td className="px-4 py-2 border">{menu.name}</td>
+                <td className="px-4 py-2 border">{menu.price}</td>
+                <td>
+                  {categoriesList.find(
+                    (c) => c.reference_id === menu.item_category
+                  )?.name || "N/A"}
+                </td>
+                <td>
+                  {units.find((u) => u.reference_id === menu.unit)?.name ||
+                    "N/A"}
+                </td>
+                <td className="px-4 py-2 border">
+                  {menu.imageFile || menu.image_url ? (
                     <img
-                      src={item.image}
-                      alt={item.item_name}
-                      className="w-20 h-20 object-cover rounded-2xl shadow-sm"
+                      src={
+                        menu.imageFile
+                          ? URL.createObjectURL(menu.imageFile)
+                          : menu.image_url
+                      }
+                      alt={menu.name}
+                      className="w-10 h-10 object-cover rounded"
                     />
+                  ) : (
+                    "No Image"
                   )}
                 </td>
-                <td className="px-4 py-3">{item.item_name}</td>
-                <td className="px-4 py-3">{item.description}</td>
-                <td className="px-4 py-3">
-                  {item.is_available ? "Yes" : "No"}
-                </td>
-                <td className="px-4 py-3 flex gap-2">
+
+                <td className="px-4 py-2 border space-x-2">
                   <button
-                    className="bg-yellow-400 text-black px-3 py-1 rounded-xl hover:bg-yellow-500 shadow-sm transition"
-                    onClick={() => editItem(item)}
+                    onClick={() => handleEditMenu(menu)}
+                    className="text-blue-600 hover:text-blue-800"
                   >
-                    Edit
+                    <Edit2 size={18} />
                   </button>
                   <button
-                    className="bg-red-500 text-white px-3 py-1 rounded-xl hover:bg-red-600 shadow-sm transition"
-                    onClick={() => deleteItem(item._id || item.id)}
+                    onClick={() => handleDeleteMenu(menu.reference_id)}
+                    className="text-red-600 hover:text-red-800"
                   >
-                    Delete
+                    <Trash2 size={18} />
                   </button>
                 </td>
               </tr>
             ))}
-            {items.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center py-6 text-gray-400">
-                  No items added yet.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
