@@ -232,7 +232,7 @@ export default function AdminMenuManager() {
   {!showForm && (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
       <h2 className="text-2xl sm:text-3xl font-bold text-blue-600">
-        Menus
+        Menu Management
       </h2>
       <button
         onClick={() => setShowForm(true)}

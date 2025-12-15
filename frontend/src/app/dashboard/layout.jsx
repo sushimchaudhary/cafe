@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import DesktopSidebar from "./DesktopSidebar";
-import MobileSidebar from "./MobileSidebar";
+
 import { useEffect, useState } from "react";
 
 export default function DashboardLayout({ children }) {
@@ -54,14 +54,7 @@ export default function DashboardLayout({ children }) {
       >
         {children}
       </DesktopSidebar>
-{/* 
-      <MobileSidebar
-        router={router}
-        handleLogout={handleLogout}
-        is_superuser={isSuperUser}
-      >
-        {children}
-      </MobileSidebar> */}
+
     </>
   );
 }
