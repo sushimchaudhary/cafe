@@ -9,8 +9,13 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
 
+} from "recharts";
+import {
+
+  Menu,
+} from "lucide-react";
+import { useSidebar } from "./SidebarContext";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /* -------- Date Helpers -------- */
@@ -25,7 +30,8 @@ const formatDate = (dateString) => {
   return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 };
 
-export default function AdminOrdersDashboard() {
+export default function AdminOrdersDashboard({handleLogout}) {
+  const { collapsed, setCollapsed } = useSidebar(); 
   const [orders, setOrders] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -100,12 +106,24 @@ export default function AdminOrdersDashboard() {
   });
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className="p-0 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8 p-5 bg-white rounded-xl shadow border">
-        <h1 className="text-3xl font-bold text-amber-700">
+      <div className="flex justify-between items-center mb-8 p-6 border border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center gap-4">
+          {/* Toggle Button with Icon */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-2 rounded bg-gray-100 hover:bg-gray-200 transition-colors"
+            title="Toggle Sidebar"
+          >
+            <Menu size={24} className="text-gray-700" />
+          </button>
+
+           <h1 className="text-3xl font-bold text-green-500">
           Royal Dine Dashboard
         </h1>
+        </div>
+       
 
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -130,7 +148,7 @@ export default function AdminOrdersDashboard() {
                 <button className="w-full p-3 hover:bg-gray-100">
                   Profile
                 </button>
-                <button className="w-full p-3 text-red-500 hover:bg-gray-100">
+                <button onClick={handleLogout} className="w-full p-3 text-red-500 hover:bg-gray-100">
                   Logout
                 </button>
               </div>
@@ -140,7 +158,7 @@ export default function AdminOrdersDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 p-6">
         <div className="bg-white p-6 rounded-xl shadow">
           <p className="text-gray-500">Today Orders</p>
           <h2 className="text-3xl font-bold text-amber-600">
@@ -169,25 +187,26 @@ export default function AdminOrdersDashboard() {
           </h2>
         </div>
       </div>
+      <div className="p-6">
+        <div className="p-6 rounded-xl shadow">
+          <h2 className="text-xl font-semibold mb-4">
+            Weekly Revenue
+          </h2>
 
-      <div className="bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">
-          Weekly Revenue
-        </h2>
-
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={weeklyData}>
-            <XAxis dataKey="day" />
-            <YAxis />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="total"
-              stroke="#f59e0b"
-              strokeWidth={3}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={weeklyData}>
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="total"
+                stroke="#f59e0b"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

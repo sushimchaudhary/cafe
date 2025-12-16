@@ -1,5 +1,7 @@
 "use client";
 
+import ToastProvider from "@/components/ToastProvider";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -10,10 +12,8 @@ export default function AdminMenuUnitPage() {
   const [unitName, setUnitName] = useState("");
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-  // ------------------------------
-  // FETCH UNITS
-  // ------------------------------
   const fetchUnits = async () => {
     try {
       const token = localStorage.getItem("adminToken");
@@ -41,9 +41,6 @@ export default function AdminMenuUnitPage() {
     fetchUnits();
   }, []);
 
-  // ------------------------------
-  // ADD / UPDATE UNIT
-  // ------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!unitName.trim()) return toast.error("Unit name is required");
@@ -87,18 +84,12 @@ export default function AdminMenuUnitPage() {
     }
   };
 
-  // ------------------------------
-  // EDIT UNIT
-  // ------------------------------
   const handleEdit = (unit) => {
     console.log("Editing unit:", unit);
     setUnitName(unit.name);
-    setEditId(unit.reference_id); // use reference_id from MongoDB
+    setEditId(unit.reference_id);
   };
 
-  // ------------------------------
-  // DELETE UNIT
-  // ------------------------------
   const handleDelete = async (reference_id) => {
     console.log("Deleting unit ID:", reference_id);
     if (!reference_id) return toast.error("Invalid unit ID");
@@ -128,90 +119,131 @@ export default function AdminMenuUnitPage() {
   };
 
   return (
-    <div className="min-h-screen p-6 ">
-      <h1 className="text-3xl font-bold text-amber-700 mb-6">Menu Units</h1>
-
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow mb-6 max-w-md"
-      >
-        <h2 className="text-xl font-semibold mb-4">
-          {editId ? "Edit Unit" : "Add Unit"}
-        </h2>
-
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Unit Name</label>
-          <input
-            type="text"
-            value={unitName}
-            onChange={(e) => setUnitName(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            required
-          />
+    <>
+      <div className="flex flex-col items-start md:flex-row justify-between md:items-center bg-white shadow-md border border-gray-200  px-4 sm:px-6   md:px-10 py-2 md:pt-15 lg:py-3 gap-4 ">
+        <div className="flex-1 pt-15 md:pt-0 lg:pt-0">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-green-600 leading-tight">
+            Menu Units
+          </h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1">
+            Manage all menu units here
+          </p>
         </div>
 
         <button
-          type="submit"
-          disabled={loading}
-          className="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700"
+          onClick={() => {
+            setEditId(null);
+            setUnitName("");
+            setShowForm(true);
+          }}
+          className="flex items-center justify-center gap-2 w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-lg transition duration-300 cursor-pointer"
         >
-          {loading ? "Processing..." : editId ? "Update" : "Add"}
+          + Create Unit
         </button>
+      </div>
 
-        {editId && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditId(null);
-              setUnitName("");
-            }}
-            className="ml-2 bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-        )}
-      </form>
-
-      {/* Table */}
-      <div className="bg-white p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-4">Unit List</h2>
-
-        {units.length === 0 ? (
-          <p>No units found</p>
-        ) : (
-          <table className="w-full table-auto border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-4 py-2">Name</th>
-                <th className="border px-4 py-2">Actions</th>
+      <div className="p-4 md:p-6 min-h-screen font-roboto">
+        <ToastProvider />
+        <div className="overflow-x-auto rounded border border-blue-200">
+          <table className="min-w-full border-collapse">
+            <thead className="bg-blue-50 uppercase text-sm">
+              <tr>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Unit Name
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Actions
+                </th>
               </tr>
             </thead>
-
             <tbody>
-              {units.map((u) => (
-                <tr key={u.reference_id}>
-                  <td className="border px-4 py-2">{u.name}</td>
-                  <td className="border px-4 py-2 space-x-2">
-                    <button
-                      onClick={() => handleEdit(u)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(u.reference_id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
+              {units.length === 0 ? (
+                <tr>
+                  <td colSpan="2" className="px-4 py-4 border">
+                    No units found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                units.map((u) => (
+                  <tr
+                    key={u.reference_id}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-2 border">{u.name}</td>
+
+                    <td className="border px-4 py-2">
+                      <div className="flex justify-center gap-8">
+                        <button
+                          onClick={() => handleEdit(u)}
+                          className="text-blue-600 hover:bg-blue-100 p-2 rounded"
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(u.reference_id)}
+                          className="text-red-600 hover:bg-red-100 p-2 rounded"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
-    </div>
+
+      {showForm && (
+         <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-blue-700">
+              {editId ? "Edit Unit" : "Create Unit"}
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Unit Nam
+                </label>
+                <input
+                  type="text"
+                  value={unitName}
+                  onChange={(e) => setUnitName(e.target.value)}
+                  required
+                  className="w-full border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditId(null);
+                    setUnitName("");
+                  }}
+                        className="px-2 py-2 border border-gray-600 rounded-lg font-medium text-red-500 hover:bg-red-100
+        w-full sm:w-auto text-sm sm:text-base cursor-pointer"
+                  >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700
+        text-white rounded-lg shadow 
+        w-full sm:w-auto text-sm sm:text-base font-medium cursor-pointer"
+                  >
+                  {loading ? "Processing..." : editId ? "Update" : "Create"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

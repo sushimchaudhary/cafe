@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import DesktopSidebar from "./DesktopSidebar";
 
 import { useEffect, useState } from "react";
+import { SidebarProvider } from "./SidebarContext";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <>
+     <SidebarProvider>
       <DesktopSidebar
         router={router}
         handleLogout={handleLogout}
@@ -54,7 +56,7 @@ export default function DashboardLayout({ children }) {
       >
         {children}
       </DesktopSidebar>
-
+    </SidebarProvider>
     </>
   );
 }

@@ -352,9 +352,9 @@ export default function TableManager() {
 
       {/* Table Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center p-4 shadow-2xl">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 text-blue-700">
               {editId ? "Edit Table" : "Add Table"}
             </h2>
             {message && <p className="text-red-500 mb-2">{message}</p>}
@@ -385,15 +385,18 @@ export default function TableManager() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-2 py-2 border border-red-500 rounded hover:bg-red-100 text-sm sm:text-base"
-                >
+                       className="px-2 py-2 border border-gray-600 rounded-lg font-medium text-red-500 hover:bg-red-100
+        w-full sm:w-auto text-sm sm:text-base cursor-pointer"
+                  >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-amber-500 text-white rounded text-sm sm:text-base"
-                >
-                  {loading ? "Saving..." : editId ? "Update" : "Add Table"}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700
+        text-white rounded-lg shadow 
+        w-full sm:w-auto text-sm sm:text-base font-medium cursor-pointer"
+                  >
+                  {loading ? "Saving..." : editId ? "Update" : "Create"}
                 </button>
               </div>
             </form>
