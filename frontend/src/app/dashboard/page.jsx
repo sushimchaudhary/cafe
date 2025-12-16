@@ -28,19 +28,19 @@ export default function AdminOrdersDashboard() {
 
   
 
-  /* -------- Fetch Orders -------- */
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/orders`);
-        const data = await res.json();
-        setOrders(data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchOrders();
-  }, []);
+  // /* -------- Fetch Orders -------- */
+  // useEffect(() => {
+  //   const fetchOrders = async () => {
+  //     try {
+  //       const res = await fetch(`${API_URL}/api/orders`);
+  //       const data = await res.json();
+  //       setOrders(data || []);
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
+  //   fetchOrders();
+  // }, []);
 
   const today = getNepalToday();
 

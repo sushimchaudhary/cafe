@@ -13,12 +13,9 @@ export default function AdminHeader({
   const { collapsed, setCollapsed } = useSidebar();
   const [showProfile, setShowProfile] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    router.push("/auth/login");
-  };
 
   return (
+    
     <>
       <div className="flex justify-between items-center gap-4 lg:mb-6 p-4 md:p-6 border border-gray-200 bg-white shadow-sm">
         <div className="flex items-center gap-3 md:gap-4">
@@ -37,7 +34,7 @@ export default function AdminHeader({
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
-          {/* Notification */}
+          
           <div className="relative">
             <Bell className="w-6 h-6 text-amber-700" />
             {pendingOrders > 0 && (
@@ -47,7 +44,7 @@ export default function AdminHeader({
             )}
           </div>
 
-          {/* Profile */}
+         
           <div className="relative">
             <button
               className="p-2 bg-amber-50 rounded-full"

@@ -1,27 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Store,
   Building2,
   Table,
-  LogOut,
+  
   ShoppingCart,
   Box,
   Tag,
-  Menu,
+  
   User,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 
-export default function DesktopSidebar({ router, handleLogout, is_superuser, children }) {
-  const { collapsed, setCollapsed, sidebarOpen, setSidebarOpen } = useSidebar();
+export default function DesktopSidebar({ router, is_superuser, children }) {
+  const { collapsed, setCollapsed, setSidebarOpen } = useSidebar();
   const pathname = usePathname();
   const isSuperUser = is_superuser === true;
 
   const [hovered, setHovered] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const menuItemsSuperUser = [
     { label: "Restaurants", route: "/dashboard/restaurants", icon: Store },
@@ -40,8 +48,8 @@ export default function DesktopSidebar({ router, handleLogout, is_superuser, chi
   const menuItems = isSuperUser ? menuItemsSuperUser : menuItemsStaff;
 
 
-
-  const SidebarContent = ({ collapsed }) => (
+  
+  const SidebarContent = () => (
     <>
       {menuItems.map((item, i) => {
         const Icon = item.icon;
@@ -53,12 +61,12 @@ export default function DesktopSidebar({ router, handleLogout, is_superuser, chi
             onClick={() => {
               router.push(item.route);
 
-              // ✅ mobile only (< 992px) auto close
+            
               if (window.innerWidth < 992) {
                 setCollapsed(true);
               }
 
-              // desktop logic (safe to keep)
+             
               setSidebarOpen(false);
             }}
 
@@ -104,12 +112,12 @@ export default function DesktopSidebar({ router, handleLogout, is_superuser, chi
         </aside>
 
 
-        {/* Mobile Sidebar */}
+        
         <div
           className={`fixed inset-0 z-40 lg:hidden transition-all ${collapsed ? "pointer-events-none" : ""
             }`}
         >
-          {/* Backdrop */}
+          
           {!collapsed && (
             <div
               onClick={() => setCollapsed(true)}
