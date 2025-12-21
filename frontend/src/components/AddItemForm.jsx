@@ -64,6 +64,12 @@ export default function AdminMenuManager() {
       });
       const data = await res.json();
       console.log("Menus API Data:", data);
+      if (data.data && data.data.length > 0) {
+        console.log("Sample menu item_category:", data.data[0].item_category);
+        console.log("Sample menu item_category type:", typeof data.data[0].item_category);
+        console.log("Sample menu unit:", data.data[0].unit);
+        console.log("Sample menu unit type:", typeof data.data[0].unit);
+      }
       setMenus(data.data || []);
     } catch (err) {
       console.error(err);
@@ -76,6 +82,103 @@ export default function AdminMenuManager() {
     fetchCategories();
     fetchMenus();
   }, []);
+
+  // Helper function to extract ID from string representations like "ItemCategory object (17)"
+  const extractIdFromString = (value) => {
+    if (typeof value === 'string' && value.includes('object')) {
+      const match = value.match(/\((\d+)\)/);
+      return match ? match[1] : null;
+    }
+    return null;
+  };
+
+  // Helper function to get category name
+  const getCategoryName = (itemCategory) => {
+    if (!itemCategory) return "N/A";
+    
+    // If it's an object with name property
+    if (typeof itemCategory === 'object' && itemCategory !== null) {
+      if (itemCategory.name) return itemCategory.name;
+      // Check for nested properties
+      if (itemCategory.item_category && itemCategory.item_category.name) {
+        return itemCategory.item_category.name;
+      }
+      // Check if it has an id or reference_id we can use to lookup
+      const lookupId = itemCategory.reference_id || itemCategory.id;
+      if (lookupId) {
+        const found = categoriesList.find(c => 
+          c.reference_id === lookupId || 
+          (c.id && String(c.id) === String(lookupId))
+        );
+        if (found) return found.name;
+      }
+    }
+    
+    // If it's a string, try to find in list
+    if (typeof itemCategory === 'string' && itemCategory) {
+      // First try direct match with reference_id
+      const found = categoriesList.find(c => c.reference_id === itemCategory);
+      if (found) return found.name;
+      
+      // Try extracting ID from string representation like "ItemCategory object (17)"
+      const extractedId = extractIdFromString(itemCategory);
+      if (extractedId) {
+        // Try to find by id (primary key) or reference_id
+        const foundById = categoriesList.find(c => {
+          if (c.id && String(c.id) === extractedId) return true;
+          if (c.reference_id === extractedId) return true;
+          return false;
+        });
+        if (foundById) return foundById.name;
+      }
+    }
+    
+    return "N/A";
+  };
+
+  // Helper function to get unit name
+  const getUnitName = (unit) => {
+    if (!unit) return "N/A";
+    
+    // If it's an object with name property
+    if (typeof unit === 'object' && unit !== null) {
+      if (unit.name) return unit.name;
+      // Check for nested properties
+      if (unit.unit && unit.unit.name) {
+        return unit.unit.name;
+      }
+      // Check if it has an id or reference_id we can use to lookup
+      const lookupId = unit.reference_id || unit.id;
+      if (lookupId) {
+        const found = units.find(u => 
+          u.reference_id === lookupId || 
+          (u.id && String(u.id) === String(lookupId))
+        );
+        if (found) return found.name;
+      }
+    }
+    
+    // If it's a string, try to find in list
+    if (typeof unit === 'string' && unit) {
+      // First try direct match with reference_id
+      const found = units.find(u => u.reference_id === unit);
+      if (found) return found.name;
+      
+      // Try extracting ID from string representation like "Unit object (7)"
+      const extractedId = extractIdFromString(unit);
+      if (extractedId) {
+        // Try to find by id (primary key) or reference_id
+        const foundById = units.find(u => {
+          if (u.id && String(u.id) === extractedId) return true;
+          if (u.reference_id === extractedId) return true;
+          return false;
+        });
+        if (foundById) return foundById.name;
+      }
+    }
+    
+    return "N/A";
+  };
 
   // --- Form Handlers ---
   const handleCategoryChange = (index, field, value) => {
@@ -114,20 +217,6 @@ export default function AdminMenuManager() {
     try {
       const token = localStorage.getItem("adminToken");
       if (!token) throw new Error("Login again!");
-
-      // const formData = new FormData();
-      // formData.append("menu_date", form.menu_date);
-
-      // form.categories.forEach((cat, index) => {
-      //   formData.append(`name_${index}`, cat.name);
-      //   formData.append(`price_${index}`, cat.price);
-      //   formData.append(`item_category_${index}`, cat.item_category);
-      //   formData.append(`unit_${index}`, cat.unit);
-
-      //   if (cat.imageFile) {
-      //     formData.append(`imageFile_${index}`, cat.imageFile);
-      //   }
-      // });
 
       const formData = new FormData();
       formData.append("menu_date", form.menu_date);
@@ -428,22 +517,15 @@ export default function AdminMenuManager() {
                   <td className="border px-4 py-2">{menu.name}</td>
                   <td className="border px-4 py-2">{menu.price}</td>
                   <td className="border px-4 py-2">
-                    {categoriesList.find(
-                      (c) => c.reference_id === menu.item_category
-                    )?.name || "N/A"}
+                    {getCategoryName(menu.item_category)}
                   </td>
                   <td className="border px-4 py-2">
-                    {units.find((u) => u.reference_id === menu.unit)?.name ||
-                      "N/A"}
+                    {getUnitName(menu.unit)}
                   </td>
                   <td className="border px-4 py-2">
-                    {menu.imageFile || menu.image_url ? (
+                    {menu.image || menu.image_url ? (
                       <img
-                        src={
-                          menu.imageFile
-                            ? URL.createObjectURL(menu.imageFile)
-                            : menu.image_url
-                        }
+                        src={menu.image || menu.image_url}
                         alt={menu.name}
                         className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
                       />

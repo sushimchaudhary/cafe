@@ -143,9 +143,12 @@ const AdminOrdersDashboard = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
+          method: "PATCH",
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
           body: JSON.stringify({ status: "Cancelled" }),
         });
         if (!res.ok) throw new Error("Failed to cancel order");
@@ -176,9 +179,12 @@ const AdminOrdersDashboard = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
+          method: "PATCH",
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
           body: JSON.stringify({ status: nextStatus }),
         });
         if (!res.ok) throw new Error("Failed to update status");
@@ -202,8 +208,11 @@ const AdminOrdersDashboard = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}`, {
+        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
           method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
         });
         if (!res.ok) throw new Error("Failed to delete order");
         showToast("Order deleted", "success");

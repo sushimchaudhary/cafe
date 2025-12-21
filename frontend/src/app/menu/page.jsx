@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, QrCode } from "lucide-react";
 import ToastProvider from "@/components/ToastProvider";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Commet } from "react-loading-indicators";
 import { UtensilsCrossed } from "lucide-react";
 import { Utensils } from "lucide-react";
@@ -17,9 +17,11 @@ export default function CustomerMenu() {
   const [menuList, setMenuList] = useState([]);
   const [units, setUnits] = useState([]);
   const [tableNumber, setTableNumber] = useState("-");
+  const [tableInfo, setTableInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const tableToken = searchParams.get("table_token");
@@ -37,15 +39,53 @@ export default function CustomerMenu() {
   const fetchMenus = async (token) => {
     try {
       const adminToken = localStorage.getItem("adminToken");
+      let menus = [];
 
-      const headers = adminToken
-        ? { Authorization: `Token ${adminToken}` }
-        : token
-        ? { "Table-Token": token }
-        : {};
+      // If we have a table token, use the order-scan endpoint
+      if (token) {
+        try {
+          console.log("📡 Fetching menus from order-scan endpoint with token:", token);
+          const res = await axios.get(`${API_URL}/api/order-scan/?token=${token}`);
+          menus = res.data.data || [];
+          console.log("📋 Fetched menus from order-scan:", menus);
+          console.log("📋 Total menus count:", menus.length);
+          
+          // Transform order-scan data structure to match our menu structure
+          menus = menus.map((m) => ({
+            ...m,
+            reference_id: m.reference_id || `menu-${Date.now()}-${Math.random()}`,
+            quantity: 0,
+            // Map the order-scan structure
+            unit: m.unit_name, // Already resolved name
+            item_category: m.item_category_name, // Already resolved name
+            image_url: m.image, // Map image to image_url
+          }));
+        } catch (scanErr) {
+          console.warn("⚠️ order-scan failed, falling back to menus endpoint:", scanErr);
+          // Fallback to regular menus endpoint
+          const headers = adminToken
+            ? { Authorization: `Token ${adminToken}` }
+            : { "Table-Token": token };
+          
+          const res = await axios.get(`${API_URL}/api/menus/`, { headers });
+          menus = res.data.data || [];
+        }
+      } else {
+        // No token, use regular menus endpoint
+        const headers = adminToken
+          ? { Authorization: `Token ${adminToken}` }
+          : {};
 
-      const res = await axios.get(`${API_URL}/api/menus/`, { headers });
-      const menus = res.data.data || [];
+        const res = await axios.get(`${API_URL}/api/menus/`, { headers });
+        menus = res.data.data || [];
+      }
+
+      if (menus.length > 0) {
+        console.log("📋 Sample menu:", menus[0]);
+        console.log("📋 Sample menu unit:", menus[0].unit || menus[0].unit_name);
+        console.log("📋 Sample menu image:", menus[0].image || menus[0].image_url);
+      }
+      
       setMenuList(menus.map((m) => ({ ...m, quantity: 0 })));
       setLoading(false);
     } catch (err) {
@@ -72,13 +112,92 @@ export default function CustomerMenu() {
     }
   };
 
+  // Helper function to extract ID from string representations like "Unit object (7)"
+  const extractIdFromString = (value) => {
+    if (typeof value === 'string' && value.includes('object')) {
+      const match = value.match(/\((\d+)\)/);
+      return match ? match[1] : null;
+    }
+    return null;
+  };
+
+  // Helper function to get unit name
+  const getUnitName = (menuItem) => {
+    // If menuItem has unit_name (from order-scan endpoint), use it directly
+    if (menuItem?.unit_name) {
+      return menuItem.unit_name;
+    }
+    
+    const unit = menuItem?.unit || menuItem;
+    if (!unit) return "N/A";
+    
+    // If it's an object with name property
+    if (typeof unit === 'object' && unit !== null) {
+      if (unit.name) return unit.name;
+      // Check for nested properties
+      if (unit.unit && unit.unit.name) {
+        return unit.unit.name;
+      }
+      // Check if it has an id or reference_id we can use to lookup
+      const lookupId = unit.reference_id || unit.id;
+      if (lookupId) {
+        const found = units.find(u => 
+          u.reference_id === lookupId || 
+          (u.id && String(u.id) === String(lookupId))
+        );
+        if (found) return found.name;
+      }
+    }
+    
+    // If it's a string, check if it's already a name (from order-scan) or needs lookup
+    if (typeof unit === 'string' && unit) {
+      // If it doesn't look like an ID (not a UUID and not "object (id)"), assume it's a name
+      if (!unit.includes('object') && unit.length > 3 && !unit.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        return unit; // Already a name
+      }
+      
+      // Try to find in list by reference_id
+      const found = units.find(u => u.reference_id === unit);
+      if (found) return found.name;
+      
+      // Try extracting ID from string representation like "Unit object (7)"
+      const extractedId = extractIdFromString(unit);
+      if (extractedId) {
+        // Try to find by id (primary key) or reference_id
+        const foundById = units.find(u => {
+          if (u.id && String(u.id) === extractedId) return true;
+          if (u.reference_id === extractedId) return true;
+          return false;
+        });
+        if (foundById) return foundById.name;
+      }
+    }
+    
+    return "N/A";
+  };
+
+  // Helper function to get image URL
+  const getImageUrl = (menu) => {
+    if (menu.image) return menu.image;
+    if (menu.image_url) return menu.image_url;
+    return "https://via.placeholder.com/150?text=No+Image";
+  };
+  
+
   const fetchTableName = async (token) => {
     try {
       const res = await axios.get(`${API_URL}/api/tables/`, {
         headers: { "Table-Token": token },
       });
-      const table = res.data.data?.find((t) => t.token === token);
-      setTableNumber(table?.table_number || "-");
+      const table = res.data.data?.find((t) => t.token === token || t.token === parseInt(token));
+      if (table) {
+        setTableInfo(table);
+        setTableNumber(table.table_number || "-");
+        console.log("📋 Table info fetched:", table);
+      } else {
+        setTableNumber("-");
+        console.warn("⚠️ Table not found with token:", token);
+      }
     } catch (err) {
       console.error("❌ fetchTableName error:", err);
       setTableNumber("-");
@@ -100,7 +219,14 @@ export default function CustomerMenu() {
 
   const handleSubmitOrder = async () => {
     try {
+      if (!API_URL) {
+        console.error("❌ API_URL is not configured!");
+        toast.error("API configuration error. Please contact support.");
+        return;
+      }
+
       const tableToken = searchParams.get("table_token");
+      const adminToken = localStorage.getItem("adminToken");
 
       const cartItems = menuList.filter((i) => i.quantity > 0);
       if (!cartItems.length) {
@@ -108,28 +234,76 @@ export default function CustomerMenu() {
         return;
       }
 
+      if (!tableToken && !adminToken) {
+        toast.error("Table token or admin token required!");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("table_token", tableToken);
+      
+      // Use table_id and token_number if available, otherwise use table_token
+      if (tableInfo) {
+        if (tableInfo.reference_id) {
+          formData.append("table_id", tableInfo.reference_id);
+        }
+        if (tableInfo.token_number !== undefined) {
+          formData.append("token_number", tableInfo.token_number);
+        } else if (tableInfo.token !== undefined) {
+          formData.append("token_number", tableInfo.token);
+        }
+        console.log("📋 Using table info:", {
+          table_id: tableInfo.reference_id,
+          token_number: tableInfo.token_number || tableInfo.token,
+        });
+      } else if (tableToken) {
+        formData.append("table_token", tableToken);
+        console.log("📋 Using table_token:", tableToken);
+      }
 
       cartItems.forEach((item, index) => {
         formData.append(`items[${index}][menu_id]`, item.reference_id);
-        formData.append(`items[${index}][quantity]`, item.quantity);
-        formData.append(`items[${index}][item_price]`, item.price);
+        formData.append(`items[${index}][quantity]`, String(item.quantity));
+        formData.append(`items[${index}][item_price]`, String(item.price));
         formData.append(
           `items[${index}][total_price]`,
-          item.price * item.quantity
+          String(item.price * item.quantity)
         );
       });
 
-      const res = await fetch(`${API_URL}/api/orders/`, {
-        method: "POST",
-        headers: { "Table-Token": tableToken },
-        body: formData,
+      // Log the form data for debugging
+      console.log("📤 Submitting order with:", {
+        tableToken,
+        tableInfo,
+        hasAdminToken: !!adminToken,
+        itemsCount: cartItems.length,
+        API_URL,
+      });
+      
+      // Log FormData contents
+      for (let pair of formData.entries()) {
+        console.log("📦 FormData:", pair[0], "=", pair[1]);
+      }
+
+      // Build headers
+      const headers = {};
+      if (tableToken) {
+        headers["Table-Token"] = tableToken;
+      }
+      if (adminToken) {
+        headers["Authorization"] = `Token ${adminToken}`;
+      }
+
+      // Use axios for better error handling and CORS support
+      const res = await axios.post(`${API_URL}/api/orders/`, formData, {
+        headers: headers,
       });
 
-      const data = await res.json();
-      if (!res.ok || data.response_code !== "0") {
-        toast.error("Order validation failed");
+      console.log("📥 Order API response:", res.data);
+
+      const data = res.data;
+      if (data.response_code !== "0" && data.response_code !== undefined) {
+        const errorMsg = data.message || data.error || "Order validation failed";
+        toast.error(errorMsg);
         return;
       }
 
@@ -137,7 +311,40 @@ export default function CustomerMenu() {
       setMenuList((prev) => prev.map((i) => ({ ...i, quantity: 0 })));
     } catch (error) {
       console.error("❌ Order submit error:", error);
-      toast.error("Something went wrong");
+      
+      if (error.response) {
+        // Server responded with error status
+        const errorData = error.response.data;
+        console.error("❌ Server error response:", errorData);
+        console.error("❌ Error status:", error.response.status);
+        console.error("❌ Full error response:", JSON.stringify(errorData, null, 2));
+        
+        // Extract detailed error messages
+        let errorMsg = "Order submission failed";
+        if (errorData?.errors) {
+          // Handle validation errors
+          const errorMessages = Object.entries(errorData.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`)
+            .join(" | ");
+          errorMsg = errorMessages || errorData.message || errorData.error || errorMsg;
+        } else if (errorData?.message) {
+          errorMsg = errorData.message;
+        } else if (errorData?.error) {
+          errorMsg = errorData.error;
+        } else if (typeof errorData === "string") {
+          errorMsg = errorData;
+        }
+        
+        toast.error(errorMsg);
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("❌ No response received:", error.request);
+        toast.error("Network error: Could not connect to server. Please check your connection.");
+      } else {
+        // Error setting up the request
+        console.error("❌ Request setup error:", error.message);
+        toast.error(error.message || "Something went wrong");
+      }
     }
   };
 
@@ -309,25 +516,29 @@ export default function CustomerMenu() {
                 <div className="relative mr-4">
                   <div className="absolute -inset-1 bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-xl blur opacity-50"></div>
                   <img
-                    src={menu.image_url || menu?.image}
-                    alt={menu.name}
+                    src={getImageUrl(menu)}
+                    alt={menu.name || "Menu item"}
                     className="relative w-24 h-24 rounded-xl object-cover border-[3px] border-amber-400 shadow-lg ring-2 ring-amber-200"
+                    onError={(e) => {
+                      e.target.src = "/images/placeholder.jpg";
+                    }}
                   />
                 </div>
 
                 <div className="flex-1 flex justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-amber-700">
-                      {menu.name}
+                      {menu.name || "Unnamed Item"}
                     </h2>
                     <p className="font-semibold text-amber-900 text-lg mt-1">
-                      Rs {menu.price}
+                      Rs {menu.price || "0.00"}
                     </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Unit:{" "}
-                      {units.find((u) => u.reference_id === menu.unit)?.name ||
-                        "N/A"}
-                    </p>
+                    <div className="text-sm text-gray-600 mt-1 space-y-0.5">
+                      <p>Unit: {getUnitName(menu)}</p>
+                      {menu.item_category_name && (
+                        <p>Category: {menu.item_category_name}</p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
