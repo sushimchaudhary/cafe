@@ -14,6 +14,10 @@ export default function AdminMenuManager() {
   const [units, setUnits] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [menus, setMenus] = useState([]);
+  const [tableToken, setTableToken] = useState(null);
+  const [tables, setTables] = useState([]);
+  const [tableInfo, setTableInfo] = useState(null);
+
   const [form, setForm] = useState({
     menu_date: "",
     categories: [
@@ -24,6 +28,39 @@ export default function AdminMenuManager() {
   const [editingMenuId, setEditingMenuId] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
+
+  const extractTokenFromUrl = (url) => {
+    try {
+      const params = new URL(url).searchParams;
+      return params.get("token");
+    } catch (err) {
+      console.warn("Failed to extract token from URL:", err);
+      return null;
+    }
+  };
+
+  
+ 
+
+
+  const fetchTableInfo = async (token) => {
+    try {
+      const res = await fetch(`${API_URL}/api/tables/?token=${token}`);
+      const data = await res.json();
+      console.log("Table info response:", data);
+
+      if (data.data && data.data.length > 0) {
+        setTableInfo(data.data[0]); // usually 1 table per token
+        console.log("Set tableInfo:", data.data[0]);
+      } else {
+        toast.error("Invalid table token!");
+      }
+    } catch (err) {
+      console.error("Fetch table info failed:", err);
+      toast.error("Failed to fetch table info");
+    }
+  };
+  
   // --- Fetch Units & Categories ---
   const fetchUnits = async () => {
     try {
@@ -66,7 +103,10 @@ export default function AdminMenuManager() {
       console.log("Menus API Data:", data);
       if (data.data && data.data.length > 0) {
         console.log("Sample menu item_category:", data.data[0].item_category);
-        console.log("Sample menu item_category type:", typeof data.data[0].item_category);
+        console.log(
+          "Sample menu item_category type:",
+          typeof data.data[0].item_category
+        );
         console.log("Sample menu unit:", data.data[0].unit);
         console.log("Sample menu unit type:", typeof data.data[0].unit);
       }
@@ -85,7 +125,7 @@ export default function AdminMenuManager() {
 
   // Helper function to extract ID from string representations like "ItemCategory object (17)"
   const extractIdFromString = (value) => {
-    if (typeof value === 'string' && value.includes('object')) {
+    if (typeof value === "string" && value.includes("object")) {
       const match = value.match(/\((\d+)\)/);
       return match ? match[1] : null;
     }
@@ -95,9 +135,9 @@ export default function AdminMenuManager() {
   // Helper function to get category name
   const getCategoryName = (itemCategory) => {
     if (!itemCategory) return "N/A";
-    
+
     // If it's an object with name property
-    if (typeof itemCategory === 'object' && itemCategory !== null) {
+    if (typeof itemCategory === "object" && itemCategory !== null) {
       if (itemCategory.name) return itemCategory.name;
       // Check for nested properties
       if (itemCategory.item_category && itemCategory.item_category.name) {
@@ -106,25 +146,26 @@ export default function AdminMenuManager() {
       // Check if it has an id or reference_id we can use to lookup
       const lookupId = itemCategory.reference_id || itemCategory.id;
       if (lookupId) {
-        const found = categoriesList.find(c => 
-          c.reference_id === lookupId || 
-          (c.id && String(c.id) === String(lookupId))
+        const found = categoriesList.find(
+          (c) =>
+            c.reference_id === lookupId ||
+            (c.id && String(c.id) === String(lookupId))
         );
         if (found) return found.name;
       }
     }
-    
+
     // If it's a string, try to find in list
-    if (typeof itemCategory === 'string' && itemCategory) {
+    if (typeof itemCategory === "string" && itemCategory) {
       // First try direct match with reference_id
-      const found = categoriesList.find(c => c.reference_id === itemCategory);
+      const found = categoriesList.find((c) => c.reference_id === itemCategory);
       if (found) return found.name;
-      
+
       // Try extracting ID from string representation like "ItemCategory object (17)"
       const extractedId = extractIdFromString(itemCategory);
       if (extractedId) {
         // Try to find by id (primary key) or reference_id
-        const foundById = categoriesList.find(c => {
+        const foundById = categoriesList.find((c) => {
           if (c.id && String(c.id) === extractedId) return true;
           if (c.reference_id === extractedId) return true;
           return false;
@@ -132,16 +173,16 @@ export default function AdminMenuManager() {
         if (foundById) return foundById.name;
       }
     }
-    
+
     return "N/A";
   };
 
   // Helper function to get unit name
   const getUnitName = (unit) => {
     if (!unit) return "N/A";
-    
+
     // If it's an object with name property
-    if (typeof unit === 'object' && unit !== null) {
+    if (typeof unit === "object" && unit !== null) {
       if (unit.name) return unit.name;
       // Check for nested properties
       if (unit.unit && unit.unit.name) {
@@ -150,25 +191,26 @@ export default function AdminMenuManager() {
       // Check if it has an id or reference_id we can use to lookup
       const lookupId = unit.reference_id || unit.id;
       if (lookupId) {
-        const found = units.find(u => 
-          u.reference_id === lookupId || 
-          (u.id && String(u.id) === String(lookupId))
+        const found = units.find(
+          (u) =>
+            u.reference_id === lookupId ||
+            (u.id && String(u.id) === String(lookupId))
         );
         if (found) return found.name;
       }
     }
-    
+
     // If it's a string, try to find in list
-    if (typeof unit === 'string' && unit) {
+    if (typeof unit === "string" && unit) {
       // First try direct match with reference_id
-      const found = units.find(u => u.reference_id === unit);
+      const found = units.find((u) => u.reference_id === unit);
       if (found) return found.name;
-      
+
       // Try extracting ID from string representation like "Unit object (7)"
       const extractedId = extractIdFromString(unit);
       if (extractedId) {
         // Try to find by id (primary key) or reference_id
-        const foundById = units.find(u => {
+        const foundById = units.find((u) => {
           if (u.id && String(u.id) === extractedId) return true;
           if (u.reference_id === extractedId) return true;
           return false;
@@ -176,7 +218,7 @@ export default function AdminMenuManager() {
         if (foundById) return foundById.name;
       }
     }
-    
+
     return "N/A";
   };
 
@@ -210,72 +252,128 @@ export default function AdminMenuManager() {
     setForm({ ...form, categories: updated });
   };
 
+  useEffect(() => {
+    const token = extractTokenFromUrl(window.location.href);
+    setTableToken(token);
+    console.log("Customer page tableToken:", token);
+
+    if (token) fetchTableInfo(token);
+  }, []);
+
   // --- Submit Menu ---
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("adminToken");
-      if (!token) throw new Error("Login again!");
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   try {
+  //     const token = localStorage.getItem("adminToken");
+  //     if (!token) throw new Error("Login again!");
 
-      const formData = new FormData();
-      formData.append("menu_date", form.menu_date);
+  //     const formData = new FormData();
+  //     formData.append("menu_date", form.menu_date);
 
-      form.categories.forEach((cat, index) => {
-        const categoryJSON = {
-          name: cat.name,
-          price: cat.price,
-          item_category: cat.item_category,
-          unit: cat.unit,
-        };
-        formData.append(`items[${index}][name]`, cat.name);
-        formData.append(`items[${index}][price]`, cat.price);
-        formData.append(`items[${index}][item_category]`, cat.item_category);
-        formData.append(`items[${index}][unit]`, cat.unit);
+  //     form.categories.forEach((cat, index) => {
+  //       const categoryJSON = {
+  //         name: cat.name,
+  //         price: cat.price,
+  //         item_category: cat.item_category,
+  //         unit: cat.unit,
+  //       };
+  //       formData.append(`items[${index}][name]`, cat.name);
+  //       formData.append(`items[${index}][price]`, cat.price);
+  //       formData.append(`items[${index}][item_category]`, cat.item_category);
+  //       formData.append(`items[${index}][unit]`, cat.unit);
 
-        if (cat.imageFile) {
-          formData.append(`items[${index}][image]`, cat.imageFile);
-        }
-      });
+  //       if (cat.imageFile) {
+  //         formData.append(`items[${index}][image]`, cat.imageFile);
+  //       }
+  //     });
 
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
+  //     for (let pair of formData.entries()) {
+  //       console.log(pair[0], pair[1]);
+  //     }
 
-      const url = editingMenuId
-        ? `${API_URL}/api/menus/${editingMenuId}/`
-        : `${API_URL}/api/menus/`;
-      const method = editingMenuId ? "PATCH" : "POST";
+  //     const url = editingMenuId
+  //       ? `${API_URL}/api/menus/${editingMenuId}/`
+  //       : `${API_URL}/api/menus/`;
+  //     const method = editingMenuId ? "PATCH" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Token ${token}` },
-        body: formData,
-      });
+  //     const res = await fetch(url, {
+  //       method,
+  //       headers: { Authorization: `Token ${token}` },
+  //       body: formData,
+  //     });
 
-      const resData = await res.json();
-      if (!res.ok || resData.response_code !== "0") {
-        const errorMessages = Object.values(resData.errors || {})
-          .flat()
-          .join(" | ");
-        throw new Error(errorMessages || "Failed to save menu");
-      }
+  //     const resData = await res.json();
+  //     if (!res.ok || resData.response_code !== "0") {
+  //       const errorMessages = Object.values(resData.errors || {})
+  //         .flat()
+  //         .join(" | ");
+  //       throw new Error(errorMessages || "Failed to save menu");
+  //     }
 
-      toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
-      setForm({
-        menu_date: "",
-        categories: [
-          { name: "", price: "", item_category: "", unit: "", imageFile: "" },
-        ],
-      });
-      setEditingMenuId(null);
-      fetchMenus();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error saving menu");
+  //     toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
+  //     setForm({
+  //       menu_date: "",
+  //       categories: [
+  //         { name: "", price: "", item_category: "", unit: "", imageFile: "" },
+  //       ],
+  //     });
+  //     setEditingMenuId(null);
+  //     fetchMenus();
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error(err.message || "Error saving menu");
+  //   }
+  //   setLoading(false);
+  // };
+
+  const handleSubmit = async () => {
+    if (!tableInfo || !tableToken) {
+      console.error("Missing table info or token!");
+      toast.error("Table info is still loading. Try again.");
+      return;
     }
+
+    const table_id = tableInfo.id; // Use 'id', not reference_id
+    const token_number = tableToken;
+
+    const orderPayload = {
+      table_id,
+      token_number,
+      items: cart.map((item) => ({
+        menu_name: item.name,
+        quantity: item.qty,
+        item_price: parseFloat(item.price),
+        total_price: parseFloat(item.price) * item.qty,
+      })),
+    };
+
+    console.log("Submitting order payload:", orderPayload);
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/orders/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
+
+      const data = await res.json();
+      console.log("Order response:", data);
+
+      if (res.ok) {
+        toast.success("Order submitted successfully!");
+      } else {
+        toast.error(data.message || "Order submission failed!");
+      }
+    } catch (err) {
+      console.error("Order submit failed:", err);
+      toast.error("Order submission failed!");
+    }
+
     setLoading(false);
   };
+
 
   const handleEditMenu = (menu) => {
     setEditingMenuId(menu.reference_id);
@@ -517,10 +615,10 @@ export default function AdminMenuManager() {
                   <td className="border px-4 py-2">{menu.name}</td>
                   <td className="border px-4 py-2">{menu.price}</td>
                   <td className="border px-4 py-2">
-                    {getCategoryName(menu.item_category)}
+                    {menu.item_category_name || "N/A"}
                   </td>
                   <td className="border px-4 py-2">
-                    {getUnitName(menu.unit)}
+                    {menu.unit_name || "N/A"}
                   </td>
                   <td className="border px-4 py-2">
                     {menu.image || menu.image_url ? (
