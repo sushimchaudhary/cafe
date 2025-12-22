@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, LogIn, User } from "lucide-react";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
 
@@ -122,53 +122,231 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100 px-4">
-      <ToastProvider />
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-amber-600 text-center mb-4">
+
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 px-4 py-8">
+    <ToastProvider />
+    <svg
+        className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern
+            id="momo-pattern"
+            x="0"
+            y="0"
+            width="150"
+            height="150"
+            patternUnits="userSpaceOnUse"
+          >
+            {/* Momo dumpling with fold details */}
+            <g transform="translate(35, 50)">
+              <ellipse
+                cx="0"
+                cy="8"
+                rx="18"
+                ry="5"
+                fill="#d97706"
+                opacity="0.3"
+              />
+              <circle cx="0" cy="0" r="15" fill="#f59e0b" opacity="0.4" />
+              <path
+                d="M -12 0 Q 0 -8 12 0"
+                stroke="#d97706"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.6"
+              />
+              <path
+                d="M -10 -2 Q 0 -10 10 -2"
+                stroke="#d97706"
+                strokeWidth="1.5"
+                fill="none"
+                opacity="0.5"
+              />
+              <path
+                d="M -8 -4 Q 0 -12 8 -4"
+                stroke="#d97706"
+                strokeWidth="1"
+                fill="none"
+                opacity="0.4"
+              />
+              {/* Steam */}
+              <path
+                d="M -8 -18 Q -6 -25 -8 -32"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.3"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 0 -20 Q 2 -27 0 -34"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.3"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 8 -18 Q 10 -25 8 -32"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                fill="none"
+                opacity="0.3"
+                strokeLinecap="round"
+              />
+            </g>
+
+            {/* Decorative plate with food */}
+            <g transform="translate(100, 100)">
+              <ellipse
+                cx="0"
+                cy="0"
+                rx="25"
+                ry="8"
+                fill="none"
+                stroke="#d97706"
+                strokeWidth="2"
+                opacity="0.4"
+              />
+              <ellipse
+                cx="0"
+                cy="-2"
+                rx="28"
+                ry="6"
+                fill="#f59e0b"
+                opacity="0.2"
+              />
+              <circle cx="-8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
+              <circle cx="0" cy="-10" r="6" fill="#d97706" opacity="0.4" />
+              <circle cx="8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
+            </g>
+
+            {/* Fork and spoon icons */}
+            <g transform="translate(115, 35)" opacity="0.25">
+              <rect x="0" y="0" width="1.5" height="25" fill="#d97706" />
+              <circle cx="0.75" cy="-2" r="2" fill="#d97706" />
+              <circle cx="0.75" cy="-6" r="2" fill="#d97706" />
+              <circle cx="0.75" cy="-10" r="2" fill="#d97706" />
+            </g>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#momo-pattern)" />
+      </svg>
+
+    <div className="z-10 bg-white/90 rounded-2xl shadow-2xl p-8 md:p-10 w-full max-w-md border border-amber-100">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
+          <LogIn className="w-8 h-8 text-amber-600" />
+        </div>
+        <h2 className="text-3xl font-bold text-amber-600 mb-2">
           Admin Login
         </h2>
+        <p className="text-gray-600 text-sm">
+          Sign in to access your dashboard
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Username */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Username
+          </label>
+          <div className="relative">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
               required
-              className="w-full px-4 py-2 border rounded-md"
+              className="w-full pl-11 pr-4 py-3 border border-amber-300 rounded-xl
+              focus:ring-2 focus:ring-amber-400 focus:border-amber-400
+              outline-none transition"
             />
           </div>
+        </div>
 
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Password
+          </label>
           <div className="relative">
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
             <input
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
               required
-              className="w-full px-4 py-2 border rounded-md pr-10"
+              className="w-full pl-11 pr-12 py-3 border border-amber-300 rounded-xl
+              focus:ring-2 focus:ring-amber-400 focus:border-amber-400
+              outline-none transition"
             />
-            <div
-              className="absolute top-9 right-3 cursor-pointer"
+            <button
+              type="button"
               onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-600"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </div>
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
           </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 text-white py-2 rounded-md"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-      </div>
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-amber-600 text-white py-3 rounded-xl
+          font-semibold shadow-lg transition duration-300
+          hover:bg-amber-700 focus:ring-2 focus:ring-amber-400
+          disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Logging in...
+            </>
+          ) : (
+            <>
+              <LogIn className="w-5 h-5" />
+              Login
+            </>
+          )}
+        </button>
+      </form>
     </div>
-  );
+  </div>
+);
+
+  
 };
 
 export default AdminLoginPage;

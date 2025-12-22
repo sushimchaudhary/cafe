@@ -11,7 +11,7 @@ export default function MenuManagement() {
 
   return (
     <>
-      <div className="min-h-screen">
+      <div>
         {/* header */}
         <AdminHeader  />
         <div>

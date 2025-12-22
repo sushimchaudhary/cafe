@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useSidebar } from "../app/dashboard/SidebarContext";
 import { useRouter } from "next/navigation";
 
-export default function AdminHeader({ title = "Royal Dine Dashboard", pendingOrders = 0 }) {
+export default function AdminHeader({ title = "Restaurant Management", pendingOrders = 0 }) {
   const router = useRouter();
   const { collapsed, setCollapsed } = useSidebar();
   const [showProfile, setShowProfile] = useState(false);
@@ -29,7 +29,7 @@ export default function AdminHeader({ title = "Royal Dine Dashboard", pendingOrd
   }, []);
 
   return (
-    <div className="flex justify-between items-center gap-4 lg:mb-6 p-4 md:p-6 border border-gray-200 bg-white shadow-sm">
+    <div className="flex justify-between font-sans items-center gap-4 lg:mb-6 p-4 md:p-6 border border-gray-200 bg-white shadow-sm">
       <div className="flex items-center gap-3 md:gap-4">
         {/* Sidebar Toggle */}
         <button
@@ -40,7 +40,7 @@ export default function AdminHeader({ title = "Royal Dine Dashboard", pendingOrd
           <Menu size={24} className="text-gray-700" />
         </button>
 
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-green-500">{title}</h1>
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold ">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3 md:gap-4">

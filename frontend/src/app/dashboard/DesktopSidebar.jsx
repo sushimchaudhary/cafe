@@ -13,8 +13,11 @@ import {
   Tag,
   
   User,
+  Menu,
 } from "lucide-react";
+
 import { useSidebar } from "./SidebarContext";
+import { Bars3Icon } from "@heroicons/react/24/solid";
 
 export default function DesktopSidebar({ router, is_superuser, children }) {
   const { collapsed, setCollapsed, setSidebarOpen } = useSidebar();
@@ -34,12 +37,13 @@ export default function DesktopSidebar({ router, is_superuser, children }) {
   const menuItemsSuperUser = [
     { label: "Restaurants", route: "/dashboard/restaurants", icon: Store },
     { label: "Branches", route: "/dashboard/branches", icon: Building2 },
+    { label: "User", route: "/dashboard/all-users", icon: User },
   ];
 
   const menuItemsStaff = [
     { label: "Dashboard", route: "/dashboard", icon: LayoutDashboard },
     { label: "Orders", route: "/dashboard/orders", icon: ShoppingCart },
-    { label: "Menus", route: "/dashboard/menus", icon: Table },
+    { label: "Menus", route: "/dashboard/menus", icon: Menu },
     { label: "Tables", route: "/dashboard/table-management", icon: Table },
     { label: "Units", route: "/dashboard/units", icon: Box },
     { label: "Categories", route: "/dashboard/category", icon: Tag },

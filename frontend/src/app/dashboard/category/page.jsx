@@ -1,166 +1,127 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+
+import "@/styles/customButtons.css";
 import ToastProvider from "@/components/ToastProvider";
-import AdminHeader from "../../../components/AdminHeader";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { X } from "lucide-react";
+import AdminHeader from "@/components/AdminHeader";
 
-const MenuCategoryPage = () => {
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const [token, setToken] = useState(null);
-  const [restaurant_id, setRestaurantId] = useState(null);
-  const [branch_id, setBranchId] = useState(null);
-
+export default function AdminCategoryManager() {
+  const formRef = useRef(null);
   const [categories, setCategories] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [categoryName, setCategoryName] = useState("");
   const [description, setDescription] = useState("");
-  const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [setFormDisabled] = useState(false);
-  const [showForm, setShowForm] = useState(false);
 
-  // Load token and IDs from localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const t = localStorage.getItem("adminToken");
-      const r = localStorage.getItem("restaurant_id");
-      const b = localStorage.getItem("branch_id");
-
-      setToken(t);
-      setRestaurantId(r);
-      setBranchId(b);
-
-      if (!t) toast.error("Token not found. Please login again!");
-      if (!r || !b) {
-        setFormDisabled(true);
-        toast.error("Branch or Restaurant not assigned. Contact admin!");
-      }
-    }
-  }, []);
-
-  // Fetch categories
+  // Fetch categories from API
   const fetchCategories = async () => {
-    if (!token) return;
-
     try {
-      const res = await axios.get(`${BASE_URL}/api/item-categories/`, {
+      const token = localStorage.getItem("adminToken");
+      if (!token) return;
+      const res = await fetch(`${API_URL}/api/item-categories/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      console.table(res.data.data);
-      // Ensure res.data is an array
-      const data = Array.isArray(res.data) ? res.data : [];
-      setCategories(res.data.data);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch categories.");
-      setCategories([]); // fallback
+      const data = await res.json();
+      setCategories(data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch categories");
     }
   };
 
   useEffect(() => {
-    if (token && restaurant_id && branch_id) fetchCategories();
-  }, [token, restaurant_id, branch_id]);
+    fetchCategories();
+  }, []);
 
-  // Add / Update category
+  // Handle create/update form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!categoryName) return toast.error("Category name is required!");
-    if (!restaurant_id || !branch_id)
-      return toast.error("Branch/Restaurant not assigned.");
-
     setLoading(true);
     try {
+      const token = localStorage.getItem("adminToken");
+      if (!token) throw new Error("Login again!");
+
       const payload = {
         name: categoryName,
         description,
-        restaurant_id,
-        branch_id,
       };
 
-      if (editId) {
-        // PATCH request for update
-        await axios.patch(
-          `${BASE_URL}/api/item-categories/${editId}/`,
-          payload,
-          {
-            headers: { Authorization: `Token ${token}` },
-          }
-        );
-        toast.success("Category updated successfully");
-      } else {
-        // POST request for new category
-        await axios.post(`${BASE_URL}/api/item-categories/`, payload, {
-          headers: { Authorization: `Token ${token}` },
-        });
-        toast.success("Category added successfully");
-      }
+      const url = editId
+        ? `${API_URL}/api/item-categories/${editId}/`
+        : `${API_URL}/api/item-categories/`;
+      const method = editId ? "PATCH" : "POST";
 
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.message || "Failed to save");
+
+      toast.success(editId ? "Category updated!" : "Category created!");
       setCategoryName("");
       setDescription("");
       setEditId(null);
+      setShowForm(false);
       fetchCategories();
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to add/update category.");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error saving category");
     }
+    setLoading(false);
   };
 
   const handleEdit = (cat) => {
+    setEditId(cat.reference_id);
     setCategoryName(cat.name);
     setDescription(cat.description || "");
-    setEditId(cat.reference_id);
     setShowForm(true);
+
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const handleDelete = async (id) => {
-    if (!id) {
-      toast.error("Invalid category ID");
-      return;
-    }
-
     if (!confirm("Are you sure you want to delete this category?")) return;
-
     try {
-      await axios.delete(`${BASE_URL}/api/item-categories/${id}/`, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-        data: {
-          restaurant_id,
-          branch_id,
-        },
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(`${API_URL}/api/item-categories/${id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Token ${token}` },
       });
-
-      toast.success("Category deleted successfully");
+      if (!res.ok) throw new Error("Delete failed");
+      toast.success("Category deleted!");
       fetchCategories();
-    } catch (error) {
-      console.log(error);
-      console.error("DELETE ERROR:", error.response?.data || error.message);
-      toast.error(
-        error.response?.data?.message || "Server error while deleting category"
-      );
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Delete failed");
     }
   };
 
   return (
-    <div className="min-h-screen ">
-      <AdminHeader />
+    <div className="container min-h-screen font-sans">
       <ToastProvider />
-
-      <div className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 leading-tight truncate">
-            Menu Categories
+      <AdminHeader />
+      {/* Header */}
+      {!showForm && (
+        <div className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-600">
+            Categories Management
           </h1>
-        </div>
 
-        <div className="flex-shrink-0 ml-4">
-          {/* Button */}
           <button
             onClick={() => {
               setEditId(null);
@@ -168,32 +129,85 @@ const MenuCategoryPage = () => {
               setDescription("");
               setShowForm(true);
             }}
-            className="flex items-center font-bold justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow-lg transition duration-300 cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-yellow-500  text-black  px-5 py-2 rounded-xl font-bold shadow-lg transition duration-300 cursor-pointer"
           >
             + Create
           </button>
         </div>
-      </div>
+      )}
 
-      {/* CONTENT */}
-      <div className="p-4 md:p-3">
-        <div className="overflow-x-auto rounded border border-blue-200">
-          <table className="min-w-full border-collapse">
-            <thead className="bg-blue-50 uppercase text-sm">
+      {/* FORM */}
+      {showForm && (
+        <div
+          ref={formRef}
+          className="bg-white shadow-lg shadow-amber-100 rounded-xl p-6 m-5"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-amber-600">
+              {editId ? "Edit Category" : "Add Category"}
+            </h2>
+            <button
+              onClick={() => setShowForm(false)}
+              className="text-gray-600 hover:text-red-600"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              placeholder="Category Name"
+              className="w-full border border-amber-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-400"
+              required
+            />
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              className="w-full border border-amber-300 p-3 rounded-lg focus:ring-2 focus:ring-amber-400"
+            />
+
+            <div className="flex justify-end gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 border border-amber-500 hover:bg-amber-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="custom-btn px-6 py-2"
+              >
+                {loading ? "Saving..." : editId ? "Update" : "Create"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TABLE */}
+      <div className="p-3">
+        <div className="overflow-x-auto rounded border border-amber-200">
+          <table className="min-w-full divide-y divide-amber-200">
+            <thead className="bg-amber-50 uppercase text-sm">
               <tr>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Name
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Description
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Actions
-                </th>
+                {["Name", "Description", "Actions"].map((h) => (
+                  <th
+                    key={h}
+                    className="border border-gray-300 px-4 py-3 text-left"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="bg-white divide-y divide-amber-200 text-sm">
               {categories.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="text-center py-6 text-gray-400">
@@ -204,27 +218,25 @@ const MenuCategoryPage = () => {
                 categories.map((cat) => (
                   <tr
                     key={cat.reference_id}
-                    className="border-b hover:bg-gray-50"
+                    className="border-b hover:bg-amber-50 transition"
                   >
                     <td className="border px-4 py-2">{cat.name}</td>
                     <td className="border px-4 py-2">
                       {cat.description || "-"}
                     </td>
-                    <td className="border px-4 py-2">
-                      <div className="flex justify-center gap-4">
-                        <button
-                          onClick={() => handleEdit(cat)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(cat.reference_id)}
-                          className="text-red-600 hover:underline"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      </div>
+                    <td className="px-4 py-2 flex justify-center gap-3">
+                      <button
+                        onClick={() => handleEdit(cat)}
+                        className="text-amber-600 hover:bg-amber-100 p-2 rounded"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cat.reference_id)}
+                        className="text-red-600 hover:bg-red-100 p-2 rounded"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -233,78 +245,6 @@ const MenuCategoryPage = () => {
           </table>
         </div>
       </div>
-
-      {/* MODAL FORM */}
-      {showForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowForm(false);
-            }
-          }}
-        >
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative animate-fadeIn">
-            {/* CLOSE */}
-            <button
-              onClick={() => setShowForm(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-xl font-semibold mb-4 text-blue-700">
-              {editId ? "Edit Category" : "Add Category"}
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Category Name
-                </label>
-                <input
-                  type="text"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-2 py-2 border border-red-500 hover:bg-red-100 rounded-lg cursor-pointer"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg cursor-pointer"
-                >
-                  {loading ? "Saving..." : editId ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
-
-export default MenuCategoryPage;
+}

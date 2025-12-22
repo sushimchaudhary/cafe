@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import ToastProvider from "./ToastProvider";
 import { useRef } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import "../styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -14,10 +15,6 @@ export default function AdminMenuManager() {
   const [units, setUnits] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [menus, setMenus] = useState([]);
-  const [tableToken, setTableToken] = useState(null);
-  const [tables, setTables] = useState([]);
-  const [tableInfo, setTableInfo] = useState(null);
-
   const [form, setForm] = useState({
     menu_date: "",
     categories: [
@@ -28,39 +25,6 @@ export default function AdminMenuManager() {
   const [editingMenuId, setEditingMenuId] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
-
-  const extractTokenFromUrl = (url) => {
-    try {
-      const params = new URL(url).searchParams;
-      return params.get("token");
-    } catch (err) {
-      console.warn("Failed to extract token from URL:", err);
-      return null;
-    }
-  };
-
-  
- 
-
-
-  const fetchTableInfo = async (token) => {
-    try {
-      const res = await fetch(`${API_URL}/api/tables/?token=${token}`);
-      const data = await res.json();
-      console.log("Table info response:", data);
-
-      if (data.data && data.data.length > 0) {
-        setTableInfo(data.data[0]); // usually 1 table per token
-        console.log("Set tableInfo:", data.data[0]);
-      } else {
-        toast.error("Invalid table token!");
-      }
-    } catch (err) {
-      console.error("Fetch table info failed:", err);
-      toast.error("Failed to fetch table info");
-    }
-  };
-  
   // --- Fetch Units & Categories ---
   const fetchUnits = async () => {
     try {
@@ -232,6 +196,22 @@ export default function AdminMenuManager() {
   const handleCategoryImage = (index, e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // 1MB = 1024 * 1024 bytes
+    const MAX_SIZE = 1024 * 1024;
+
+    if (file.size > MAX_SIZE) {
+      toast.error("Image size must be less than 1MB");
+      e.target.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed");
+      e.target.value = "";
+      return;
+    }
+
     const updated = [...form.categories];
     updated[index].imageFile = file;
     setForm({ ...form, categories: updated });
@@ -252,128 +232,72 @@ export default function AdminMenuManager() {
     setForm({ ...form, categories: updated });
   };
 
-  useEffect(() => {
-    const token = extractTokenFromUrl(window.location.href);
-    setTableToken(token);
-    console.log("Customer page tableToken:", token);
-
-    if (token) fetchTableInfo(token);
-  }, []);
-
   // --- Submit Menu ---
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   try {
-  //     const token = localStorage.getItem("adminToken");
-  //     if (!token) throw new Error("Login again!");
-
-  //     const formData = new FormData();
-  //     formData.append("menu_date", form.menu_date);
-
-  //     form.categories.forEach((cat, index) => {
-  //       const categoryJSON = {
-  //         name: cat.name,
-  //         price: cat.price,
-  //         item_category: cat.item_category,
-  //         unit: cat.unit,
-  //       };
-  //       formData.append(`items[${index}][name]`, cat.name);
-  //       formData.append(`items[${index}][price]`, cat.price);
-  //       formData.append(`items[${index}][item_category]`, cat.item_category);
-  //       formData.append(`items[${index}][unit]`, cat.unit);
-
-  //       if (cat.imageFile) {
-  //         formData.append(`items[${index}][image]`, cat.imageFile);
-  //       }
-  //     });
-
-  //     for (let pair of formData.entries()) {
-  //       console.log(pair[0], pair[1]);
-  //     }
-
-  //     const url = editingMenuId
-  //       ? `${API_URL}/api/menus/${editingMenuId}/`
-  //       : `${API_URL}/api/menus/`;
-  //     const method = editingMenuId ? "PATCH" : "POST";
-
-  //     const res = await fetch(url, {
-  //       method,
-  //       headers: { Authorization: `Token ${token}` },
-  //       body: formData,
-  //     });
-
-  //     const resData = await res.json();
-  //     if (!res.ok || resData.response_code !== "0") {
-  //       const errorMessages = Object.values(resData.errors || {})
-  //         .flat()
-  //         .join(" | ");
-  //       throw new Error(errorMessages || "Failed to save menu");
-  //     }
-
-  //     toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
-  //     setForm({
-  //       menu_date: "",
-  //       categories: [
-  //         { name: "", price: "", item_category: "", unit: "", imageFile: "" },
-  //       ],
-  //     });
-  //     setEditingMenuId(null);
-  //     fetchMenus();
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error(err.message || "Error saving menu");
-  //   }
-  //   setLoading(false);
-  // };
-
-  const handleSubmit = async () => {
-    if (!tableInfo || !tableToken) {
-      console.error("Missing table info or token!");
-      toast.error("Table info is still loading. Try again.");
-      return;
-    }
-
-    const table_id = tableInfo.id; // Use 'id', not reference_id
-    const token_number = tableToken;
-
-    const orderPayload = {
-      table_id,
-      token_number,
-      items: cart.map((item) => ({
-        menu_name: item.name,
-        quantity: item.qty,
-        item_price: parseFloat(item.price),
-        total_price: parseFloat(item.price) * item.qty,
-      })),
-    };
-
-    console.log("Submitting order payload:", orderPayload);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await fetch(`${API_URL}/api/orders/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
+      const token = localStorage.getItem("adminToken");
+      if (!token) throw new Error("Login again!");
+
+      const formData = new FormData();
+      formData.append("menu_date", form.menu_date);
+
+      form.categories.forEach((cat, index) => {
+        const categoryJSON = {
+          name: cat.name,
+          price: cat.price,
+          item_category: cat.item_category,
+          unit: cat.unit,
+        };
+        formData.append(`items[${index}][name]`, cat.name);
+        formData.append(`items[${index}][price]`, cat.price);
+        formData.append(`items[${index}][item_category]`, cat.item_category);
+        formData.append(`items[${index}][unit]`, cat.unit);
+
+        if (cat.imageFile) {
+          formData.append(`items[${index}][image]`, cat.imageFile);
+        }
       });
 
-      const data = await res.json();
-      console.log("Order response:", data);
-
-      if (res.ok) {
-        toast.success("Order submitted successfully!");
-      } else {
-        toast.error(data.message || "Order submission failed!");
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
-    } catch (err) {
-      console.error("Order submit failed:", err);
-      toast.error("Order submission failed!");
-    }
 
+      const url = editingMenuId
+        ? `${API_URL}/api/menus/${editingMenuId}/`
+        : `${API_URL}/api/menus/`;
+      const method = editingMenuId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Token ${token}` },
+        body: formData,
+      });
+
+      const resData = await res.json();
+      if (!res.ok || resData.response_code !== "0") {
+        const errorMessages = Object.values(resData.errors || {})
+          .flat()
+          .join(" | ");
+        throw new Error(errorMessages || "Failed to save menu");
+      }
+
+      toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
+      setForm({
+        menu_date: "",
+        categories: [
+          { name: "", price: "", item_category: "", unit: "", imageFile: "" },
+        ],
+      });
+      setEditingMenuId(null);
+      fetchMenus();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error saving menu");
+    }
     setLoading(false);
   };
-
 
   const handleEditMenu = (menu) => {
     setEditingMenuId(menu.reference_id);
@@ -422,14 +346,14 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    <div className="container min-h-screen">
+    <div className="container min-h-screen font-sans">
       <ToastProvider />
 
       {!showForm && (
         <div className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4">
           {/* Title */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 leading-tight truncate">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-600 leading-tight truncate">
               Menus Management
             </h1>
           </div>
@@ -438,7 +362,7 @@ export default function AdminMenuManager() {
           <div className="flex-shrink-0 ml-4">
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition duration-300 cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-yellow-500 text-black px-5 py-2 rounded-xl font-bold shadow-lg transition duration-300 cursor-pointer"
             >
               + Create
             </button>
@@ -448,9 +372,9 @@ export default function AdminMenuManager() {
 
       {/* FORM */}
       {showForm && (
-        <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h2 className="text-xl sm:text-2xl font-semibold text-blue-600">
+        <div className="bg-white shadow-lg shadow-amber-100 rounded-xl p-4 sm:p-6 m-5 mb-6">
+          <div className="flex flex-row justify-between items-center gap-3 mb-4">
+            <h2 className="text-xl sm:text-2xl font-semibold text-amber-600 truncate">
               {editingMenuId ? "Edit Menu" : "Create Menu"}
             </h2>
             <button
@@ -464,14 +388,14 @@ export default function AdminMenuManager() {
           <form ref={formRef} onSubmit={onSubmit} className="space-y-6">
             {/* MENU DATE */}
             <div>
-              <label className="block mb-2 font-semibold ">Menu Date</label>
+              <label className="block mb-2 font-semibold">Menu Date</label>
               <input
                 type="date"
                 value={form.menu_date}
                 onChange={(e) =>
                   setForm({ ...form, menu_date: e.target.value })
                 }
-                className="w-full border border-blue-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full border border-amber-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
                 required
               />
             </div>
@@ -480,7 +404,7 @@ export default function AdminMenuManager() {
             {form.categories.map((cat, idx) => (
               <div
                 key={idx}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-4 border border-blue-200 p-4 rounded-lg shadow-sm items-center"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-4 border border-amber-200 p-4 rounded-lg shadow-sm items-center"
               >
                 <input
                   type="text"
@@ -489,7 +413,7 @@ export default function AdminMenuManager() {
                   onChange={(e) =>
                     handleCategoryChange(idx, "name", e.target.value)
                   }
-                  className="w-full border border-blue-300 p-2 rounded-lg"
+                  className="w-full border border-amber-300 p-2 rounded-lg"
                   required
                 />
 
@@ -500,7 +424,7 @@ export default function AdminMenuManager() {
                   onChange={(e) =>
                     handleCategoryChange(idx, "price", e.target.value)
                   }
-                  className="w-full border border-blue-300 p-2 rounded-lg"
+                  className="w-full border border-amber-300 p-2 rounded-lg"
                   required
                 />
 
@@ -509,7 +433,7 @@ export default function AdminMenuManager() {
                   onChange={(e) =>
                     handleCategoryChange(idx, "item_category", e.target.value)
                   }
-                  className="w-full border border-blue-300 p-2 rounded-lg"
+                  className="w-full border border-amber-300 p-2 rounded-lg"
                   required
                 >
                   <option value="">Select Item Category</option>
@@ -525,7 +449,7 @@ export default function AdminMenuManager() {
                   onChange={(e) =>
                     handleCategoryChange(idx, "unit", e.target.value)
                   }
-                  className="w-full border border-blue-300 p-2 rounded-lg"
+                  className="w-full border border-amber-300 p-2 rounded-lg"
                   required
                 >
                   <option value="">Select Unit</option>
@@ -536,90 +460,98 @@ export default function AdminMenuManager() {
                   ))}
                 </select>
 
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleCategoryImage(idx, e)}
-                  className="w-full border border-blue-300 p-2 rounded-lg"
-                />
+                <div className="w-full flex flex-row items-center gap-2">
+                  {/* Custom Upload Button */}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id={`upload-${idx}`}
+                      onChange={(e) => handleCategoryImage(idx, e)}
+                      className="hidden"
+                    />
 
-                <button
-                  type="button"
-                  onClick={() => handleDeleteCategoryForm(idx)}
-                  className="text-red-600 hover:text-red-800 flex justify-center"
-                >
-                  <Trash2 size={20} />
-                </button>
+                    <label
+                      htmlFor={`upload-${idx}`}
+                      className="block w-full text-center cursor-pointer hover:bg-amber-500 text-black font-semibold py-2 rounded-lg border border-amber-300 transition"
+                    >
+                      Uploads
+                    </label>
+                  </div>
+
+                  {/* Delete Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategoryForm(idx)}
+                    className="text-red-600 hover:text-red-800 flex justify-center p-2"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
             ))}
 
-            <button
-              type="button"
-              onClick={handleAddCategory}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full sm:w-auto"
-            >
-              + Add Category
-            </button>
+            <div className="flex flex-row sm:flex-row sm:justify-between gap-4 mt-6">
+              {/* Add Category Button */}
+              <button
+                type="button"
+                onClick={handleAddCategory}
+                className="custom-btn w-full sm:w-auto"
+              >
+                + Add Category
+              </button>
 
-            {/* SUBMIT */}
-            <div className="text-right">
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50 w-full sm:w-auto"
+                className="custom-btn w-full sm:w-auto"
               >
-                {loading ? "Saving..." : editingMenuId ? "Update " : "Create "}
+                {loading ? "Saving..." : editingMenuId ? "Update" : "Create"}
               </button>
             </div>
           </form>
         </div>
       )}
+
+      {/* TABLE */}
       <div className="p-3">
-        <div className="overflow-x-auto rounded border border-blue-200">
-          <table className="min-w-full divide-y divide-blue-200">
-            {/* Table Head */}
-            <thead className="bg-blue-50 uppercase text-sm">
+        <div className="overflow-x-auto rounded border border-amber-200">
+          <table className="min-w-full divide-y divide-amber-200">
+            <thead className="bg-amber-50 uppercase text-sm">
               <tr>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Menu Date
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Name
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Price
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Item Category
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Unit
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Image
-                </th>
-                <th className="border border-gray-300 px-4 py-3 text-left">
-                  Actions
-                </th>
+                {[
+                  "Menu Date",
+                  "Name",
+                  "Price",
+                  "Item Category",
+                  "Unit",
+                  "Image",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="border border-gray-300 px-4 py-3 text-left"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            {/* Table Body */}
-            <tbody className="bg-white divide-y divide-blue-200 text-sm">
+            <tbody className="bg-white divide-y divide-amber-200 text-sm">
               {menus.map((menu) => (
                 <tr
                   key={menu.reference_id}
-                  className="border-b hover:bg-gray-50 transition"
+                  className="border-b hover:bg-amber-50 transition"
                 >
                   <td className="border px-4 py-2">{menu.menu_date}</td>
                   <td className="border px-4 py-2">{menu.name}</td>
                   <td className="border px-4 py-2">{menu.price}</td>
                   <td className="border px-4 py-2">
-                    {menu.item_category_name || "N/A"}
+                    {getCategoryName(menu.item_category)}
                   </td>
-                  <td className="border px-4 py-2">
-                    {menu.unit_name || "N/A"}
-                  </td>
+                  <td className="border px-4 py-2">{getUnitName(menu.unit)}</td>
                   <td className="border px-4 py-2">
                     {menu.image || menu.image_url ? (
                       <img
@@ -631,24 +563,22 @@ export default function AdminMenuManager() {
                       "No Image"
                     )}
                   </td>
-                  <td className="px-4 py-2 flex justify-center gap-2">
-                    <div className="flex justify-center gap-4">
-                      <button
-                        onClick={() => {
-                          handleEditMenu(menu);
-                          setShowForm(true);
-                        }}
-                        className="text-blue-600 hover:bg-blue-100 p-2 rounded"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteMenu(menu.reference_id)}
-                        className="text-red-600 hover:bg-red-100 p-2 rounded"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
+                  <td className="px-4 py-2 flex justify-center gap-4">
+                    <button
+                      onClick={() => {
+                        handleEditMenu(menu);
+                        setShowForm(true);
+                      }}
+                      className="text-amber-600 hover:bg-amber-100 p-2 rounded"
+                    >
+                      <PencilIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMenu(menu.reference_id)}
+                      className="text-red-600 hover:bg-red-100 p-2 rounded"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
                   </td>
                 </tr>
               ))}

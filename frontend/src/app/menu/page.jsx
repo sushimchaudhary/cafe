@@ -86,7 +86,7 @@ export default function CustomerMenu() {
     try {
       console.log("Fetching table info for token:", token);
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
-        params: { token },
+        params: { token : tableToken },
       });
       console.log("Table info response:", res.data);
   
@@ -122,7 +122,7 @@ export default function CustomerMenu() {
       console.log("Fetching menus for token:", token);
 
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
-        params: { token },
+        params: { token: tableToken },
       });
       console.log("Order scan API response:", res.data);
       console.log("Menu fetch response:", res.data);
@@ -236,7 +236,16 @@ export default function CustomerMenu() {
         console.log(pair[0], ":", pair[1]);
       }
 
-      const res = await axios.post(`${API_URL}/api/orders/`, formData);
+      const res = await axios.post(
+        `${API_URL}/api/orders/`,
+        formData,
+        {
+          params: {
+            token: tableToken,
+          },
+        }
+      );
+      ;
       console.log("Order response:", res.data);
       toast.success("Order placed successfully ✅");
 
