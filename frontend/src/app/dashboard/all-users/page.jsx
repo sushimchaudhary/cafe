@@ -171,7 +171,7 @@ export default function AdminManagementPage() {
       </div>
 
       {/* Admin Table */}
-      <div className="px-4 sm:px-6 md:px-10 p-4">
+      <div className="px-4 sm:px-6 md:px-3 p-3">
         <div className="overflow-x-auto rounded border border-amber-200 bg-white shadow">
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-amber-50 uppercase">
