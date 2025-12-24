@@ -34,7 +34,7 @@ export default function AdminHeader({ title = "Restaurant Management", pendingOr
         {/* Sidebar Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded bg-gray-100 hover:bg-gray-200 transition-colors"
+          className="p-2 rounded  bg-gray-100 hover:bg-gray-200 transition-colors"
           title="Toggle Sidebar"
         >
           <Menu size={24} className="text-gray-700" />

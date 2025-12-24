@@ -11,6 +11,8 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [isSuperUser, setIsSuperUser] = useState(false);
 
+
+  
   useEffect(() => {
     const superUserFlag = localStorage.getItem("is_superuser") === "true";
     const token = localStorage.getItem("adminToken");

@@ -7,7 +7,7 @@ import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import AdminRegisterPage from "@/app/auth/register/page";
 import AdminHeader from "@/components/AdminHeader";
 import ToastProvider from "@/components/ToastProvider";
-import "@/styles/customButtons.css"
+import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -51,8 +51,6 @@ export default function AdminManagementPage() {
       console.log("Raw Response:", res);
       const data = await res.json();
 
-    
-      
       if (!res.ok) throw new Error(data.response || "Failed to fetch admins");
 
       // Always ensure array
@@ -72,7 +70,8 @@ export default function AdminManagementPage() {
         headers: { Authorization: `Token ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.response || "Failed to fetch restaurants");
+      if (!res.ok)
+        throw new Error(data.response || "Failed to fetch restaurants");
       setRestaurants(data.data || []);
     } catch (err) {
       console.error("Fetch restaurants error:", err);
@@ -114,7 +113,9 @@ export default function AdminManagementPage() {
       if (!res.ok) throw new Error(data.response || "Delete failed");
 
       toast.success("Admin deleted successfully!");
-      setAdmins((prev) => prev.filter((admin) => admin.reference_id !== reference_id));
+      setAdmins((prev) =>
+        prev.filter((admin) => admin.reference_id !== reference_id)
+      );
     } catch (err) {
       console.error("Delete Error:", err);
       toast.error(err.message);
@@ -154,7 +155,7 @@ export default function AdminManagementPage() {
             <div className="rounded-3xl w-full max-w-3xl relative animate-fadeIn">
               <AdminRegisterPage
                 adminData={editAdmin}
-                admins={admins} 
+                admins={admins}
                 adminToken={adminToken}
                 restaurants={restaurants}
                 branches={branches}
@@ -176,14 +177,30 @@ export default function AdminManagementPage() {
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-amber-50 uppercase">
               <tr>
-                <th className="border border-gray-300 px-4 py-3 text-left">Username</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Name</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Email</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Mobile</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Address</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Restaurant</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Branch</th>
-                <th className="border border-gray-300 px-4 py-3 text-center">Actions</th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Username
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Name
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Email
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Mobile
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Address
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Restaurant
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-left">
+                  Branch
+                </th>
+                <th className="border border-gray-300 px-4 py-3 text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -194,16 +211,30 @@ export default function AdminManagementPage() {
                     className="border-b hover:bg-amber-50 transition"
                   >
                     <td className="px-4 py-2 border">{admin.username}</td>
-                    <td className="px-4 py-2 border">{admin.first_name} {admin.last_name}</td>
+                    <td className="px-4 py-2 border">
+                      {admin.first_name} {admin.last_name}
+                    </td>
                     <td className="px-4 py-2 border">{admin.email}</td>
                     <td className="px-4 py-2 border">{admin.mobile_number}</td>
                     <td className="px-4 py-2 border">{admin.address}</td>
                     <td className="px-4 py-2 border">
-                      {restaurants.find((r) => r.reference_id === admin.restaurant)?.name || "-"}
+                      {restaurants.find(
+                        (r) =>
+                          r.reference_id === admin.restaurant ||
+                          r.id === admin.restaurant ||
+                          r._id === admin.restaurant
+                      )?.name || "-"}
                     </td>
+
                     <td className="px-4 py-2 border">
-                      {branches.find((b) => b.reference_id === admin.branch)?.name || "-"}
+                      {branches.find(
+                        (b) =>
+                          b.reference_id === admin.branch ||
+                          b.id === admin.branch ||
+                          b._id === admin.branch
+                      )?.name || "-"}
                     </td>
+
                     <td className="border px-4 py-2">
                       <div className="flex justify-center gap-4">
                         <button
@@ -225,7 +256,10 @@ export default function AdminManagementPage() {
                 ))
               ) : (
                 <tr key="no-admins">
-                  <td colSpan={8} className="px-4 py-6 border text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-4 py-6 border text-center text-gray-500"
+                  >
                     No admins found.
                   </td>
                 </tr>

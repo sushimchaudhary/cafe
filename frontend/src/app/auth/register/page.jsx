@@ -111,49 +111,7 @@ export default function AdminRegisterPage({
     }
   }, [adminData]);
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!adminToken) return toast.error("Admin token missing!");
-  //   const requiredFields = ["username","password","first_name","last_name","email","mobile_number", "address", "restaurant","branch"];
-  //   for (let field of requiredFields) {
-  //     if (!form[field]) return toast.error(`Please fill ${field}`);
-  //   }
-
-  //   try {
-  //     const res = await fetch(`${API_URL}/api/user/admins/`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Token ${adminToken}`,
-  //       },
-  //       body: JSON.stringify(form),
-  //     });
-
-  //     const data = await res.json();
-
-  //     if (!res.ok) {
-  //       console.error("Backend Error:", data);
-  //       return toast.error(data.response || "Registration failed");
-  //     }
-
-  //     toast.success("Admin registered successfully!");
-
-  //     setForm({
-  //       username: "",
-  //       password: "",
-  //       first_name: "",
-  //       last_name: "",
-  //       email: "",
-  //       mobile_number: "",
-  //       restaurant: "",
-  //       branch: "",
-  //     });
-  //   } catch (err) {
-  //     console.error("Frontend Error:", err);
-  //     toast.error(err.message);
-  //   }
-  // };
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!adminToken) return toast.error("Admin token missing!");
@@ -186,6 +144,16 @@ export default function AdminRegisterPage({
       if (!res.ok) return toast.error(data.response || "Failed");
 
       toast.success(adminData ? "Admin updated!" : "Admin registered!");
+
+       // 🔹 Save all fields in localStorage
+    localStorage.setItem("username", form.username);
+    localStorage.setItem("first_name", form.first_name);
+    localStorage.setItem("last_name", form.last_name);
+    localStorage.setItem("email", form.email);
+    localStorage.setItem("mobile_number", form.mobile_number);
+    localStorage.setItem("address", form.address);
+    localStorage.setItem("restaurant_name", restaurants.find(r => r.reference_id === form.restaurant)?.name || "-");
+    localStorage.setItem("branch_name", branches.find(b => b.reference_id === form.branch)?.name || "-");
 
       // Refresh parent table
       refreshAdmins();
