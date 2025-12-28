@@ -10,18 +10,6 @@ import ToastProvider from "@/components/ToastProvider";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// const extractTokenFromUrl = (url) => {
-//   if (!url) return null;
-//   try {
-//     const params = new URL(url).searchParams;
-//     return params.get("token");
-//   } catch (err) {
-//     console.warn("Failed to extract token from URL:", url, err);
-//     return null;
-//   }
-// };
-
-
 export default function CustomerMenu() {
   const [menuList, setMenuList] = useState([]);
   const [tableNumber, setTableNumber] = useState("-");
@@ -33,73 +21,21 @@ export default function CustomerMenu() {
   const tableToken =
     searchParams.get("table_token") || searchParams.get("token");
   console.log("Customer page tableToken:", tableToken);
-  console.log("Table token from URL:", tableToken);
-  // useEffect(() => {
-  //   if (tableToken) {
-  //     fetchTableInfo(tableToken);
-  //     fetchMenus(tableToken);
-  //   } else {
-  //     setMenuList([]);
-  //     setLoading(false);
-  //   }
-  // }, [tableToken]);
 
-  /* ------------------ TABLE INFO ------------------ */
-  // const fetchTableInfo = async (token) => {
-  //   try {
-  //     console.log("Fetching table info for token:", token);
-  //     const res = await axios.get(`${API_URL}/api/order-scan/`, {
-  //       params: { token },
-  //     });
-  //     console.log("Table info response:", res.data);
-  //     if (res.data.code === "0" && res.data.data?.length) {
-  //       const table = res.data.data[0];
-  //       const token_number = table.token_number || extractTokenFromUrl(table.qr_code_url);
-  //       setTableInfo({ ...table, token_number });
-  //       console.log("Set tableInfo:", { ...table, token_number });
-  //     } else{
-  //       console.warn("No table info found for token:", token);
-
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching table info:", err);
-  //     setTableNumber("-");
-  //     setTableInfo(null);
-  //   }
-  // };
-
-
-  const extractTokenFromUrl = (url) => {
-    if (!url) return null;
-    try {
-      const params = new URL(url).searchParams;
-      return params.get("token") || null;
-    } catch (err) {
-      console.warn("Failed to extract token from URL:", url, err);
-      return null;
-    }
-  };
-
- 
-
+  /* ------------------ FETCH TABLE INFO ------------------ */
   const fetchTableInfo = async (token) => {
     try {
       console.log("Fetching table info for token:", token);
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
-        params: { token : tableToken },
+        params: { token },
       });
       console.log("Table info response:", res.data);
-  
-      if (res.data.code === "0" && res.data.data?.length) {
-        const table = res.data.data[0];
-  
-        // Token number ensure गर्नु
-        const token_number = table.token_number || extractTokenFromUrl(table.qr_code_url);
-  
-        setTable({ ...table, token_number });
-        setTableNumber(table.table_number || "-");
-  
-        console.log("Set tableInfo:", { ...table, token_number });
+
+      if (res.data.code === "0") {
+        const table = res.data.table;
+        setTable(table);
+        setTableNumber(table?.table_number || "-");
+        console.log("Table number set:", table?.table_number);
       } else {
         setTable(null);
         setTableNumber("-");
@@ -113,19 +49,17 @@ export default function CustomerMenu() {
       setTableLoading(false);
     }
   };
-  
 
-  
-  /* ------------------ MENU LIST ------------------ */
+  /* ------------------ FETCH MENUS ------------------ */
   const fetchMenus = async (token) => {
     try {
       console.log("Fetching menus for token:", token);
 
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
-        params: { token: tableToken },
+        params: { token },
       });
-      console.log("Order scan API response:", res.data);
       console.log("Menu fetch response:", res.data);
+
       if (res.data.code !== "0") {
         toast.error("Menu load failed");
         return;
@@ -138,7 +72,6 @@ export default function CustomerMenu() {
           quantity: 0,
         }))
       );
-      console.log("Menu list set:", menus);
     } catch (err) {
       console.error("Menu fetch error:", err);
       toast.error("Menu load failed");
@@ -173,36 +106,6 @@ export default function CustomerMenu() {
   );
 
   /* ------------------ SUBMIT ORDER ------------------ */
-  // const handleSubmitOrder = async () => {
-  //   if (!totalItems) return toast.error("Cart is empty!");
-
-  //   try {
-  //     const formData = new FormData();
-  //     if (tableInfo) {
-  //       formData.append("table_id", tableInfo.reference_id);
-  //       const tokenNumber =
-  //         tableInfo.token_number || new URL(tableInfo.qr_code_url).searchParams.get("token");
-  //       formData.append("token_number", tokenNumber);
-  //     }
-
-  //     const orderItems = menuList.filter((m) => m.quantity > 0);
-  //     orderItems.forEach((item, idx) => {
-  //       formData.append(`items[${idx}][menu_name]`, item.name);
-  //       formData.append(`items[${idx}][quantity]`, item.quantity);
-  //       formData.append(`items[${idx}][item_price]`, item.price);
-  //       formData.append(`items[${idx}][total_price]`, item.quantity * item.price);
-  //     });
-
-  //     await axios.post(`${API_URL}/api/orders/`, formData);
-  //     toast.success("Order placed successfully ✅");
-
-  //     setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast.error("Order failed");
-  //   }
-  // };
-
   const handleSubmitOrder = async () => {
     if (!totalItems) {
       toast.error("Cart is empty!");
@@ -213,9 +116,8 @@ export default function CustomerMenu() {
       console.log("Submitting order...");
 
       const formData = new FormData();
-      console.table(table);
       if (table) {
-        formData.append("table_id", table.reference_id);
+        formData.append("table_id", table.reference_id || "");
         formData.append("table_number", table.table_number);
       }
 
@@ -231,21 +133,10 @@ export default function CustomerMenu() {
           );
         });
 
-      // Debug: show formData before sending
-      for (let pair of formData.entries()) {
-        console.log(pair[0], ":", pair[1]);
-      }
+      const res = await axios.post(`${API_URL}/api/orders/`, formData, {
+        params: { token: tableToken },
+      });
 
-      const res = await axios.post(
-        `${API_URL}/api/orders/`,
-        formData,
-        {
-          params: {
-            token: tableToken,
-          },
-        }
-      );
-      ;
       console.log("Order response:", res.data);
       toast.success("Order placed successfully ✅");
 
@@ -257,6 +148,7 @@ export default function CustomerMenu() {
     }
   };
 
+  /* ------------------ EFFECT ------------------ */
   useEffect(() => {
     if (tableToken) {
       fetchTableInfo(tableToken);
@@ -396,7 +288,7 @@ export default function CustomerMenu() {
                 Menu
               </h1>
               <p className="text-sm text-amber-600 mt-1 font-medium">
-                Table {table?.table_number || "-"}
+              Table {tableNumber}
               </p>
             </div>
             <div className="relative">

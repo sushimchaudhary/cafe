@@ -7,7 +7,7 @@ import ToastProvider from "@/components/ToastProvider";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { X } from "lucide-react";
 import AdminHeader from "@/components/AdminHeader";
-import "@/styles/customButtons.css"
+import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const FRONTEND_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
@@ -28,14 +28,19 @@ export default function TableManager() {
     try {
       const token = localStorage.getItem("adminToken");
       if (!token) return toast.error("Login first!");
+
+      console.log("[DEBUG] Fetching tables...");
       const res = await fetch(`${API_URL}/api/tables/`, {
         headers: { Authorization: `Token ${token}` },
       });
       const data = await res.json();
+      console.log("[DEBUG] Tables response:", data);
+
       if (!res.ok || data.response_code !== "0") {
         throw new Error(data.response || "Failed to fetch tables");
       }
 
+      // Generate QR codes
       const tablesWithQR = await Promise.all(
         (data.data || []).map(async (t) => {
           let token = t.token;
@@ -44,15 +49,19 @@ export default function TableManager() {
           }
           const qrUrl = token ? `${FRONTEND_URL}/menu?token=${token}` : null;
           let qrBase64 = null;
-          if (qrUrl) qrBase64 = await QRCode.toDataURL(qrUrl);
+          if (qrUrl) {
+            qrBase64 = await QRCode.toDataURL(qrUrl);
+            console.log(`[DEBUG] QR for Table ${t.table_number}:`, qrBase64);
+          }
           return { ...t, qr_code: qrBase64, token_number: token };
         })
       );
 
       setTables(tablesWithQR);
+      console.log("[DEBUG] Tables state updated:", tablesWithQR);
     } catch (err) {
       toast.error(err.message || "Failed to load tables");
-      console.error(err);
+      console.error("[ERROR] fetchTables:", err);
     }
   };
 
@@ -66,6 +75,7 @@ export default function TableManager() {
     setCapacity("");
     setLocation("");
     setEditId(null);
+    console.log("[DEBUG] Form reset");
   };
 
   // ---------------- Submit Table ----------------
@@ -82,6 +92,8 @@ export default function TableManager() {
         ? tables.find((t) => t.reference_id === editId)?.token_number
         : Date.now().toString();
 
+      console.log("[DEBUG] Submitting table with token:", tableToken);
+
       const qr = tableToken ? await QRCode.toDataURL(`${FRONTEND_URL}/menu?token=${tableToken}`) : "";
 
       const formData = new FormData();
@@ -95,8 +107,16 @@ export default function TableManager() {
       const url = editId ? `${API_URL}/api/tables/${editId}/` : `${API_URL}/api/tables/`;
       const method = editId ? "PATCH" : "POST";
 
-      const res = await fetch(url, { method, headers: { Authorization: `Token ${token}` }, body: formData });
+      console.log("[DEBUG] Sending request to:", url, "Method:", method);
+
+      const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Token ${token}` },
+        body: formData,
+      });
       const data = await res.json();
+      console.log("[DEBUG] Submit response:", data);
+
       if (!res.ok || data.response_code !== "0") throw new Error(data.response || "Failed to save table");
 
       toast.success(editId ? "Table updated!" : "Table added!");
@@ -104,7 +124,7 @@ export default function TableManager() {
       setShowForm(false);
       fetchTables();
     } catch (err) {
-      console.error(err);
+      console.error("[ERROR] handleSubmit:", err);
       toast.error(err.message || "Failed to save table");
     } finally {
       setLoading(false);
@@ -118,6 +138,7 @@ export default function TableManager() {
     setCapacity(t.capacity || "");
     setLocation(t.location || "");
     setShowForm(true);
+    console.log("[DEBUG] Editing table:", t);
     if (formRef.current) formRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -126,13 +147,17 @@ export default function TableManager() {
     if (!confirm("Are you sure you want to delete this table?")) return;
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/tables/${id}/`, { method: "DELETE", headers: { Authorization: `Token ${token}` } });
+      console.log("[DEBUG] Deleting table id:", id);
+      const res = await fetch(`${API_URL}/api/tables/${id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Token ${token}` },
+      });
       if (!res.ok) throw new Error("Delete failed");
       toast.success("Table deleted!");
       fetchTables();
     } catch (err) {
       toast.error("Delete failed");
-      console.error(err);
+      console.error("[ERROR] handleDelete:", err);
     }
   };
 

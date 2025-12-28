@@ -57,12 +57,12 @@ export default function Profile() {
 
   useEffect(() => {
   const token = localStorage.getItem("adminToken");
-  if (!token) {
+  if (!token) { 
     router.push("/auth/login");
     return;
   }
 
-  
+
 
   const fetchProfile = async () => {
     try {

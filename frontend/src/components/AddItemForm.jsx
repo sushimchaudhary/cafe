@@ -87,7 +87,6 @@ export default function AdminMenuManager() {
     fetchMenus();
   }, []);
 
-  // Helper function to extract ID from string representations like "ItemCategory object (17)"
   const extractIdFromString = (value) => {
     if (typeof value === "string" && value.includes("object")) {
       const match = value.match(/\((\d+)\)/);
@@ -96,18 +95,16 @@ export default function AdminMenuManager() {
     return null;
   };
 
-  // Helper function to get category name
   const getCategoryName = (itemCategory) => {
     if (!itemCategory) return "N/A";
 
-    // If it's an object with name property
     if (typeof itemCategory === "object" && itemCategory !== null) {
       if (itemCategory.name) return itemCategory.name;
-      // Check for nested properties
+
       if (itemCategory.item_category && itemCategory.item_category.name) {
         return itemCategory.item_category.name;
       }
-      // Check if it has an id or reference_id we can use to lookup
+
       const lookupId = itemCategory.reference_id || itemCategory.id;
       if (lookupId) {
         const found = categoriesList.find(
@@ -119,16 +116,12 @@ export default function AdminMenuManager() {
       }
     }
 
-    // If it's a string, try to find in list
     if (typeof itemCategory === "string" && itemCategory) {
-      // First try direct match with reference_id
       const found = categoriesList.find((c) => c.reference_id === itemCategory);
       if (found) return found.name;
 
-      // Try extracting ID from string representation like "ItemCategory object (17)"
       const extractedId = extractIdFromString(itemCategory);
       if (extractedId) {
-        // Try to find by id (primary key) or reference_id
         const foundById = categoriesList.find((c) => {
           if (c.id && String(c.id) === extractedId) return true;
           if (c.reference_id === extractedId) return true;
@@ -141,18 +134,16 @@ export default function AdminMenuManager() {
     return "N/A";
   };
 
-  // Helper function to get unit name
   const getUnitName = (unit) => {
     if (!unit) return "N/A";
 
-    // If it's an object with name property
     if (typeof unit === "object" && unit !== null) {
       if (unit.name) return unit.name;
-      // Check for nested properties
+
       if (unit.unit && unit.unit.name) {
         return unit.unit.name;
       }
-      // Check if it has an id or reference_id we can use to lookup
+
       const lookupId = unit.reference_id || unit.id;
       if (lookupId) {
         const found = units.find(
@@ -164,16 +155,12 @@ export default function AdminMenuManager() {
       }
     }
 
-    // If it's a string, try to find in list
     if (typeof unit === "string" && unit) {
-      // First try direct match with reference_id
       const found = units.find((u) => u.reference_id === unit);
       if (found) return found.name;
 
-      // Try extracting ID from string representation like "Unit object (7)"
       const extractedId = extractIdFromString(unit);
       if (extractedId) {
-        // Try to find by id (primary key) or reference_id
         const foundById = units.find((u) => {
           if (u.id && String(u.id) === extractedId) return true;
           if (u.reference_id === extractedId) return true;
@@ -186,7 +173,6 @@ export default function AdminMenuManager() {
     return "N/A";
   };
 
-  // --- Form Handlers ---
   const handleCategoryChange = (index, field, value) => {
     const updated = [...form.categories];
     updated[index][field] = value;
@@ -197,7 +183,6 @@ export default function AdminMenuManager() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 1MB = 1024 * 1024 bytes
     const MAX_SIZE = 1024 * 1024;
 
     if (file.size > MAX_SIZE) {
@@ -214,6 +199,7 @@ export default function AdminMenuManager() {
 
     const updated = [...form.categories];
     updated[index].imageFile = file;
+    updated[index].imagePreview = URL.createObjectURL(file);
     setForm({ ...form, categories: updated });
   };
 
@@ -232,95 +218,111 @@ export default function AdminMenuManager() {
     setForm({ ...form, categories: updated });
   };
 
-  // --- Submit Menu ---
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const token = localStorage.getItem("adminToken");
       if (!token) throw new Error("Login again!");
 
       const formData = new FormData();
-      formData.append("menu_date", form.menu_date);
 
-      form.categories.forEach((cat, index) => {
-        const categoryJSON = {
-          name: cat.name,
-          price: cat.price,
-          item_category: cat.item_category,
-          unit: cat.unit,
-        };
-        formData.append(`items[${index}][name]`, cat.name);
-        formData.append(`items[${index}][price]`, cat.price);
-        formData.append(`items[${index}][item_category]`, cat.item_category);
-        formData.append(`items[${index}][unit]`, cat.unit);
+      if (editingMenuId) {
+        const cat = form.categories[0];
+
+        formData.append("menu_date", form.menu_date);
+        formData.append("name", cat.name);
+        formData.append("price", cat.price);
+        formData.append("item_category", cat.item_category);
+        formData.append("unit", cat.unit);
 
         if (cat.imageFile) {
-          formData.append(`items[${index}][image]`, cat.imageFile);
+          formData.append("image", cat.imageFile);
         }
-      });
+      } else {
+        formData.append("menu_date", form.menu_date);
 
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+        form.categories.forEach((cat, index) => {
+          const categoryJSON = {
+            name: cat.name,
+            price: cat.price,
+            item_category: cat.item_category,
+            unit: cat.unit,
+          };
+          formData.append(`items[${index}][name]`, cat.name);
+          formData.append(`items[${index}][price]`, cat.price);
+          formData.append(`items[${index}][item_category]`, cat.item_category);
+          formData.append(`items[${index}][unit]`, cat.unit);
+
+          if (cat.imageFile) {
+            formData.append(`items[${index}][image]`, cat.imageFile);
+          }
+        });
+        for (let pair of formData.entries()) {
+          console.log(pair[0], pair[1]);
+        }
       }
 
       const url = editingMenuId
         ? `${API_URL}/api/menus/${editingMenuId}/`
         : `${API_URL}/api/menus/`;
+
       const method = editingMenuId ? "PATCH" : "POST";
 
       const res = await fetch(url, {
         method,
-        headers: { Authorization: `Token ${token}` },
+        headers: {
+          Authorization: `Token ${token}`,
+        },
         body: formData,
       });
 
       const resData = await res.json();
+
       if (!res.ok || resData.response_code !== "0") {
-        const errorMessages = Object.values(resData.errors || {})
-          .flat()
-          .join(" | ");
-        throw new Error(errorMessages || "Failed to save menu");
+        throw new Error(resData.message || "Save failed");
       }
 
       toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
+
       setForm({
         menu_date: "",
         categories: [
-          { name: "", price: "", item_category: "", unit: "", imageFile: "" },
+          { name: "", price: "", item_category: "", unit: "", imageFile: null },
         ],
       });
+
       setEditingMenuId(null);
+      setShowForm(false);
       fetchMenus();
     } catch (err) {
       console.error(err);
       toast.error(err.message || "Error saving menu");
     }
+
     setLoading(false);
   };
+
 
   const handleEditMenu = (menu) => {
     setEditingMenuId(menu.reference_id);
 
     setForm({
-      menu_date: menu.menu_date,
+      menu_date: menu.menu_date || "",
       categories: [
         {
           name: menu.name || "",
           price: menu.price || "",
-          item_category: menu.item_category || "",
-          unit: menu.unit || "",
+          item_category: menu.item_category,
+          unit: menu.unit,
           imageFile: null,
         },
       ],
     });
 
-    if (formRef.current) {
-      formRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    setShowForm(true);
   };
 
   const handleDeleteMenu = async (menuId) => {
@@ -358,7 +360,7 @@ export default function AdminMenuManager() {
             </h1>
           </div>
 
-          {/* Button */}
+          
           <div className="flex-shrink-0 ml-4">
             <button
               onClick={() => setShowForm(true)}
@@ -461,25 +463,36 @@ export default function AdminMenuManager() {
                 </select>
 
                 <div className="w-full flex flex-row items-center gap-2">
-                  {/* Custom Upload Button */}
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id={`upload-${idx}`}
-                      onChange={(e) => handleCategoryImage(idx, e)}
-                      className="hidden"
-                    />
+                  
+                <div className="flex-1">
+  <input
+    type="file"
+    accept="image/*"
+    id={`upload-${idx}`}
+    onChange={(e) => handleCategoryImage(idx, e)}
+    className="hidden"
+  />
 
-                    <label
-                      htmlFor={`upload-${idx}`}
-                      className="block w-full text-center cursor-pointer hover:bg-amber-500 text-black font-semibold py-2 rounded-lg border border-amber-300 transition"
-                    >
-                      Uploads
-                    </label>
-                  </div>
+  <label
+    htmlFor={`upload-${idx}`}
+    className="block w-full cursor-pointer border border-amber-300 rounded-lg transition overflow-hidden"
+  >
+    {cat.imagePreview ? (
+      <img
+        src={cat.imagePreview}
+        alt="Preview"
+        className="w-full h-20 object-cover rounded-lg"
+      />
+    ) : (
+      <div className="text-center hover:bg-amber-500 text-black font-semibold py-2">
+        Uploads
+      </div>
+    )}
+  </label>
+</div>
 
-                  {/* Delete Button */}
+
+                 
                   <button
                     type="button"
                     onClick={() => handleDeleteCategoryForm(idx)}
@@ -492,7 +505,7 @@ export default function AdminMenuManager() {
             ))}
 
             <div className="flex flex-row sm:flex-row sm:justify-between gap-4 mt-6">
-              {/* Add Category Button */}
+              
               <button
                 type="button"
                 onClick={handleAddCategory}
