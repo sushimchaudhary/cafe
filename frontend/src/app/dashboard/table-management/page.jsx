@@ -242,7 +242,7 @@ export default function TableManager() {
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-amber-200 text-sm">
+            <tbody className="bg-white border text-sm">
               {tables.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-6 text-gray-400">No tables found</td>

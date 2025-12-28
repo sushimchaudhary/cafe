@@ -189,7 +189,7 @@ export default function AdminMenuUnitPage() {
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-amber-200 text-sm">
+            <tbody className="bg-white border text-sm">
               {units.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="text-center py-6 text-gray-400">
@@ -203,7 +203,7 @@ export default function AdminMenuUnitPage() {
                     className="border-b hover:bg-amber-50 transition"
                   >
                     <td className="border px-4 py-2">{u.name}</td>
-                    <td className="px-4 py-2 flex justify-center gap-3">
+                    <td className=" px-4 py-2 flex justify-center gap-3">
                       <button
                         onClick={() => handleEdit(u)}
                          className="text-amber-600 hover:bg-amber-100 p-2 rounded"

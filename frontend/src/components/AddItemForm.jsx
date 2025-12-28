@@ -218,7 +218,6 @@ export default function AdminMenuManager() {
     setForm({ ...form, categories: updated });
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -305,7 +304,6 @@ export default function AdminMenuManager() {
     setLoading(false);
   };
 
-
   const handleEditMenu = (menu) => {
     setEditingMenuId(menu.reference_id);
 
@@ -360,7 +358,6 @@ export default function AdminMenuManager() {
             </h1>
           </div>
 
-          
           <div className="flex-shrink-0 ml-4">
             <button
               onClick={() => setShowForm(true)}
@@ -463,36 +460,33 @@ export default function AdminMenuManager() {
                 </select>
 
                 <div className="w-full flex flex-row items-center gap-2">
-                  
-                <div className="flex-1">
-  <input
-    type="file"
-    accept="image/*"
-    id={`upload-${idx}`}
-    onChange={(e) => handleCategoryImage(idx, e)}
-    className="hidden"
-  />
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id={`upload-${idx}`}
+                      onChange={(e) => handleCategoryImage(idx, e)}
+                      className="hidden"
+                    />
 
-  <label
-    htmlFor={`upload-${idx}`}
-    className="block w-full cursor-pointer border border-amber-300 rounded-lg transition overflow-hidden"
-  >
-    {cat.imagePreview ? (
-      <img
-        src={cat.imagePreview}
-        alt="Preview"
-        className="w-full h-20 object-cover rounded-lg"
-      />
-    ) : (
-      <div className="text-center hover:bg-amber-500 text-black font-semibold py-2">
-        Uploads
-      </div>
-    )}
-  </label>
-</div>
+                    <label
+                      htmlFor={`upload-${idx}`}
+                      className="block w-full cursor-pointer border border-amber-300 rounded-lg transition overflow-hidden"
+                    >
+                      {cat.imagePreview ? (
+                        <img
+                          src={cat.imagePreview}
+                          alt="Preview"
+                          className="w-full h-20 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="text-center hover:bg-amber-500 text-black font-semibold py-2">
+                          Uploads
+                        </div>
+                      )}
+                    </label>
+                  </div>
 
-
-                 
                   <button
                     type="button"
                     onClick={() => handleDeleteCategoryForm(idx)}
@@ -505,7 +499,6 @@ export default function AdminMenuManager() {
             ))}
 
             <div className="flex flex-row sm:flex-row sm:justify-between gap-4 mt-6">
-              
               <button
                 type="button"
                 onClick={handleAddCategory}
@@ -552,7 +545,7 @@ export default function AdminMenuManager() {
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-amber-200 text-sm">
+            <tbody className="bg-white border text-sm">
               {menus.map((menu) => (
                 <tr
                   key={menu.reference_id}
