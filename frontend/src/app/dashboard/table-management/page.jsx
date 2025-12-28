@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { X } from "lucide-react";
-import AdminHeader from "@/components/AdminHeader";
+
 import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -164,7 +164,7 @@ export default function TableManager() {
   return (
     <div className="container min-h-screen font-sans">
       <ToastProvider />
-      <AdminHeader />
+    
 
       {/* Header */}
       {!showForm && (

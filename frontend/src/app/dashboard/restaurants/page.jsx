@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 import ToastProvider from "@/components/ToastProvider";
-import AdminHeader from "@/components/AdminHeader";
+
 import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -149,7 +149,7 @@ export default function RestaurantPage() {
   return (
     <div className="container min-h-screen font-sans">
       <ToastProvider />
-      <AdminHeader />
+      
 
       {/* Header */}
       {!showForm && (

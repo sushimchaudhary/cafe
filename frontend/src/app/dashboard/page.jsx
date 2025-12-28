@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import AdminHeader from "../../components/AdminHeader";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
 import { useSidebar } from "./SidebarContext";
 
@@ -28,19 +26,7 @@ export default function AdminOrdersDashboard() {
 
   
 
-  // /* -------- Fetch Orders -------- */
-  // useEffect(() => {
-  //   const fetchOrders = async () => {
-  //     try {
-  //       const res = await fetch(`${API_URL}/api/orders`);
-  //       const data = await res.json();
-  //       setOrders(data || []);
-  //     } catch (err) {
-  //       console.error(err);
-  //     }
-  //   };
-  //   fetchOrders();
-  // }, []);
+ 
 
   const today = getNepalToday();
 
@@ -91,8 +77,8 @@ export default function AdminOrdersDashboard() {
   });
 
   return (
-    <div className="min-h-screen">
-      <AdminHeader  />
+    <div className="min-h-screen ">
+      
 
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">

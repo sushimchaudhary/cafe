@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Trash2, Printer, CheckCircle, Bell } from "lucide-react";
 import Swal from "sweetalert2";
-import AdminHeader from "../../../components/AdminHeader";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -292,8 +291,7 @@ const AdminOrdersDashboard = () => {
   return (
     <>
       <div className="min-h-screen font-sans">
-        {/* Header */}
-        <AdminHeader />
+      
 
         <div className="p-6">
           <h1 className="text-xl font-semibold mb-4">Today’s Orders {today}</h1>

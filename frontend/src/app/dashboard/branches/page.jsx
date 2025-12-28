@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
-import AdminHeader from "@/components/AdminHeader";
+
 import "@/styles/customButtons.css"
 
 
@@ -219,7 +219,7 @@ export default function BranchPage() {
   return (
     <div className="container min-h-screen font-sans">
     <ToastProvider />
-    <AdminHeader />
+   
   
     {/* HEADER */}
     {!showForm && (

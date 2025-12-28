@@ -7,7 +7,6 @@ import "@/styles/customButtons.css";
 import ToastProvider from "@/components/ToastProvider";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { X } from "lucide-react";
-import AdminHeader from "@/components/AdminHeader";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -114,7 +113,7 @@ export default function AdminCategoryManager() {
   return (
     <div className="container min-h-screen font-sans">
       <ToastProvider />
-      <AdminHeader />
+     
       {/* Header */}
       {!showForm && (
         <div className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4">
