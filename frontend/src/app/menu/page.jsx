@@ -169,7 +169,7 @@ export default function CustomerMenu() {
     );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 relative overflow-hidden font-sans">
       <svg
         className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"

@@ -1,3 +1,71 @@
+// "use client";
+
+// import { useRouter, usePathname } from "next/navigation";
+// import DesktopSidebar from "./DesktopSidebar";
+
+// import { useEffect, useState } from "react";
+// import { SidebarProvider } from "./SidebarContext";
+
+// export default function DashboardLayout({ children }) {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const [isSuperUser, setIsSuperUser] = useState(false);
+
+
+  
+//   useEffect(() => {
+//     const superUserFlag = localStorage.getItem("is_superuser") === "true";
+//     const token = localStorage.getItem("adminToken");
+
+//     if (!token) {
+//       router.push("/auth/login");
+//       return;
+//     }
+
+//     setIsSuperUser(superUserFlag);
+
+    
+//     const superUserRoutes = [ "/dashboard/restaurants", "/dashboard/branches"];
+//     const staffRoutes = [
+//       "/dashboard",
+//       "/dashboard/orders",
+//       "/dashboard/menus",
+//       "/dashboard/table-management",
+//       "/dashboard/units",
+//       "/dashboard/category",
+//     ];
+
+//     if (superUserFlag && staffRoutes.includes(pathname)) {
+      
+//       router.push("/dashboard/restaurants"); 
+//     } else if (!superUserFlag && superUserRoutes.includes(pathname)) {
+    
+//       router.push("/dashboard");
+//     }
+//   }, [pathname, router]);
+
+//   const handleLogout = () => {
+//     localStorage.clear();
+//     router.push("/auth/login");
+//   };
+
+//   return (
+//     <>
+//      <SidebarProvider>
+//       <DesktopSidebar
+//         router={router}
+//         handleLogout={handleLogout}
+//         is_superuser={isSuperUser}
+//       >
+//         {children}
+//       </DesktopSidebar>
+//     </SidebarProvider>
+//     </>
+//   );
+// }
+
+
+
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
@@ -11,8 +79,6 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [isSuperUser, setIsSuperUser] = useState(false);
 
-
-  
   useEffect(() => {
     const superUserFlag = localStorage.getItem("is_superuser") === "true";
     const token = localStorage.getItem("adminToken");
@@ -24,8 +90,7 @@ export default function DashboardLayout({ children }) {
 
     setIsSuperUser(superUserFlag);
 
-    
-    const superUserRoutes = [ "/dashboard/restaurants", "/dashboard/branches"];
+    const superUserRoutes = ["/dashboard/restaurants", "/dashboard/branches"];
     const staffRoutes = [
       "/dashboard",
       "/dashboard/orders",
@@ -36,10 +101,8 @@ export default function DashboardLayout({ children }) {
     ];
 
     if (superUserFlag && staffRoutes.includes(pathname)) {
-      
-      router.push("/dashboard/restaurants"); 
+      router.push("/dashboard/restaurants");
     } else if (!superUserFlag && superUserRoutes.includes(pathname)) {
-    
       router.push("/dashboard");
     }
   }, [pathname, router]);
@@ -50,16 +113,23 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <>
-     <SidebarProvider>
-      <DesktopSidebar
-        router={router}
-        handleLogout={handleLogout}
-        is_superuser={isSuperUser}
-      >
-        {children}
-      </DesktopSidebar>
+    <SidebarProvider>
+      <div className="flex min-h-screen">
+       
+        <DesktopSidebar
+          router={router}
+          handleLogout={handleLogout}
+          is_superuser={isSuperUser}
+        />
+
+        
+        <main className="flex-1 overflow-y-auto h-screen">
+          {children}
+        </main>
+      </div>
     </SidebarProvider>
-    </>
   );
 }
+
+
+

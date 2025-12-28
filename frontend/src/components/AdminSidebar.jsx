@@ -11,16 +11,7 @@ export default function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false); // Mobile menu
   const dropdownRef = useRef(null);
 
-  // Auto collapse on scroll for desktop
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerWidth > 768) {
-        setCollapsed(window.scrollY > 80);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const sidebarWidth = collapsed ? "w-20" : "w-64";
 
   // Click outside to close mobile sidebar
   useEffect(() => {
@@ -33,9 +24,6 @@ export default function AdminSidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [mobileOpen]);
 
-  const sidebarWidth = collapsed ? "w-20" : "w-64";
-
-  // Function to handle link click
   const handleLinkClick = () => {
     if (mobileOpen) setMobileOpen(false);
   };
@@ -47,7 +35,7 @@ export default function AdminSidebar() {
         <div className="md:hidden fixed top-5 right-2 z-50">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-3 text-amber-800 rounded-full"
+            className="p-3 text-amber-800 rounded-full bg-white shadow"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -58,8 +46,8 @@ export default function AdminSidebar() {
       <div
         ref={dropdownRef}
         className={`
-          fixed left-0 top-0 h-screen bg-white/80 backdrop-blur-xl shadow-xl border-r border-gray-200
-          transition-all duration-300 ease-in-out z-40
+          fixed left-0 top-0 h-screen bg-white/95 backdrop-blur-xl shadow-xl border-r border-gray-200
+          transition-all duration-300 ease-in-out z-50
           ${sidebarWidth}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
