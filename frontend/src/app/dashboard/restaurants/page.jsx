@@ -119,18 +119,18 @@ export default function RestaurantPage() {
     }, 150);
   };
 
-  const handleDelete = async (restaurant) => {
+  const handleDelete = async (reference_id) => {
     if (!confirm("Delete this restaurant?")) return;
 
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await fetch(
-        `${API_URL}/api/restaurants/${restaurant.reference_id}/`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Token ${token}` },
-        }
-      );
+
+      const res = await fetch(`${API_URL}/api/restaurants/${reference_id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
 
       if (!res.ok) {
         const text = await res.text();
@@ -149,7 +149,6 @@ export default function RestaurantPage() {
   return (
     <div className="container min-h-screen font-sans">
       <ToastProvider />
-      
 
       {/* Header */}
       {!showForm && (
@@ -214,13 +213,22 @@ export default function RestaurantPage() {
             />
 
             <input
+              type="tel"
               name="mobile_number"
               value={form.mobile_number}
-              onChange={handleChange}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                if (value.length <= 10) {
+                  setForm({ ...form, mobile_number: value });
+                }
+              }}
               placeholder="Mobile Number"
               required
+              maxLength={10}
+              pattern="[0-9]{10}"
+              title="Mobile number must be exactly 10 digits"
               className="w-full border border-amber-300 p-3 rounded-lg
-            focus:ring-2 focus:ring-amber-400"
+    focus:ring-2 focus:ring-amber-400"
             />
 
             <div className="flex justify-end gap-3 pt-3">

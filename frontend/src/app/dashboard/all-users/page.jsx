@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 import AdminRegisterPage from "@/app/auth/register/page";
-import AdminHeader from "@/components/AdminHeader";
+
 import ToastProvider from "@/components/ToastProvider";
 import "@/styles/customButtons.css";
 
@@ -124,7 +124,7 @@ export default function AdminManagementPage() {
 
   return (
     <div className="font-robot min-h-screen font-sans">
-      <AdminHeader />
+     
       <ToastProvider />
 
       <div className="px-4 sm:px-6 md:px-10 py-3">
@@ -159,7 +159,7 @@ export default function AdminManagementPage() {
                 adminToken={adminToken}
                 restaurants={restaurants}
                 branches={branches}
-                refreshAdmins={() => fetchAdmins(adminToken)}
+                 refreshAdmins={fetchAdmins}
                 closeModal={() => {
                   setShowForm(false);
                   setShowEditModal(false);
@@ -209,7 +209,7 @@ export default function AdminManagementPage() {
                   <tr
                     key={`${admin.reference_id ?? index}-${admin.email}`}
                     className="border-b hover:bg-amber-50 transition"
-                  >
+                  > 
                     <td className="px-4 py-2 border">{admin.username}</td>
                     <td className="px-4 py-2 border">
                       {admin.first_name} {admin.last_name}

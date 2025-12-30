@@ -31,8 +31,8 @@ export default function CustomerMenu() {
       });
       console.log("Table info response:", res.data);
 
-      if (res.data.code === "0") {
-        const table = res.data.table;
+      if (res.data.code === "0" && res.data.data?.summary_data) {
+        const table = res.data.data.summary_data;
         setTable(table);
         setTableNumber(table?.table_number || "-");
         console.log("Table number set:", table?.table_number);
@@ -54,7 +54,6 @@ export default function CustomerMenu() {
   const fetchMenus = async (token) => {
     try {
       console.log("Fetching menus for token:", token);
-
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
         params: { token },
       });
@@ -65,11 +64,12 @@ export default function CustomerMenu() {
         return;
       }
 
-      const menus = res.data.data || [];
+      const menus = res.data.data?.details_data || [];
       setMenuList(
         menus.map((menu) => ({
           ...menu,
           quantity: 0,
+          price: Number(menu.price), // parse string to number
         }))
       );
     } catch (err) {
@@ -105,7 +105,7 @@ export default function CustomerMenu() {
     0
   );
 
-  /* ------------------ SUBMIT ORDER ------------------ */
+
   const handleSubmitOrder = async () => {
     if (!totalItems) {
       toast.error("Cart is empty!");
@@ -115,32 +115,36 @@ export default function CustomerMenu() {
     try {
       console.log("Submitting order...");
 
-      const formData = new FormData();
-      if (table) {
-        formData.append("table_id", table.reference_id || "");
-        formData.append("table_number", table.table_number);
-      }
+      
 
-      menuList
-        .filter((m) => m.quantity > 0)
-        .forEach((item, idx) => {
-          formData.append(`items[${idx}][menu_name]`, item.name);
-          formData.append(`items[${idx}][quantity]`, item.quantity);
-          formData.append(`items[${idx}][item_price]`, item.price);
-          formData.append(
-            `items[${idx}][total_price]`,
-            item.price * item.quantity
-          );
-        });
+      const payload = {
+        table_id: table?.table_id || "",
+        table_number: table?.table_number || "",
+        items: menuList
+          .filter((m) => m.quantity > 0)
+          .map((item) => ({
+            menu_id: item.reference_id,
+            name: item.name,
+            unit_name: item.unit_name,   
+            quantity: item.quantity,
+            item_price: item.price,
+            total_price: item.price * item.quantity,
+          })),
+        total_price: menuList
+          .filter((m) => m.quantity > 0)
+          .reduce((sum, i) => sum + i.price * i.quantity, 0),
+        status: "pending",
+        token: tableToken,
+      };
 
-      const res = await axios.post(`${API_URL}/api/orders/`, formData, {
-        params: { token: tableToken },
+      const res = await axios.post(`${API_URL}/api/orders/`, payload, {
+        // params: { token: tableToken },
+        headers: { "Content-Type": "application/json" },
       });
 
       console.log("Order response:", res.data);
       toast.success("Order placed successfully ✅");
 
-      // Reset quantities
       setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
     } catch (err) {
       console.error("Order submission error:", err);
@@ -148,7 +152,7 @@ export default function CustomerMenu() {
     }
   };
 
-  /* ------------------ EFFECT ------------------ */
+
   useEffect(() => {
     if (tableToken) {
       fetchTableInfo(tableToken);
@@ -281,14 +285,14 @@ export default function CustomerMenu() {
 
       <div className="container mx-auto sm:p-6 relative z-10">
         <ToastProvider />
-        <div className="w-full border-b-4 border-amber-600 px-4 py-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-b-2xl shadow-lg backdrop-blur-sm">
+        <div className="fixed top-0 left-0 w-full border-b-4 border-amber-600 px-4 py-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-b-2xl shadow-lg backdrop-blur-sm z-50">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-4xl font-extrabold text-amber-700 tracking-tight">
                 Menu
               </h1>
               <p className="text-sm text-amber-600 mt-1 font-medium">
-              Table {tableNumber}
+                Table {tableNumber}
               </p>
             </div>
             <div className="relative">
@@ -304,7 +308,7 @@ export default function CustomerMenu() {
           </div>
         </div>
 
-        <div className="space-y-5 mt-6 p-2 pb-32">
+        <div className="space-y-5 mt-26 p-1 pb-32">
           {menuList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="text-center">

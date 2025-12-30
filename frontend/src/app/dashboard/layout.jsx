@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { SidebarProvider, useSidebar } from "./SidebarContext";
 import DesktopSidebar from "./DesktopSidebar";
 import AdminHeader from "@/components/AdminHeader";
+import ToastProvider from "@/components/ToastProvider";
 
 
 export default function DashboardLayout({ children }) {
@@ -49,6 +50,7 @@ export default function DashboardLayout({ children }) {
   return (
     <SidebarProvider>
       <DashboardContainer isSuperUser={isSuperUser} handleLogout={handleLogout}>
+        <ToastProvider  position="top-right" reverseOrder={false} />
         {children}
       </DashboardContainer>
     </SidebarProvider>

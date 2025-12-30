@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminRegisterPage({
   adminData = null,
-
+refreshAdmins,
   closeModal,
 }) {
   const [restaurants, setRestaurants] = useState([]);
@@ -118,9 +118,9 @@ export default function AdminRegisterPage({
 
     try {
       let res;
-      if (adminData) {
+      if(adminData?.reference_id) {
         // Edit mode
-        res = await fetch(`${API_URL}/api/user/admins/${adminData._id}/`, {
+        res = await fetch(`${API_URL}/api/user/admins/${adminData.reference_id}/`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export default function AdminRegisterPage({
           body: JSON.stringify(form),
         });
       } else {
-        // New admin
+       
         res = await fetch(`${API_URL}/api/user/admins/`, {
           method: "POST",
           headers: {
@@ -156,7 +156,7 @@ export default function AdminRegisterPage({
     localStorage.setItem("branch_name", branches.find(b => b.reference_id === form.branch)?.name || "-");
 
       // Refresh parent table
-      refreshAdmins();
+      
       closeModal();
 
       setForm({
@@ -176,6 +176,8 @@ export default function AdminRegisterPage({
     }
   };
 
+ 
+  
   return (
     <div className="min-h-screen flex justify-center items-center bg-amber-50 relative rounded-2xl ">
       <ToastProvider />
@@ -384,18 +386,29 @@ export default function AdminRegisterPage({
 
           {/* Mobile */}
           <div className="relative sm:col-span-2">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Mobile Number"
-              value={form.mobile_number}
-              onChange={(e) =>
-                setForm({ ...form, mobile_number: e.target.value })
-              }
-              required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
-            />
-          </div>
+  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+
+  <input
+    type="tel"
+    placeholder="Mobile Number"
+    value={form.mobile_number}
+    onChange={(e) => {
+      const value = e.target.value.replace(/\D/g, ""); 
+      if (value.length <= 10) {
+        setForm({ ...form, mobile_number: value });
+      }
+    }}
+    required
+    maxLength={10}
+    pattern="[0-9]{10}"
+    title="Mobile number must be exactly 10 digits"
+    className="w-full pl-10 pr-3 py-2
+      border border-amber-300 rounded-lg
+      focus:outline-none focus:ring-1 focus:ring-amber-400
+      text-sm"
+  />
+</div>
+
 
           {/* Restaurant */}
           <select

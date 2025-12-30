@@ -193,7 +193,7 @@ export default function AdminMenuUnitPage() {
               {units.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="text-center py-6 text-gray-400">
-                    No units found
+                    units not found
                   </td>
                 </tr>
               ) : (

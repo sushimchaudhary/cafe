@@ -546,48 +546,58 @@ export default function AdminMenuManager() {
             </thead>
 
             <tbody className="bg-white border text-sm">
-              {menus.map((menu) => (
-                <tr
-                  key={menu.reference_id}
-                  className="border-b hover:bg-amber-50 transition"
-                >
-                  <td className="border px-4 py-2">{menu.menu_date}</td>
-                  <td className="border px-4 py-2">{menu.name}</td>
-                  <td className="border px-4 py-2">{menu.price}</td>
-                  <td className="border px-4 py-2">
-                    {getCategoryName(menu.item_category)}
-                  </td>
-                  <td className="border px-4 py-2">{getUnitName(menu.unit)}</td>
-                  <td className="border px-4 py-2">
-                    {menu.image || menu.image_url ? (
-                      <img
-                        src={menu.image || menu.image_url}
-                        alt={menu.name}
-                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
-                      />
-                    ) : (
-                      "No Image"
-                    )}
-                  </td>
-                  <td className="px-4 py-2 flex justify-center gap-4">
-                    <button
-                      onClick={() => {
-                        handleEditMenu(menu);
-                        setShowForm(true);
-                      }}
-                      className="text-amber-600 hover:bg-amber-100 p-2 rounded"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMenu(menu.reference_id)}
-                      className="text-red-600 hover:bg-red-100 p-2 rounded"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
+              {menus.length > 0 ? (
+                menus.map((menu) => (
+                  <tr
+                    key={menu.reference_id}
+                    className="border-b hover:bg-amber-50 transition"
+                  >
+                    <td className="border px-4 py-2">{menu.menu_date}</td>
+                    <td className="border px-4 py-2">{menu.name}</td>
+                    <td className="border px-4 py-2">{menu.price}</td>
+                    <td className="border px-4 py-2">
+                      {getCategoryName(menu.item_category)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {getUnitName(menu.unit)}
+                    </td>
+                    <td className="border px-4 py-2">
+                      {menu.image || menu.image_url ? (
+                        <img
+                          src={menu.image || menu.image_url}
+                          alt={menu.name}
+                          className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
+                        />
+                      ) : (
+                        "No Image"
+                      )}
+                    </td>
+                    <td className="px-4 py-2 flex justify-center gap-4">
+                      <button
+                        onClick={() => {
+                          handleEditMenu(menu);
+                          setShowForm(true);
+                        }}
+                        className="text-amber-600 hover:bg-amber-100 p-2 rounded"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMenu(menu.reference_id)}
+                        className="text-red-600 hover:bg-red-100 p-2 rounded"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center py-6 text-gray-400">
+                    menus not found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

@@ -210,7 +210,7 @@ export default function AdminCategoryManager() {
               {categories.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="text-center py-6 text-gray-400">
-                    No categories found
+                     categories not found
                   </td>
                 </tr>
               ) : (
