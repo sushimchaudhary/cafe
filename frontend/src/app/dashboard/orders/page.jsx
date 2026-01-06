@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const toNepalDate = (date) => {
   if (!date) return null;
   const d = new Date(date);
-  
+
   return new Date(d.getTime() + 5.75 * 60 * 60 * 1000);
 };
 const formatNepalTime = (iso) => {
@@ -26,7 +26,6 @@ const formatNepalTime = (iso) => {
   });
 };
 
-
 // Format Nepal date as YYYY-MM-DD (for today filter)
 const getNepalDateString = (date) => {
   const nepal = toNepalDate(date);
@@ -38,14 +37,38 @@ const getNepalDateString = (date) => {
 };
 
 
+const normalizeStatus = (status) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "Pending";
+    case "preparing":
+      return "Preparing";
+    case "ready":
+      return "Ready";
+    case "served":
+      return "Served";
+    case "cancelled":
+      return "Cancelled";
+    default:
+      return status;
+  }
+};
+
+
+
+const backendStatus = (status) => status.toLowerCase();
+
 const getStatusIndicator = (status) => {
   const colors = {
-    Pending: "bg-yellow-200",
-    "In Progress": "bg-blue-200",
-    Served: "bg-green-200",
-    Paid: "bg-emerald-200",
-    Cancelled: "bg-red-200",
+    Pending: "bg-yellow-300",
+    Preparing: "bg-blue-300",
+    Ready: "bg-indigo-300",
+    Served: "bg-green-300",
+    Cancelled: "bg-red-300",
   };
+
+
+
   return (
     <span
       className={`w-2 h-2 rounded-full inline-block mr-1 ${
@@ -59,36 +82,72 @@ const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState("");
 
+  // const fetchOrders = async (authToken) => {
+  //   try {
+  //     const res = await fetch(`${API_URL}/api/orders-list/`, {
+  //       headers: {
+  //         Authorization: `Token ${authToken}`,
+  //       },
+  //     });
+  //     const result = await res.json();
+  //     const ordersData = result?.data || [];
+
+  //     console.log("API URL:", `${API_URL}/api/orders-list/`);
+  //     console.log("Raw API Response:", result);
+  //     console.log("Orders Array:", ordersData);
+
+  //     const normalized = ordersData.map((o) => {
+  //       const items = Array.isArray(o.items)
+  //         ? o.items.map((i) => ({
+  //             name: i.menu_name,
+  //             quantity: Number(i.quantity),
+  //             unit_name: i.unit_name || "-",
+  //             total_price: Number(i.total_price),
+  //           }))
+  //         : [];
+
+  //       return {
+  //         order_id: o.reference_id,
+  //         table_id: o.table_id,
+  //         tableName: o.table_number ? `Table ${o.table_number}` : "Table",
+  //         items,
+  //         total_price: Number(o.total_amount),
+  //         status: o.status,
+  //         created_at: o.order_time,
+  //       };
+  //     });
+
+  //     setOrders(normalized);
+  //   } catch (err) {
+  //     console.error("Fetch error:", err);
+  //     setOrders([]);
+  //   }
+  // };
+
   const fetchOrders = async (authToken) => {
     try {
       const res = await fetch(`${API_URL}/api/orders-list/`, {
-        headers: {
-          Authorization: `Token ${authToken}`,
-        },
+        headers: { Authorization: `Token ${authToken}` },
       });
       const result = await res.json();
       const ordersData = result?.data || [];
 
-      const normalized = ordersData.map((o) => {
-        const items = Array.isArray(o.items)
+      const normalized = ordersData.map((o) => ({
+        order_id: o.reference_id,
+        table_id: o.table_id,
+        tableName: o.table_number ? `Table ${o.table_number}` : "Table",
+        items: Array.isArray(o.items)
           ? o.items.map((i) => ({
               name: i.menu_name,
               quantity: Number(i.quantity),
               unit_name: i.unit_name || "-",
               total_price: Number(i.total_price),
             }))
-          : [];
-
-        return {
-          order_id: o.reference_id, 
-          table_id: o.table_id,
-          tableName: o.table_number ? `Table ${o.table_number}` : "Table",
-          items,
-          total_price: Number(o.total_amount),
-          status: o.status,
-          created_at: o.order_time,
-        };
-      });
+          : [],
+        total_price: Number(o.total_amount),
+        status: normalizeStatus(o.status),
+        created_at: o.order_time,
+      }));
 
       setOrders(normalized);
     } catch (err) {
@@ -96,6 +155,7 @@ const AdminOrdersDashboard = () => {
       setOrders([]);
     }
   };
+
 
   const showToast = (title, icon = "success") => {
     Swal.fire({
@@ -108,155 +168,101 @@ const AdminOrdersDashboard = () => {
     });
   };
 
-// const cancelOrder = (order_id) => {
-//   const orderIndex = orders.findIndex((o) => o.order_id === order_id);
-//   if (orderIndex === -1) return;
+  // const cancelOrder = (order_id) => {
+  //   const orderIndex = orders.findIndex((o) => o.order_id === order_id);
+  //   if (orderIndex === -1) return;
 
-//   Swal.fire({
-//     title: "Cancel order?",
-//     icon: "warning",
-//     showCancelButton: true,
-//   }).then((ok) => {
-//     if (!ok.isConfirmed) return;
+  //   Swal.fire({
+  //     title: "Cancel order?",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //   }).then((ok) => {
+  //     if (!ok.isConfirmed) return;
 
-//     showToast("Order Cancelled ");
+  //     showToast("Order Cancelled ");
 
- 
-//     setOrders((prev) =>
-//       prev.map((o) =>
-//         o.order_id === order_id ? { ...o, status: "Cancelled" } : o
-//       )
-//     );
-//   });
-// };
+  //     setOrders((prev) =>
+  //       prev.map((o) =>
+  //         o.order_id === order_id ? { ...o, status: "Cancelled" } : o
+  //       )
+  //     );
+  //   });
+  // };
 
+  const cancelOrder = async (reference_id) => {
+    Swal.fire({
+      title: "Cancel order?",
+      icon: "warning",
+      showCancelButton: true,
+    }).then(async (ok) => {
+      if (!ok.isConfirmed) return;
 
-const cancelOrder = async (reference_id) => {
-  Swal.fire({
-    title: "Cancel order?",
-    
-    icon: "warning",
-    showCancelButton: true,
-  }).then(async (ok) => {
-    if (!ok.isConfirmed) return;
-
-    try {
-      const res = await fetch(
-        `${API_URL}/api/orders/cancel/${reference_id}`,
-        {
+      try {
+        const res = await fetch(`${API_URL}/api/orders/cancel/${reference_id}`, {
           method: "PATCH",
           headers: {
             Authorization: `Token ${token}`,
             "Content-Type": "application/json",
           },
-        }
-      );
+        });
 
-      const data = await res.json();
+        if (!res.ok) throw new Error("Cancel failed");
 
-      if (!res.ok) {
-        throw new Error(data.message || "Cancel failed");
+        showToast("Order Cancelled");
+
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.order_id === reference_id ? { ...o, status: "Cancelled" } : o
+          )
+        );
+      } catch (err) {
+        Swal.fire("Error", err.message, "error");
       }
+    });
+  };
 
-      showToast("Order Cancelled");
+  const toggleStatus = async (reference_id) => {
+    const order = orders.find((o) => o.order_id === reference_id);
+    if (!order || order.status === "Cancelled") return;
 
-     
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.order_id === reference_id
-            ? { ...o, status: "Cancelled" }
-            : o
-        )
-      );
-    } catch (err) {
-      Swal.fire("Error", err.message, "error");
-    }
-  });
-};
+    const flow = ["Pending", "Preparing", "Ready", "Served"];
+    const idx = flow.indexOf(order.status);
+    if (idx === -1 || !flow[idx + 1]) return;
 
+    const nextStatus = flow[idx + 1];
 
+    const ok = await Swal.fire({
+      title: "Change Status?",
+      text: `${order.status} → ${nextStatus}`,
+      showCancelButton: true,
+    });
 
-// const toggleStatus = (order_id) => {
-//   const order = orders.find((o) => o.order_id === order_id);
-//   if (!order || order.status === "Cancelled") return;
+    if (!ok.isConfirmed) return;
 
-//   const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
-//   const currentIndex = statusFlow.indexOf(order.status);
-//   const nextStatus = statusFlow[currentIndex + 1] || order.status;
-
-//   Swal.fire({
-//     title: "Change Status?",
-//     text: `${order.status} → ${nextStatus}`,
-//     showCancelButton: true,
-//   }).then((ok) => {
-//     if (!ok.isConfirmed) return;
-
-//     showToast("Status Updated");
-
-  
-//     setOrders((prev) =>
-//       prev.map((o) =>
-//         o.order_id === order_id ? { ...o, status: nextStatus } : o
-//       )
-//     );
-//   });
-// };
-
-
-const toggleStatus = async (reference_id) => {
-  const order = orders.find((o) => o.order_id === reference_id);
-  if (!order || order.status === "Cancelled") return;
-
-  const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
-  const currentIndex = statusFlow.indexOf(order.status);
-  const nextStatus = statusFlow[currentIndex + 1];
-
-  if (!nextStatus) return;
-
-  const confirm = await Swal.fire({
-    title: "Change Status?",
-    text: `${order.status} → ${nextStatus}`,
-    showCancelButton: true,
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  try {
-    const res = await fetch(
-      `${API_URL}/api/orders/status/${reference_id}`,
-      {
+    try {
+      const res = await fetch(`${API_URL}/api/orders/status/${reference_id}`, {
         method: "PATCH",
         headers: {
           Authorization: `Token ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: nextStatus }),
-      }
-    );
+        body: JSON.stringify({ status: backendStatus(nextStatus) }),
+      });
 
-    const data = await res.json();
+      if (!res.ok) throw new Error("Status update failed");
 
-    if (!res.ok) {
-      throw new Error(data.message || "Status update failed");
+      showToast("Status Updated");
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === reference_id ? { ...o, status: nextStatus } : o
+        )
+      );
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
     }
+  };
 
-    showToast("Status Updated");
-
-    // UI update after success
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.order_id === reference_id
-          ? { ...o, status: nextStatus }
-          : o
-      )
-    );
-  } catch (err) {
-    Swal.fire("Error", err.message, "error");
-  }
-};
-
-
- 
   const printBill = (order) => {
     const w = window.open("", "", "width=400,height=600");
     w.document.write(`<h2>Restaurant Bill</h2>`);
@@ -264,9 +270,7 @@ const toggleStatus = async (reference_id) => {
     w.document.write(`<p>${formatNepalTime(order.created_at)}</p><hr/>`);
 
     order.items.forEach((i) => {
-      w.document.write(
-        `<p>${i.quantity}x ${i.name} - Rs.${i.total_price}</p>`
-      );
+      w.document.write(`<p>${i.quantity}x ${i.name} - Rs.${i.total_price}</p>`);
     });
 
     w.document.write(`<hr/><b>Total: Rs.${order.total_price}</b>`);
@@ -284,20 +288,16 @@ const toggleStatus = async (reference_id) => {
     }
   }, []);
 
- 
-
-
-      // Filter today’s orders (Nepal time)
-      const todayNepal = getNepalDateString(new Date());
-      const todayOrders = orders.filter(
-        (o) => getNepalDateString(o.created_at) === todayNepal
-      );
-      
+  // Filter today’s orders (Nepal time)
+  const todayNepal = getNepalDateString(new Date());
+  const todayOrders = orders.filter(
+    (o) => getNepalDateString(o.created_at) === todayNepal
+  );
 
   const todayTotal = todayOrders
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
-    
+
   return (
     <div className=" min-h-screen font-sans p-4 sm:p-6 lg:p-2">
       <header className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -307,7 +307,9 @@ const toggleStatus = async (reference_id) => {
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             Orders for{" "}
-            <span className="font-medium text-gray-700">{todayOrders.length}</span>
+            <span className="font-medium text-gray-700">
+              {todayOrders.length}
+            </span>
           </p>
         </div>
 
