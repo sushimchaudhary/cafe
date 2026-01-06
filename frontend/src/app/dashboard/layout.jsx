@@ -1,10 +1,13 @@
+// DashboardLayout.js
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import DesktopSidebar from "./DesktopSidebar";
-
 import { useEffect, useState } from "react";
-import { SidebarProvider } from "./SidebarContext";
+import { SidebarProvider, useSidebar } from "./SidebarContext";
+import DesktopSidebar from "./DesktopSidebar";
+import AdminHeader from "@/components/AdminHeader";
+import ToastProvider from "@/components/ToastProvider";
+
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -22,8 +25,7 @@ export default function DashboardLayout({ children }) {
 
     setIsSuperUser(superUserFlag);
 
-    
-    const superUserRoutes = [ "/dashboard/restaurants", "/dashboard/branches"];
+    const superUserRoutes = ["/dashboard/restaurants", "/dashboard/branches"];
     const staffRoutes = [
       "/dashboard",
       "/dashboard/orders",
@@ -34,10 +36,8 @@ export default function DashboardLayout({ children }) {
     ];
 
     if (superUserFlag && staffRoutes.includes(pathname)) {
-      
-      router.push("/dashboard/restaurants"); 
+      router.push("/dashboard/restaurants");
     } else if (!superUserFlag && superUserRoutes.includes(pathname)) {
-    
       router.push("/dashboard");
     }
   }, [pathname, router]);
@@ -48,16 +48,36 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <>
-     <SidebarProvider>
-      <DesktopSidebar
-        router={router}
-        handleLogout={handleLogout}
-        is_superuser={isSuperUser}
-      >
+    <SidebarProvider>
+      <DashboardContainer isSuperUser={isSuperUser} handleLogout={handleLogout}>
+        <ToastProvider  position="top-right" reverseOrder={false} />
         {children}
-      </DesktopSidebar>
+      </DashboardContainer>
     </SidebarProvider>
-    </>
+  );
+}
+
+function DashboardContainer({ children, isSuperUser, handleLogout }) {
+  const { collapsed, setCollapsed } = useSidebar();
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <DesktopSidebar is_superuser={isSuperUser} />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <AdminHeader
+          title="Restaurant Management"
+          toggleMobileSidebar={() => setCollapsed(!collapsed)}
+        />
+
+        {/* Scrollable content */}
+        <main className="flex-1 overflow-y-auto  p-2">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }

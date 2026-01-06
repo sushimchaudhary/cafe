@@ -1,126 +1,152 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { useState, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
-import ToastProvider from "@/components/ToastProvider";
-import AdminHeader from "@/components/AdminHeader";
-import "@/styles/customButtons.css"
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { X } from "lucide-react";
+import { createPortal } from "react-dom";
 
+import ToastProvider from "@/components/ToastProvider";
+import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+function RestaurantDropdown({ restaurants, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selected = restaurants.find((r) => r.reference_id === value);
+
+  const rect = document
+    .getElementById("restaurant-button")
+    ?.getBoundingClientRect();
+
+  return (
+    <div className="relative">
+      <button
+        id="restaurant-button"
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full border border-amber-300 p-1 rounded text-sm
+        flex justify-between items-center
+        focus:outline-none focus:ring-1 focus:ring-amber-200"
+      >
+        <span>{selected ? selected.name : "Select Restaurant"}</span>
+        <span className="text-amber-500">▼</span>
+      </button>
+
+      {open &&
+        createPortal(
+          <ul
+            className="absolute z-50 w-[200px] bg-white border border-amber-200 rounded shadow"
+            style={{
+              top: rect?.bottom + window.scrollY,
+              left: rect?.left + window.scrollX,
+            }}
+          >
+            {restaurants.map((r) => (
+              <li
+                key={r.reference_id}
+                onClick={() => {
+                  onChange({
+                    target: { name: "restaurant_id", value: r.reference_id },
+                  });
+                  setOpen(false);
+                }}
+                className="px-3 py-2 text-sm hover:bg-amber-100 cursor-pointer"
+              >
+                {r.name}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
+    </div>
+  );
+}
+
+/* ================= MAIN PAGE ================= */
 export default function BranchPage() {
-  const formRef = useRef(null);
-  const [showForm, setShowForm] = useState (false)
   const [branches, setBranches] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [deleteBranch, setDeleteBranch] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     address: "",
     mobile_number: "",
     restaurant_id: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [message, setMessage] = useState("");
 
-  // Fetch restaurants
+  const confirmDelete = (b) => {
+    setDeleteBranch(b);
+    setShowDeleteModal(true);
+  };
+  /* ================= FETCH ================= */
   const fetchRestaurants = async () => {
-    try {
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/restaurants/`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Token ${token}`,
-        },
-      });
-      const data = await res.json();
-
-      console.log("✅ RESTAURANTS RAW DATA:", data);
-
-      setRestaurants(data.data || []);
-
-      // Debug restaurant IDs
-      (data.data || []).forEach((r) => {
-        console.log(
-          "🍽️ Restaurant:",
-          r.name,
-          "| reference_id:",
-          r.reference_id
-        );
-      });
-
-      return data.data || [];
-    } catch (err) {
-      console.log("❌ FETCH RESTAURANTS ERROR:", err);
-      return [];
-    }
+    const token = localStorage.getItem("adminToken");
+    const res = await fetch(`${API_URL}/api/restaurants/`, {
+      headers: { Authorization: `Token ${token}` },
+    });
+    const data = await res.json();
+    setRestaurants(data.data || []);
+    return data.data || [];
   };
 
-  // Fetch branches and map restaurant name
   const fetchBranches = async (restaurantList) => {
-    try {
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/branches/`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Token ${token}`,
-        },
-      });
-      const data = await res.json();
+    const token = localStorage.getItem("adminToken");
+    const res = await fetch(`${API_URL}/api/branches/`, {
+      headers: { Authorization: `Token ${token}` },
+    });
+    const data = await res.json();
 
-      console.log("🏢 BRANCHES RAW DATA:", data);
+    const mapped = (data.data || []).map((b) => {
+      const r = restaurantList.find(
+        (x) => x.reference_id === b.restaurant_reference_id
+      );
+      return {
+        ...b,
+        restaurant_name: r?.name || "-",
+      };
+    });
 
-      const mappedBranches = (data.data || []).map((b) => {
-        console.log(
-          `🔗 Branch: ${b.name} | branch_ref_id=${b.reference_id} | restaurant_reference_id=${b.restaurant_reference_id}`
-        );
-        const restaurant = restaurantList.find(
-          (r) => r.reference_id === b.restaurant_reference_id
-        );
-
-        console.log(
-          `➡️ Mapped to Restaurant: ${
-            restaurant?.name || "NOT FOUND"
-          } (restaurant_reference_id: ${b.restaurant_reference_id})`
-        );
-        return {
-          ...b,
-          restaurant_name: restaurant?.name || "-",
-        };
-      });
-
-      setBranches(mappedBranches);
-    } catch (err) {
-      console.log("❌ FETCH BRANCHES ERROR:", err);
-    }
+    setBranches(mapped);
   };
 
-  // Load restaurants first, then branches
   useEffect(() => {
-    const loadData = async () => {
-      const restaurantList = await fetchRestaurants();
-      fetchBranches(restaurantList);
+    const load = async () => {
+      const list = await fetchRestaurants();
+      fetchBranches(list);
     };
-    loadData();
+    load();
   }, []);
+
+  const filteredBranches = useMemo(() => {
+    return branches.filter((b) =>
+      b.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [branches, search]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  const closeModal = () => {
+    setShowForm(false);
+    setEditId(null);
+    setForm({
+      name: "",
+      address: "",
+      mobile_number: "",
+      restaurant_id: "",
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-
-    const { name, address, mobile_number, restaurant_id } = form;
-    if (!name || !address || !mobile_number || !restaurant_id) {
-      setMessage("All fields are required");
-      setLoading(false);
-      return;
-    }
 
     try {
       const token = localStorage.getItem("adminToken");
@@ -129,277 +155,259 @@ export default function BranchPage() {
         : `${API_URL}/api/branches/`;
       const method = editId ? "PATCH" : "POST";
 
-      const payload = {
-        name: name.trim(),
-        address: address.trim(),
-        mobile_number: mobile_number.trim(),
-        restaurant_id,
-      };
-
       const res = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error("Save failed");
 
-      if (!res.ok || data.response_code === "1") {
-        setMessage(
-          data?.errors ? JSON.stringify(data.errors) : data?.response || "Error"
-        );
-      } else {
-        toast.success(editId ? "Branch updated!" : "Branch created!");
-        setForm({
-          name: "",
-          address: "",
-          mobile_number: "",
-          restaurant_id: "",
-        });
-        setShowModal(false);
-        setEditId(null);
-
-        // 🔥 Auto-refresh branches after create/edit
-        fetchBranches(restaurants);
-      }
+      toast.success(editId ? "Updated!" : "Created!");
+      closeModal();
+      fetchBranches(restaurants);
     } catch (err) {
-      console.log("❌ SUBMIT ERROR:", err);
-      toast.error("Network Error");
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (b) => {
-    if (!confirm("Delete this branch?")) return;
-    try {
-      const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/branches/${b.reference_id}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Token ${token}` },
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        console.log("❌ DELETE FAILED:", text);
-        toast.error("Delete failed");
-      } else {
-        toast.success("Branch deleted successfully!");
-        // 🔥 Auto-refresh branches after delete
-        fetchBranches(restaurants);
-      }
-    } catch (err) {
-      console.log("❌ DELETE ERROR:", err);
-      toast.error("Network error");
-    }
-  };
-
   const handleEdit = (b) => {
+    setEditId(b.reference_id);
     setForm({
       name: b.name,
       address: b.address,
       mobile_number: b.mobile_number,
       restaurant_id: b.restaurant_reference_id,
     });
-    setEditId(b.reference_id);
     setShowForm(true);
-
-
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 150);
-    
   };
 
+  const handleDeleteConfirmed = async (b) => {
+    
+    try {
+      const token = localStorage.getItem("adminToken");
+      const res = await fetch(`${API_URL}/api/branches/${b.reference_id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Token ${token}` },
+      });
+      if (!res.ok) throw new Error("Delete failed");
+
+      toast.success("Deleted!");
+      fetchBranches(restaurants);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteBranch(null);
+    }
+  };
+
+  /* ================= UI ================= */
   return (
-    <div className="container min-h-screen font-sans">
-    <ToastProvider />
-    <AdminHeader />
-  
-    {/* HEADER */}
-    {!showForm && (
-      <div
-        className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4"
-      >
-        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-600">
-          Branches Management
+    <div className="container mx-auto h-screen flex flex-col px-1">
+      <ToastProvider />
+
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
+        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+          Branch
         </h1>
-  
-        <button
-          onClick={() => {
-            setForm({
-              name: "",
-              address: "",
-              mobile_number: "",
-              restaurant_id: "",
-            });
-            setEditId(null);
-            setShowForm(true);
-          }}
-          className="button flex items-center justify-center gap-2
-          bg-amber-500 text-black px-5 py-2 rounded-xl
-          font-bold shadow-lg transition cursor-pointer"
-        >
-          + Create
-        </button>
-      </div>
-    )}
-  
-    {/* FORM */}
-    {showForm && (
-      <div className="bg-white shadow-lg shadow-amber-100 rounded-xl p-6 m-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-amber-600">
-            {editId ? "Edit Branch" : "Add Branch"}
-          </h2>
-  
+
+        <div className="flex w-full md:w-auto items-center gap-2">
+          <div className="relative">
+            <svg
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+              />
+            </svg>
+
+            <input
+              type="text"
+              placeholder="Search Baranch..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
+             focus:outline-none focus:ring-1 focus:ring-amber-200"
+            />
+          </div>
+
           <button
-            onClick={() => setShowForm(false)}
-            className="text-gray-600 hover:text-red-600"
+            onClick={() => setShowForm(true)}
+            className="button px-4 py-1.5 text-sm font-semibold
+            bg-amber-500 text-white rounded-lg hover:bg-amber-600"
           >
-            ✕
+            Create
           </button>
         </div>
-  
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Branch Name"
-            required
-            className="w-full border border-amber-300 p-3 rounded-lg
-            focus:ring-2 focus:ring-amber-400"
-          />
-  
-          <input
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            placeholder="Address"
-            required
-            className="w-full border border-amber-300 p-3 rounded-lg
-            focus:ring-2 focus:ring-amber-400"
-          />
-  
-          <input
-            name="mobile_number"
-            value={form.mobile_number}
-            onChange={handleChange}
-            placeholder="Mobile Number"
-            required
-            className="w-full border border-amber-300 p-3 rounded-lg
-            focus:ring-2 focus:ring-amber-400"
-          />
-  
-          <select
-            name="restaurant_id"
-            value={form.restaurant_id}
-            onChange={handleChange}
-            required
-            className="w-full border border-amber-300 p-3 rounded-lg
-            focus:ring-2 focus:ring-amber-400 bg-white"
-          >
-            <option value="">Select Restaurant</option>
-            {restaurants.map((r) => (
-              <option key={r.reference_id} value={r.reference_id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-  
-          <div className="flex justify-end gap-3 pt-3">
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="px-4 py-2 border border-amber-500
-              hover:bg-amber-100 rounded-lg cursor-pointer"
-            >
-              Cancel
-            </button>
-  
-            <button
-              type="submit"
-              disabled={loading}
-              className="custom-btn w-full sm:w-auto cursor-pointer"
-            >
-              {loading ? "Saving..." : editId ? "Update" : "Create"}
-            </button>
-          </div>
-        </form>
       </div>
-    )}
-  
-    {/* TABLE */}
-    <div className="p-3">
-      <div className="overflow-x-auto rounded border border-amber-200">
-        <table className="min-w-full divide-y divide-amber-200">
-          <thead className="bg-amber-50 uppercase text-sm">
-            <tr>
-              {["Name", "Address", "Phone", "Restaurant", "Actions"].map(
-                (h) => (
-                  <th key={h} className="border px-4 py-3 text-left">
-                    {h}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-  
-          <tbody className="bg-white divide-y divide-amber-200 text-sm">
-            {branches.length === 0 ? (
+
+      {/* DELETE CONFIRM MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
+            <h2 className="text-lg font-bold text-red-600 mb-3">
+              Confirm Delete
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{deleteBranch?.name}</span>?
+            </p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteConfirmed(deleteBranch)}
+                className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-1">
+          <div className="bg-white w-full max-w-3xl rounded shadow-md mb-21">
+            <div className="flex justify-end p-1 border-b">
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="max-h-[50vh] overflow-y-auto p-3">
+              <form onSubmit={handleSubmit} className="space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border p-2 rounded">
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Branch Name"
+                    className="border border-amber-300 p-1 rounded text-sm"
+                    required
+                  />
+                  <input
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="Address"
+                    className="border border-amber-300 p-1 rounded text-sm"
+                    required
+                  />
+                  <input
+                    name="mobile_number"
+                    value={form.mobile_number}
+                    onChange={handleChange}
+                    placeholder="Mobile Number"
+                    className="border border-amber-300 p-1 rounded text-sm"
+                    required
+                  />
+                  <RestaurantDropdown
+                    restaurants={restaurants}
+                    value={form.restaurant_id}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 sticky bottom-0 bg-white pt-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="formCancleButton px-3 py-1"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="formButton px-3 py-1 bg-amber-600 text-white rounded-lg"
+                  >
+                    {loading ? "Saving..." : editId ? "Update" : "Create"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TABLE */}
+      <div className="min-h-0 bg-white rounded border shadow-sm overflow-hidden">
+        <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
+          <table className="min-w-full border-collapse table-fixed">
+            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
               <tr>
-                <td colSpan={5} className="text-center py-6 text-gray-400">
-                  No branches found
-                </td>
+                <th className="border px-4 py-2 text-left">SN</th>
+                <th className="border px-4 py-2 text-left">Name</th>
+                <th className="border px-4 py-2 text-left">Address</th>
+                <th className="border px-4 py-2 text-left">Phone</th>
+                <th className="border px-4 py-2 text-left">Restaurant</th>
+                <th className="border px-2 py-2 text-end">Action</th>
               </tr>
-            ) : (
-              branches.map((b) => (
-                <tr
-                  key={b.reference_id}
-                  className="border-b hover:bg-amber-50 transition"
-                >
-                  <td className="border px-4 py-2 font-medium">
-                    {b.name}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {b.address}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {b.mobile_number}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {b.restaurant_name}
-                  </td>
-                  <td className="px-4 py-2 flex justify-center gap-3">
-                    <button
-                      onClick={() => handleEdit(b)}
-                      className="text-amber-600 hover:bg-amber-100 p-2 rounded"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-  
-                    <button
-                      onClick={() => handleDelete(b)}
-                      className="text-red-600 hover:bg-red-100 p-2 rounded"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
+            </thead>
+
+            <tbody className="text-sm">
+              {filteredBranches.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-6 text-gray-400">
+                    {search
+                      ? " Baranch not match search"
+                      : " Baranch not found"}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredBranches.map((b, index) => (
+                  <tr key={b.reference_id} className="hover:bg-gray-50">
+                    <td className="px-2 py-1 border">{index + 1}</td>
+                    <td className="border px-4 py-1">{b.name}</td>
+                    <td className="border px-4 py-1">{b.address}</td>
+                    <td className="border px-4 py-1">{b.mobile_number}</td>
+                    <td className="border px-4 py-1">{b.restaurant_name}</td>
+                    <td className="border px-2 py-1">
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => handleEdit(b)}
+                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => confirmDelete(b)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-  
-  
   );
 }

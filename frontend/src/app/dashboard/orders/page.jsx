@@ -1,391 +1,443 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { X, Trash2, Printer, CheckCircle, Bell } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { X, Printer, CheckCircle } from "lucide-react";
 import Swal from "sweetalert2";
-import AdminHeader from "../../../components/AdminHeader";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const getNepalToday = () => {
-  const now = new Date();
-  const nepalTime = new Date(now.getTime() + (5 * 60 + 45) * 60000);
-  const m = nepalTime.getMonth() + 1;
-  const d = nepalTime.getDate();
-  const y = nepalTime.getFullYear();
-  return `${m}/${d}/${y}`;
+// Convert ISO/UTC time to Nepal time
+const toNepalDate = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  
+  return new Date(d.getTime() + 5.75 * 60 * 60 * 1000);
+};
+const formatNepalTime = (iso) => {
+  if (!iso) return "-";
+  const date = new Date(iso);
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kathmandu",
+  });
+};
+
+
+// Format Nepal date as YYYY-MM-DD (for today filter)
+const getNepalDateString = (date) => {
+  const nepal = toNepalDate(date);
+  if (!nepal) return "";
+  const yyyy = nepal.getFullYear();
+  const mm = String(nepal.getMonth() + 1).padStart(2, "0");
+  const dd = String(nepal.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+
+const getStatusIndicator = (status) => {
+  const colors = {
+    Pending: "bg-yellow-200",
+    "In Progress": "bg-blue-200",
+    Served: "bg-green-200",
+    Paid: "bg-emerald-200",
+    Cancelled: "bg-red-200",
+  };
+  return (
+    <span
+      className={`w-2 h-2 rounded-full inline-block mr-1 ${
+        colors[status] || "bg-gray-200"
+      }`}
+    ></span>
+  );
 };
 
 const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
-  const [tables, setTables] = useState([]);
-  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const prevOrdersRef = useRef([]);
-  const dropdownRef = useRef(null);
-  const token = localStorage.getItem("adminToken") || "";
+  const [token, setToken] = useState("");
 
-  // Fetch tables from API
-  const fetchTables = async () => {
+  const fetchOrders = async (authToken) => {
     try {
-      const res = await fetch(`${API_URL}/api/tables/`, {
+      const res = await fetch(`${API_URL}/api/orders-list/`, {
         headers: {
-          Authorization: `Token ${token}`,
+          Authorization: `Token ${authToken}`,
         },
       });
-      if (!res.ok) throw new Error("Failed to fetch tables");
-      const data = await res.json();
-      setTables(data);
-    } catch (err) {
-      console.error(err);
-      setTables([]);
-    }
-  };
+      const result = await res.json();
+      const ordersData = result?.data || [];
 
-  // Fetch orders from API
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/orders/`, {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+      const normalized = ordersData.map((o) => {
+        const items = Array.isArray(o.items)
+          ? o.items.map((i) => ({
+              name: i.menu_name,
+              quantity: Number(i.quantity),
+              unit_name: i.unit_name || "-",
+              total_price: Number(i.total_price),
+            }))
+          : [];
+
+        return {
+          order_id: o.reference_id, 
+          table_id: o.table_id,
+          tableName: o.table_number ? `Table ${o.table_number}` : "Table",
+          items,
+          total_price: Number(o.total_amount),
+          status: o.status,
+          created_at: o.order_time,
+        };
       });
-      if (!res.ok) throw new Error("Failed to fetch orders");
-      const data = await res.json();
-      const normalizedOrders = data?.data?.map((o) => ({
-        order_id: o?.order_id || o?._id || Date.now(),
-        table_id: o?.table_id,
-        tableName: o?.tableName || "Unknown",
-        items: o?.items || [],
-        total_price: o?.total_price || 0,
-        status: o?.status || "Pending",
-        created_at: o.created_at || new Date().toISOString(),
-      }));
-      setOrders(normalizedOrders);
-      prevOrdersRef.current = normalizedOrders.map((o) => o.order_id);
+
+      setOrders(normalized);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
       setOrders([]);
     }
   };
 
-  useEffect(() => {
-    fetchTables();
-    fetchOrders();
-  }, []);
-
-  // Click outside handler for notifications
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Notification for new orders every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      await fetchOrders();
-      const newOrders = orders.filter(
-        (o) => !prevOrdersRef.current.includes(o.order_id)
-      );
-      if (newOrders.length > 0) {
-        const tableNames = newOrders
-          .map((o) => o.tableName || o.table_id)
-          .join(", ");
-        showToast(`New Order at Table(s): ${tableNames}`, "info");
-      }
-      prevOrdersRef.current = orders.map((o) => o.order_id);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [orders]);
-
-  // Update pending orders count
-  useEffect(() => {
-    const pending = orders.filter((o) => o.status === "Pending");
-    setPendingOrdersCount(pending.length);
-  }, [orders]);
-
-  const showToast = (message, icon = "success") => {
+  const showToast = (title, icon = "success") => {
     Swal.fire({
       toast: true,
       position: "top-end",
       icon,
-      title: message,
+      title,
       showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
+      timer: 2500,
     });
   };
 
-  const cancelOrder = async (order_id) => {
-    const order = orders.find((o) => o.order_id === order_id);
-    if (!order || order.status === "Cancelled") return;
+// const cancelOrder = (order_id) => {
+//   const orderIndex = orders.findIndex((o) => o.order_id === order_id);
+//   if (orderIndex === -1) return;
 
-    if (order.status === "Paid" || order.status === "Served") {
-      return Swal.fire({
-        icon: "info",
-        title: "Cannot cancel",
-        text: "Order already served/paid!",
-      });
-    }
+//   Swal.fire({
+//     title: "Cancel order?",
+//     icon: "warning",
+//     showCancelButton: true,
+//   }).then((ok) => {
+//     if (!ok.isConfirmed) return;
 
-    const result = await Swal.fire({
-      title: "Cancel this order?",
-      text: "Order will be marked as cancelled.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Cancel",
-    });
+//     showToast("Order Cancelled ");
 
-    if (result.isConfirmed) {
-      try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
+ 
+//     setOrders((prev) =>
+//       prev.map((o) =>
+//         o.order_id === order_id ? { ...o, status: "Cancelled" } : o
+//       )
+//     );
+//   });
+// };
+
+
+const cancelOrder = async (reference_id) => {
+  Swal.fire({
+    title: "Cancel order?",
+    
+    icon: "warning",
+    showCancelButton: true,
+  }).then(async (ok) => {
+    if (!ok.isConfirmed) return;
+
+    try {
+      const res = await fetch(
+        `${API_URL}/api/orders/cancel/${reference_id}`,
+        {
           method: "PATCH",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify({ status: "Cancelled" }),
-        });
-        if (!res.ok) throw new Error("Failed to cancel order");
-        showToast("Order cancelled", "success");
-        fetchOrders();
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to cancel order", "error");
-      }
-    }
-  };
-
-  const toggleStatus = async (order_id) => {
-    const order = orders.find((o) => o.order_id === order_id);
-    if (!order || order.status === "Cancelled") return;
-
-    const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
-    const currentIndex = statusFlow.indexOf(order.status);
-    const nextStatus = statusFlow[currentIndex + 1] || order.status;
-
-    const result = await Swal.fire({
-      title: "Change Order Status?",
-      text: `Change status from ${order.status} to ${nextStatus}?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
-          method: "PATCH",
-          headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
-          },
-          body: JSON.stringify({ status: nextStatus }),
-        });
-        if (!res.ok) throw new Error("Failed to update status");
-        showToast("Order status updated", "success");
-        fetchOrders();
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to update status", "error");
-      }
-    }
-  };
-
-  const deleteOrder = async (order_id) => {
-    const result = await Swal.fire({
-      title: "Delete Order?",
-      text: "This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, Delete",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const res = await fetch(`${API_URL}/api/orders/${order_id}/`, {
-          method: "DELETE",
           headers: {
             Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
           },
-        });
-        if (!res.ok) throw new Error("Failed to delete order");
-        showToast("Order deleted", "success");
-        fetchOrders();
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to delete order", "error");
-      }
-    }
-  };
+        }
+      );
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Cancel failed");
+      }
+
+      showToast("Order Cancelled");
+
+     
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === reference_id
+            ? { ...o, status: "Cancelled" }
+            : o
+        )
+      );
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
+    }
+  });
+};
+
+
+
+// const toggleStatus = (order_id) => {
+//   const order = orders.find((o) => o.order_id === order_id);
+//   if (!order || order.status === "Cancelled") return;
+
+//   const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
+//   const currentIndex = statusFlow.indexOf(order.status);
+//   const nextStatus = statusFlow[currentIndex + 1] || order.status;
+
+//   Swal.fire({
+//     title: "Change Status?",
+//     text: `${order.status} → ${nextStatus}`,
+//     showCancelButton: true,
+//   }).then((ok) => {
+//     if (!ok.isConfirmed) return;
+
+//     showToast("Status Updated");
+
+  
+//     setOrders((prev) =>
+//       prev.map((o) =>
+//         o.order_id === order_id ? { ...o, status: nextStatus } : o
+//       )
+//     );
+//   });
+// };
+
+
+const toggleStatus = async (reference_id) => {
+  const order = orders.find((o) => o.order_id === reference_id);
+  if (!order || order.status === "Cancelled") return;
+
+  const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
+  const currentIndex = statusFlow.indexOf(order.status);
+  const nextStatus = statusFlow[currentIndex + 1];
+
+  if (!nextStatus) return;
+
+  const confirm = await Swal.fire({
+    title: "Change Status?",
+    text: `${order.status} → ${nextStatus}`,
+    showCancelButton: true,
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  try {
+    const res = await fetch(
+      `${API_URL}/api/orders/status/${reference_id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Status update failed");
+    }
+
+    showToast("Status Updated");
+
+    // UI update after success
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.order_id === reference_id
+          ? { ...o, status: nextStatus }
+          : o
+      )
+    );
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+};
+
+
+ 
   const printBill = (order) => {
-    const myWindow = window.open("", "PRINT", "height=600,width=400");
-    myWindow.document.write("<h1>Restaurant Bill</h1>");
-    myWindow.document.write(`<p>Table: ${order.tableName}</p>`);
-    myWindow.document.write(`<p>Time: ${order.created_at}</p><hr/>`);
+    const w = window.open("", "", "width=400,height=600");
+    w.document.write(`<h2>Restaurant Bill</h2>`);
+    w.document.write(`<p>${order.tableName}</p>`);
+    w.document.write(`<p>${formatNepalTime(order.created_at)}</p><hr/>`);
+
     order.items.forEach((i) => {
-      const price = i.price || 0;
-      myWindow.document.write(
-        `<p>${i.name} x ${i.quantity} — Rs.${price.toFixed(2)}</p>`
+      w.document.write(
+        `<p>${i.quantity}x ${i.name} - Rs.${i.total_price}</p>`
       );
     });
-    myWindow.document.write(
-      `<hr/><h3>Total: Rs.${(order.total_price || 0).toFixed(2)}</h3>`
-    );
-    myWindow.document.close();
-    myWindow.focus();
-    myWindow.print();
-    myWindow.close();
+
+    w.document.write(`<hr/><b>Total: Rs.${order.total_price}</b>`);
+    w.document.close();
+    w.print();
   };
 
-  const getStatusIndicator = (status) => {
-    switch (status) {
-      case "Pending":
-        return (
-          <span className="w-3 h-3 rounded-full bg-yellow-500 mr-2 inline-block"></span>
-        );
-      case "In Progress":
-        return (
-          <span className="w-3 h-3 rounded-full bg-blue-500 mr-2 inline-block"></span>
-        );
-      case "Served":
-        return (
-          <span className="w-3 h-3 rounded-full bg-green-500 mr-2 inline-block"></span>
-        );
-      case "Paid":
-        return (
-          <span className="w-3 h-3 rounded-full bg-indigo-500 mr-2 inline-block"></span>
-        );
-      case "Cancelled":
-        return (
-          <span className="w-3 h-3 rounded-full bg-red-500 mr-2 inline-block"></span>
-        );
-      default:
-        return null;
+  useEffect(() => {
+    const t = localStorage.getItem("adminToken");
+    if (t) {
+      setToken(t);
+      fetchOrders(t);
+      const i = setInterval(() => fetchOrders(t), 5000);
+      return () => clearInterval(i);
     }
-  };
+  }, []);
 
-  const formatOrderDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-  };
+ 
 
-  const getTableLocation = (tableId) => {
-    const table = tables.find((t) => t.id === tableId || t._id === tableId);
-    return table ? table.location || "Not set" : "Unknown";
-  };
 
-  const today = getNepalToday();
-  const todayOrders = orders.filter(
-    (o) => formatOrderDate(o.created_at) === today
-  );
+      // Filter today’s orders (Nepal time)
+      const todayNepal = getNepalDateString(new Date());
+      const todayOrders = orders.filter(
+        (o) => getNepalDateString(o.created_at) === todayNepal
+      );
+      
+
   const todayTotal = todayOrders
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
-
+    
   return (
-    <>
-      <div className="min-h-screen font-sans">
-        {/* Header */}
-        <AdminHeader />
+    <div className=" min-h-screen font-sans p-4 sm:p-6 lg:p-2">
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-sm sm:text-xl font-bold text-gray-800 tracking-tight">
+            Kitchen Dashboard
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Orders for{" "}
+            <span className="font-medium text-gray-700">{todayOrders.length}</span>
+          </p>
+        </div>
 
-        <div className="p-6">
-          <h1 className="text-xl font-semibold mb-4">Today’s Orders {today}</h1>
+        <div className="bg-white px-5 py-2 rounded-full shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
+          <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+            Total Revenue
+          </span>
+          <span className="text-xl font-bold text-emerald-600">
+            Rs. {todayTotal.toFixed(2)}
+          </span>
+        </div>
+      </header>
 
-          {/* Orders List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {todayOrders.map((order, idx) => (
-              <div
-                key={order.order_id}
-                className={`relative p-5 border rounded-xl shadow-sm bg-white hover:shadow-md ${
-                  order.status === "Cancelled" ? "opacity-50" : ""
-                }`}
-              >
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+        {todayOrders.map((order, idx) => (
+          <div
+            key={order.order_id}
+            className={`flex flex-col justify-between border border-gray-200 rounded-2xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+              order.status === "Cancelled"
+                ? "opacity-60 bg-gray-50 grayscale"
+                : ""
+            }`}
+          >
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                      #{idx + 1}
+                    </span>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {order.tableName}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1 font-mono">
+                    {formatNepalTime(order.created_at)}
+                  </p>
+                </div>
+
                 {order.status !== "Cancelled" && (
                   <button
-                    className="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700 rounded"
+                    className="p-1.5 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
                     onClick={() => cancelOrder(order.order_id)}
+                    title="Cancel Order"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 )}
+              </div>
+            </div>
 
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-semibold">Order:{idx + 1}</span>
-                  <span className="font-semibold text-gray-700">
-                    Table: {order.tableName} ({getTableLocation(order.table_id)}
-                    )
-                  </span>
-                </div>
-
-                <p className="mb-2 text-sm text-gray-500">{order.created_at}</p>
-
-                <ul className="ml-2 mb-2">
-                  {order.items.map((i) => (
-                    <li key={i.id || i.name}>
-                      {i.name} x {i.quantity} — Rs.
-                      {Number(i.price || 0).toFixed(2)}
+            <div className="p-4 flex-grow">
+              <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                <ul className="space-y-2">
+                  {order.items.map((i, idx) => (
+                    <li
+                      key={idx}
+                      className="flex justify-between items-center text-sm"
+                    >
+                      <span className="text-gray-700 font-medium">
+                        <span className="text-gray-400 text-xs mr-1">
+                          {i.quantity}x
+                        </span>
+                        {i.name}{" "}
+                        <span className="text-xs text-gray-400">
+                          ({i.unit_name})
+                        </span>
+                      </span>
+                      <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
+                        Rs.{i.total_price.toFixed(0)}
+                      </span>
                     </li>
                   ))}
                 </ul>
+              </div>
+              <div className="flex justify-between items-center mt-2 px-1">
+                <span className="text-gray-500 text-sm font-medium">
+                  Order Total
+                </span>
+                <span className="text-lg font-bold text-gray-900">
+                  Rs.{order.total_price.toFixed(2)}
+                </span>
+              </div>
+            </div>
 
-                <p className="font-bold mt-2">
-                  Total: Rs.{(order.total_price || 0).toFixed(2)}
-                </p>
-
-                <div className="flex justify-between mt-4 items-center">
-                  <div className="flex items-center">
-                    {getStatusIndicator(order.status)}
-                    <span className="text-sm font-medium">{order.status}</span>
-                  </div>
-
-                  <div className="flex gap-4">
-                    {order.status !== "Cancelled" && (
-                      <>
-                        <button
-                          className="text-blue-500 hover:text-blue-600 p-1"
-                          onClick={() => printBill(order)}
-                        >
-                          <Printer />
-                        </button>
-                        <button
-                          className="p-1 rounded hover:scale-110 transition text-yellow-500 hover:text-yellow-600"
-                          onClick={() => toggleStatus(order.order_id)}
-                        >
-                          <CheckCircle />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      className="text-red-500 hover:text-red-600 p-1 rounded"
-                      onClick={() => deleteOrder(order.order_id)}
-                    >
-                      <Trash2 />
-                    </button>
-                  </div>
+            <div className="p-3 pt-2">
+              <div className="flex items-center justify-between border-t border-gray-100 pt-2">
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
+                  {getStatusIndicator(order.status)}
+                  <span
+                    className={`text-xs font-semibold uppercase tracking-wide ${
+                      order.status === "Cancelled"
+                        ? "text-red-500"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {order.status !== "Cancelled" && (
+                    <>
+                      <button
+                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        onClick={() => printBill(order)}
+                        title="Print Bill"
+                      >
+                        <Printer className="w-4 h-4" />
+                      </button>
+                      <button
+                        className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
+                        onClick={() => toggleStatus(order.order_id)}
+                        title="Change Status"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-
-          {/* Footer Total */}
-          <div className="p-5 mt-8 bg-white border rounded-xl shadow-sm flex justify-between items-center">
-            <span className="font-semibold text-lg text-gray-700">
-              Today’s Total Amount
-            </span>
-            <span className="text-2xl font-extrabold text-amber-600">
-              Rs. {todayTotal.toFixed(2)}
-            </span>
-          </div>
-        </div>
+        ))}
       </div>
-    </>
+
+      <div className="mt-12 max-w-7xl mx-auto border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
+        <span>End of list</span>
+        <span className="mt-2 md:mt-0">Total Orders: {todayOrders.length}</span>
+      </div>
+    </div>
   );
 };
 

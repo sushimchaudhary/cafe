@@ -5,9 +5,9 @@ import toast from "react-hot-toast";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 
 import AdminRegisterPage from "@/app/auth/register/page";
-import AdminHeader from "@/components/AdminHeader";
+
 import ToastProvider from "@/components/ToastProvider";
-import "@/styles/customButtons.css"
+import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -19,6 +19,9 @@ export default function AdminManagementPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editAdmin, setEditAdmin] = useState(null);
+  const [search, setSearch] = useState("");
+  const [deleteAdmin, setDeleteAdmin] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Open edit modal
   const openEditModal = (admin) => {
@@ -51,8 +54,6 @@ export default function AdminManagementPage() {
       console.log("Raw Response:", res);
       const data = await res.json();
 
-    
-      
       if (!res.ok) throw new Error(data.response || "Failed to fetch admins");
 
       // Always ensure array
@@ -72,7 +73,8 @@ export default function AdminManagementPage() {
         headers: { Authorization: `Token ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.response || "Failed to fetch restaurants");
+      if (!res.ok)
+        throw new Error(data.response || "Failed to fetch restaurants");
       setRestaurants(data.data || []);
     } catch (err) {
       console.error("Fetch restaurants error:", err);
@@ -96,49 +98,110 @@ export default function AdminManagementPage() {
   };
 
   // Delete admin
-  const handleDelete = async (reference_id) => {
-    if (!reference_id) {
-      console.log("Reference ID missing:", reference_id);
-      return toast.error("Admin reference_id missing!");
-    }
-    if (!confirm("Are you sure you want to delete this admin?")) return;
-
+  const handleDeleteConfirmed = async () => {
+    if (!deleteAdmin) return;
+  
     try {
-      const res = await fetch(`${API_URL}/api/user/admins/${reference_id}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Token ${adminToken}` },
-      });
-
+      const res = await fetch(
+        `${API_URL}/api/user/admins/${deleteAdmin.reference_id}/`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Token ${adminToken}` },
+        }
+      );
+  
       const data = await res.json();
-
+  
       if (!res.ok) throw new Error(data.response || "Delete failed");
-
+  
       toast.success("Admin deleted successfully!");
-      setAdmins((prev) => prev.filter((admin) => admin.reference_id !== reference_id));
+      setAdmins((prev) =>
+        prev.filter((admin) => admin.reference_id !== deleteAdmin.reference_id)
+      );
     } catch (err) {
       console.error("Delete Error:", err);
       toast.error(err.message);
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteAdmin(null);
     }
   };
+  
 
   return (
-    <div className="font-robot min-h-screen font-sans">
-      <AdminHeader />
+    <div className="container mx-auto h-screen flex flex-col px-1">
       <ToastProvider />
 
-      <div className="px-4 sm:px-6 md:px-10 py-3">
-        <div className="flex flex-row items-center justify-between flex-wrap gap-2">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-600 truncate">
-            Admin Management
+      <div className="px-2 sm:px-3 md:px-0 ">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
+          <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+            All User
           </h1>
 
-          <button
-            onClick={() => setShowForm(true)}
-            className="button flex items-center gap-2 bg-amber-500 font-bold text-black px-5 py-2 rounded-xl shadow-lg transition duration-300 cursor-pointer"
-          >
-            Register
-          </button>
+          <div className="flex w-full md:w-auto items-center gap-2">
+            <div className="relative">
+              <svg
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                />
+              </svg>
+
+              <input
+                type="text"
+                placeholder="Search User..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
+             focus:outline-none focus:ring-1 focus:ring-amber-200"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="button px-4 py-1.5 text-sm font-semibold
+            bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+            >
+              Register
+            </button>
+          </div>
         </div>
+
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
+              <h2 className="text-lg font-bold text-red-600 mb-3">
+                Confirm Delete
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">{deleteAdmin?.username}</span>?
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirmed}
+                  className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {(showForm || showEditModal) && (
           <div
@@ -151,14 +214,14 @@ export default function AdminManagementPage() {
               }
             }}
           >
-            <div className="rounded-3xl w-full max-w-3xl relative animate-fadeIn">
+            <div className="rounded w-full max-w-2xl p-3  relative animate-fadeIn">
               <AdminRegisterPage
                 adminData={editAdmin}
-                admins={admins} 
+                admins={admins}
                 adminToken={adminToken}
                 restaurants={restaurants}
                 branches={branches}
-                refreshAdmins={() => fetchAdmins(adminToken)}
+                refreshAdmins={fetchAdmins}
                 closeModal={() => {
                   setShowForm(false);
                   setShowEditModal(false);
@@ -170,63 +233,146 @@ export default function AdminManagementPage() {
         )}
       </div>
 
-      {/* Admin Table */}
-      <div className="px-4 sm:px-6 md:px-10 p-4">
-        <div className="overflow-x-auto rounded border border-amber-200 bg-white shadow">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-amber-50 uppercase">
+      <div className="min-h-0 bg-white rounded border shadow-sm overflow-hidden">
+        <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
+          <table className="min-w-full border-collapse table-fixed">
+            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
               <tr>
-                <th className="border border-gray-300 px-4 py-3 text-left">Username</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Name</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Email</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Mobile</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Address</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Restaurant</th>
-                <th className="border border-gray-300 px-4 py-3 text-left">Branch</th>
-                <th className="border border-gray-300 px-4 py-3 text-center">Actions</th>
+                <th className="px-4 py-2 text-left border w-1/14">SN</th>
+                <th className="px-4 py-2 text-left border">Username</th>
+                <th className="px-4 py-2 text-left border">Name</th>
+                <th className="px-4 py-2 text-left border">Email</th>
+                <th className="px-4 py-2 text-left border">Mobile</th>
+                <th className="px-4 py-2 text-left border">Address</th>
+                <th className="px-4 py-2 text-left border">Restaurant</th>
+                <th className="px-4 py-2 text-left border">Branch</th>
+                <th className="px-4 py-2 text-end border">Action</th>
               </tr>
             </thead>
-            <tbody>
-              {admins.length > 0 ? (
-                admins.map((admin, index) => (
-                  <tr
-                    key={`${admin.reference_id ?? index}-${admin.email}`}
-                    className="border-b hover:bg-amber-50 transition"
-                  >
-                    <td className="px-4 py-2 border">{admin.username}</td>
-                    <td className="px-4 py-2 border">{admin.first_name} {admin.last_name}</td>
-                    <td className="px-4 py-2 border">{admin.email}</td>
-                    <td className="px-4 py-2 border">{admin.mobile_number}</td>
-                    <td className="px-4 py-2 border">{admin.address}</td>
-                    <td className="px-4 py-2 border">
-                      {restaurants.find((r) => r.reference_id === admin.restaurant)?.name || "-"}
-                    </td>
-                    <td className="px-4 py-2 border">
-                      {branches.find((b) => b.reference_id === admin.branch)?.name || "-"}
-                    </td>
-                    <td className="border px-4 py-2">
-                      <div className="flex justify-center gap-4">
-                        <button
-                          title="Edit"
-                          onClick={() => openEditModal(admin)}
-                          className="text-amber-600 hover:underline"
-                        >
-                          <PencilIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(admin.reference_id)}
-                          className="text-red-600 hover:bg-red-100 p-2 rounded transition"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+
+            <tbody className="divide-y text-sm divide-amber-100">
+              {admins.filter((admin) => {
+                if (!search) return true;
+
+                const branchName = branches
+                  .find(
+                    (b) =>
+                      b.reference_id === admin.branch ||
+                      b.id === admin.branch ||
+                      b._id === admin.branch
+                  )
+                  ?.name?.toLowerCase();
+
+                return (
+                  admin.username.toLowerCase().includes(search.toLowerCase()) ||
+                  admin.first_name
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                  admin.last_name
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                  admin.email.toLowerCase().includes(search.toLowerCase()) ||
+                  admin.mobile_number
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                  admin.address.toLowerCase().includes(search.toLowerCase()) ||
+                  (branchName && branchName.includes(search.toLowerCase()))
+                );
+              }).length > 0 ? (
+                admins
+                  .filter((admin) => {
+                    if (!search) return true;
+                    const branchName = branches
+                      .find(
+                        (b) =>
+                          b.reference_id === admin.branch ||
+                          b.id === admin.branch ||
+                          b._id === admin.branch
+                      )
+                      ?.name?.toLowerCase();
+                    return (
+                      admin.username
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      admin.first_name
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      admin.last_name
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      admin.email
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      admin.mobile_number
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      admin.address
+                        .toLowerCase()
+                        .includes(search.toLowerCase()) ||
+                      (branchName && branchName.includes(search.toLowerCase()))
+                    );
+                  })
+                  .map((admin, index) => (
+                    <tr
+                      key={admin.reference_id || index}
+                      className="hover:bg-amber-50 transition duration-150"
+                    >
+                      <td className="px-2 py-1 border">{index + 1}</td>
+                      <td className="px-2 py-1 border">{admin.username}</td>
+                      <td className="px-2 py-1 border">
+                        {admin.first_name} {admin.last_name}
+                      </td>
+                      <td className="px-2 py-1 border">{admin.email}</td>
+                      <td className="px-2 py-1 border">
+                        {admin.mobile_number}
+                      </td>
+                      <td className="px-2 py-1 border">{admin.address}</td>
+                      <td className="px-2 py-1 border">
+                        {restaurants.find(
+                          (r) =>
+                            r.reference_id === admin.restaurant ||
+                            r.id === admin.restaurant ||
+                            r._id === admin.restaurant
+                        )?.name || "-"}
+                      </td>
+                      <td className="px-2 py-1 border">
+                        {branches.find(
+                          (b) =>
+                            b.reference_id === admin.branch ||
+                            b.id === admin.branch ||
+                            b._id === admin.branch
+                        )?.name || "-"}
+                      </td>
+                      <td className="px-2 py-1 border">
+                        <div className="flex pl-3 justify-center ">
+                          <button
+                            title="Edit"
+                            onClick={() => openEditModal(admin)}
+                            className="p-1 text-amber-600 hover:bg-amber-100 rounded-full"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            title="Delete"
+                            onClick={() => {
+                              setDeleteAdmin(admin);
+                              setShowDeleteModal(true);
+                            }}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
               ) : (
-                <tr key="no-admins">
-                  <td colSpan={8} className="px-4 py-6 border text-center text-gray-500">
-                    No admins found.
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-6 text-center text-gray-500"
+                  >
+                    User not found.
                   </td>
                 </tr>
               )}

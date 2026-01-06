@@ -7,6 +7,7 @@ import ToastProvider from "./ToastProvider";
 import { useRef } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import "../styles/customButtons.css";
+import MenuImageHover from "./ImageHover";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,6 +16,10 @@ export default function AdminMenuManager() {
   const [units, setUnits] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
   const [menus, setMenus] = useState([]);
+  const [search, setSearch] = useState("");
+  const [deleteMenu, setDeleteMenu] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [form, setForm] = useState({
     menu_date: "",
     categories: [
@@ -24,6 +29,23 @@ export default function AdminMenuManager() {
   const [loading, setLoading] = useState(false);
   const [editingMenuId, setEditingMenuId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+
+  const resetForm = () => {
+    setForm({
+      menu_date: "",
+      categories: [
+        {
+          name: "",
+          price: "",
+          item_category: "",
+          unit: "",
+          imageFile: null,
+          imagePreview: null,
+        },
+      ],
+    });
+    setEditingMenuId(null);
+  };
 
   // --- Fetch Units & Categories ---
   const fetchUnits = async () => {
@@ -87,7 +109,6 @@ export default function AdminMenuManager() {
     fetchMenus();
   }, []);
 
-  // Helper function to extract ID from string representations like "ItemCategory object (17)"
   const extractIdFromString = (value) => {
     if (typeof value === "string" && value.includes("object")) {
       const match = value.match(/\((\d+)\)/);
@@ -96,18 +117,16 @@ export default function AdminMenuManager() {
     return null;
   };
 
-  // Helper function to get category name
   const getCategoryName = (itemCategory) => {
     if (!itemCategory) return "N/A";
 
-    // If it's an object with name property
     if (typeof itemCategory === "object" && itemCategory !== null) {
       if (itemCategory.name) return itemCategory.name;
-      // Check for nested properties
+
       if (itemCategory.item_category && itemCategory.item_category.name) {
         return itemCategory.item_category.name;
       }
-      // Check if it has an id or reference_id we can use to lookup
+
       const lookupId = itemCategory.reference_id || itemCategory.id;
       if (lookupId) {
         const found = categoriesList.find(
@@ -119,16 +138,12 @@ export default function AdminMenuManager() {
       }
     }
 
-    // If it's a string, try to find in list
     if (typeof itemCategory === "string" && itemCategory) {
-      // First try direct match with reference_id
       const found = categoriesList.find((c) => c.reference_id === itemCategory);
       if (found) return found.name;
 
-      // Try extracting ID from string representation like "ItemCategory object (17)"
       const extractedId = extractIdFromString(itemCategory);
       if (extractedId) {
-        // Try to find by id (primary key) or reference_id
         const foundById = categoriesList.find((c) => {
           if (c.id && String(c.id) === extractedId) return true;
           if (c.reference_id === extractedId) return true;
@@ -141,18 +156,16 @@ export default function AdminMenuManager() {
     return "N/A";
   };
 
-  // Helper function to get unit name
   const getUnitName = (unit) => {
     if (!unit) return "N/A";
 
-    // If it's an object with name property
     if (typeof unit === "object" && unit !== null) {
       if (unit.name) return unit.name;
-      // Check for nested properties
+
       if (unit.unit && unit.unit.name) {
         return unit.unit.name;
       }
-      // Check if it has an id or reference_id we can use to lookup
+
       const lookupId = unit.reference_id || unit.id;
       if (lookupId) {
         const found = units.find(
@@ -164,16 +177,12 @@ export default function AdminMenuManager() {
       }
     }
 
-    // If it's a string, try to find in list
     if (typeof unit === "string" && unit) {
-      // First try direct match with reference_id
       const found = units.find((u) => u.reference_id === unit);
       if (found) return found.name;
 
-      // Try extracting ID from string representation like "Unit object (7)"
       const extractedId = extractIdFromString(unit);
       if (extractedId) {
-        // Try to find by id (primary key) or reference_id
         const foundById = units.find((u) => {
           if (u.id && String(u.id) === extractedId) return true;
           if (u.reference_id === extractedId) return true;
@@ -186,7 +195,6 @@ export default function AdminMenuManager() {
     return "N/A";
   };
 
-  // --- Form Handlers ---
   const handleCategoryChange = (index, field, value) => {
     const updated = [...form.categories];
     updated[index][field] = value;
@@ -197,7 +205,6 @@ export default function AdminMenuManager() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 1MB = 1024 * 1024 bytes
     const MAX_SIZE = 1024 * 1024;
 
     if (file.size > MAX_SIZE) {
@@ -214,6 +221,7 @@ export default function AdminMenuManager() {
 
     const updated = [...form.categories];
     updated[index].imageFile = file;
+    updated[index].imagePreview = URL.createObjectURL(file);
     setForm({ ...form, categories: updated });
   };
 
@@ -232,70 +240,89 @@ export default function AdminMenuManager() {
     setForm({ ...form, categories: updated });
   };
 
-  // --- Submit Menu ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const token = localStorage.getItem("adminToken");
       if (!token) throw new Error("Login again!");
 
       const formData = new FormData();
-      formData.append("menu_date", form.menu_date);
 
-      form.categories.forEach((cat, index) => {
-        const categoryJSON = {
-          name: cat.name,
-          price: cat.price,
-          item_category: cat.item_category,
-          unit: cat.unit,
-        };
-        formData.append(`items[${index}][name]`, cat.name);
-        formData.append(`items[${index}][price]`, cat.price);
-        formData.append(`items[${index}][item_category]`, cat.item_category);
-        formData.append(`items[${index}][unit]`, cat.unit);
+      if (editingMenuId) {
+        const cat = form.categories[0];
+
+        formData.append("menu_date", form.menu_date);
+        formData.append("name", cat.name);
+        formData.append("price", cat.price);
+        formData.append("item_category", cat.item_category);
+        formData.append("unit", cat.unit);
 
         if (cat.imageFile) {
-          formData.append(`items[${index}][image]`, cat.imageFile);
+          formData.append("image", cat.imageFile);
         }
-      });
+      } else {
+        formData.append("menu_date", form.menu_date);
 
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+        form.categories.forEach((cat, index) => {
+          const categoryJSON = {
+            name: cat.name,
+            price: cat.price,
+            item_category: cat.item_category,
+            unit: cat.unit,
+          };
+          formData.append(`items[${index}][name]`, cat.name);
+          formData.append(`items[${index}][price]`, cat.price);
+          formData.append(`items[${index}][item_category]`, cat.item_category);
+          formData.append(`items[${index}][unit]`, cat.unit);
+
+          if (cat.imageFile) {
+            formData.append(`items[${index}][image]`, cat.imageFile);
+          }
+        });
+        for (let pair of formData.entries()) {
+          console.log(pair[0], pair[1]);
+        }
       }
 
       const url = editingMenuId
         ? `${API_URL}/api/menus/${editingMenuId}/`
         : `${API_URL}/api/menus/`;
+
       const method = editingMenuId ? "PATCH" : "POST";
 
       const res = await fetch(url, {
         method,
-        headers: { Authorization: `Token ${token}` },
+        headers: {
+          Authorization: `Token ${token}`,
+        },
         body: formData,
       });
 
       const resData = await res.json();
+
       if (!res.ok || resData.response_code !== "0") {
-        const errorMessages = Object.values(resData.errors || {})
-          .flat()
-          .join(" | ");
-        throw new Error(errorMessages || "Failed to save menu");
+        throw new Error(resData.message || "Save failed");
       }
 
       toast.success(editingMenuId ? "Menu updated!" : "Menu created!");
+
       setForm({
         menu_date: "",
         categories: [
-          { name: "", price: "", item_category: "", unit: "", imageFile: "" },
+          { name: "", price: "", item_category: "", unit: "", imageFile: null },
         ],
       });
+
       setEditingMenuId(null);
+      setShowForm(false);
       fetchMenus();
     } catch (err) {
       console.error(err);
       toast.error(err.message || "Error saving menu");
     }
+
     setLoading(false);
   };
 
@@ -303,42 +330,54 @@ export default function AdminMenuManager() {
     setEditingMenuId(menu.reference_id);
 
     setForm({
-      menu_date: menu.menu_date,
+      menu_date: menu.menu_date || "",
       categories: [
         {
           name: menu.name || "",
           price: menu.price || "",
-          item_category: menu.item_category || "",
-          unit: menu.unit || "",
+          item_category: menu.item_category,
+          unit: menu.unit,
           imageFile: null,
+          imagePreview: menu.image || menu.image_url || null,
         },
       ],
     });
 
-    if (formRef.current) {
-      formRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
+    setShowForm(true);
   };
 
-  const handleDeleteMenu = async (menuId) => {
-    if (!confirm("Are you sure you want to delete this menu?")) return;
+  const handleDeleteConfirmed = async () => {
+    if (!deleteMenu) return;
+
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await fetch(`${API_URL}/api/menus/${menuId}/`, {
-        method: "DELETE",
-        headers: { Authorization: `Token ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/menus/${deleteMenu.reference_id}/`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Failed to delete menu");
+
       toast.success("Menu deleted!");
       fetchMenus();
     } catch (err) {
-      console.error(err);
       toast.error(err.message || "Delete failed");
+      console.error(err);
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteMenu(null);
     }
   };
+
+  const filteredMenus = menus.filter(
+    (menu) =>
+      menu.name?.toLowerCase().includes(search.toLowerCase()) ||
+      getCategoryName(menu.item_category)
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
+  );
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -346,242 +385,311 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    <div className="container min-h-screen font-sans">
+    <div className="container mx-auto min-h-screen font-sans px-1">
       <ToastProvider />
 
-      {!showForm && (
-        <div className="flex flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-3 gap-4">
-          {/* Title */}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-amber-600 leading-tight truncate">
-              Menus Management
-            </h1>
+      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
+        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+          Menu
+        </h1>
+
+        <div className="flex w-full md:w-auto items-center gap-2">
+          <div className="relative">
+            <svg
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+              />
+            </svg>
+
+            <input
+              type="text"
+              placeholder="Search Menu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
+             focus:outline-none focus:ring-1 focus:ring-amber-200"
+            />
           </div>
 
-          {/* Button */}
-          <div className="flex-shrink-0 ml-4">
-            <button
-              onClick={() => setShowForm(true)}
-              className="button flex items-center justify-center gap-2 bg-amber-500 text-black px-5 py-2 rounded-xl font-bold shadow-lg transition duration-300 cursor-pointer"
-            >
-              + Create
-            </button>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
+          >
+            Create
+          </button>
+        </div>
+      </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
+            <h2 className="text-lg font-bold text-red-600 mb-3">
+              Confirm Delete
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to delete menu item{" "}
+              <span className="font-semibold">{deleteMenu?.name}</span>?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirmed}
+                className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* FORM */}
+      {/* FORM MODAL */}
       {showForm && (
-        <div className="bg-white shadow-lg shadow-amber-100 rounded-xl p-4 sm:p-6 m-5 mb-6">
-          <div className="flex flex-row justify-between items-center gap-3 mb-4">
-            <h2 className="text-xl sm:text-2xl font-semibold text-amber-600 truncate">
-              {editingMenuId ? "Edit Menu" : "Create Menu"}
-            </h2>
-            <button
-              onClick={() => setShowForm(false)}
-              className="text-gray-600 hover:text-red-600 font-medium"
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          <form ref={formRef} onSubmit={onSubmit} className="space-y-6">
-            {/* MENU DATE */}
-            <div>
-              <label className="block mb-2 font-semibold">Menu Date</label>
-              <input
-                type="date"
-                value={form.menu_date}
-                onChange={(e) =>
-                  setForm({ ...form, menu_date: e.target.value })
-                }
-                className="w-full border border-amber-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
-                required
-              />
-            </div>
-
-            {/* CATEGORIES */}
-            {form.categories.map((cat, idx) => (
-              <div
-                key={idx}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-4 border border-amber-200 p-4 rounded-lg shadow-sm items-center"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
+          <div className="bg-white w-full max-w-3xl lg:max-w-3xl rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200 lg:mb-20">
+            <div className="flex justify-end p-1 border-b">
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-red-500 transition"
               >
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={cat.name}
-                  onChange={(e) =>
-                    handleCategoryChange(idx, "name", e.target.value)
-                  }
-                  className="w-full border border-amber-300 p-2 rounded-lg"
-                  required
-                />
+                <X size={18} />
+              </button>
+            </div>
+            <div className="max-h-[50vh] overflow-y-auto pt-2 px-2 space-y-1">
+              <form onSubmit={handleSubmit} className="space-y-1">
+                <div>
+                  <label className="block mb-1 text-sm">Menu Date</label>
+                  <input
+                    type="date"
+                    value={form.menu_date}
+                    onChange={(e) =>
+                      setForm({ ...form, menu_date: e.target.value })
+                    }
+                    className="w-full placeholder:text-sm border border-amber-300 p-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    required
+                  />
+                </div>
 
-                <input
-                  type="number"
-                  placeholder="Price"
-                  value={cat.price}
-                  onChange={(e) =>
-                    handleCategoryChange(idx, "price", e.target.value)
-                  }
-                  className="w-full border border-amber-300 p-2 rounded-lg"
-                  required
-                />
-
-                <select
-                  value={cat.item_category}
-                  onChange={(e) =>
-                    handleCategoryChange(idx, "item_category", e.target.value)
-                  }
-                  className="w-full border border-amber-300 p-2 rounded-lg"
-                  required
-                >
-                  <option value="">Select Item Category</option>
-                  {categoriesList.map((c) => (
-                    <option key={c.reference_id} value={c.reference_id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={cat.unit}
-                  onChange={(e) =>
-                    handleCategoryChange(idx, "unit", e.target.value)
-                  }
-                  className="w-full border border-amber-300 p-2 rounded-lg"
-                  required
-                >
-                  <option value="">Select Unit</option>
-                  {units.map((u) => (
-                    <option key={u.reference_id} value={u.reference_id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="w-full flex flex-row items-center gap-2">
-                  {/* Custom Upload Button */}
-                  <div className="flex-1">
+                {form.categories.map((cat, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2 border p-1 rounded items-center"
+                  >
                     <input
-                      type="file"
-                      accept="image/*"
-                      id={`upload-${idx}`}
-                      onChange={(e) => handleCategoryImage(idx, e)}
-                      className="hidden"
+                      type="text"
+                      placeholder="Name"
+                      value={cat.name}
+                      onChange={(e) =>
+                        handleCategoryChange(idx, "name", e.target.value)
+                      }
+                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                      required
                     />
-
-                    <label
-                      htmlFor={`upload-${idx}`}
-                      className="block w-full text-center cursor-pointer hover:bg-amber-500 text-black font-semibold py-2 rounded-lg border border-amber-300 transition"
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      value={cat.price}
+                      onChange={(e) =>
+                        handleCategoryChange(idx, "price", e.target.value)
+                      }
+                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                      required
+                    />
+                    <select
+                      value={cat.item_category}
+                      onChange={(e) =>
+                        handleCategoryChange(
+                          idx,
+                          "item_category",
+                          e.target.value
+                        )
+                      }
+                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                      required
                     >
-                      Uploads
-                    </label>
-                  </div>
+                      <option value="">Select Category</option>
+                      {categoriesList.map((c) => (
+                        <option key={c.reference_id} value={c.reference_id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={cat.unit}
+                      onChange={(e) =>
+                        handleCategoryChange(idx, "unit", e.target.value)
+                      }
+                      className="border p-1 text-sm  border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                      required
+                    >
+                      <option value="">Select Unit</option>
+                      {units.map((u) => (
+                        <option key={u.reference_id} value={u.reference_id}>
+                          {u.name}
+                        </option>
+                      ))}
+                    </select>
 
-                  {/* Delete Button */}
+                    <div className="flex items-center gap-4 ">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id={`upload-${idx}`}
+                        onChange={(e) => handleCategoryImage(idx, e)}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor={`upload-${idx}`}
+                        className="border p-1 text-sm border-amber-300 w-full  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                      >
+                        {cat.imagePreview ? (
+                          <img
+                            src={cat.imagePreview}
+                            className="w-full h-20 object-cover rounded"
+                          />
+                        ) : (
+                          "Upload"
+                        )}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategoryForm(idx)}
+                        className="text-red-600"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex justify-between  p-2 border-t bg-white sticky bottom-0">
                   <button
                     type="button"
-                    onClick={() => handleDeleteCategoryForm(idx)}
-                    className="text-red-600 hover:text-red-800 flex justify-center p-2"
+                    onClick={handleAddCategory}
+                    className="
+    flex items-center justify-center 
+    h-[24px] w-[80px] px-4 mt-2
+    bg-amber-500 hover:shadow-amber-500
+    text-black text-sm cursor-pointer
+    rounded shadow-sm
+    transition active:scale-95
+  "
                   >
-                    <X size={20} />
+                    Add
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    onClick={handleSubmit}
+                    className="formButton px-3 py-1 bg-amber-600 text-white rounded-lg"
+                  >
+                    {loading
+                      ? "Saving..."
+                      : editingMenuId
+                      ? "Update"
+                      : "Create"}
                   </button>
                 </div>
-              </div>
-            ))}
-
-            <div className="flex flex-row sm:flex-row sm:justify-between gap-4 mt-6">
-              {/* Add Category Button */}
-              <button
-                type="button"
-                onClick={handleAddCategory}
-                className="custom-btn w-full sm:w-auto"
-              >
-                + Add Category
-              </button>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="custom-btn w-full sm:w-auto"
-              >
-                {loading ? "Saving..." : editingMenuId ? "Update" : "Create"}
-              </button>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
       )}
 
       {/* TABLE */}
-      <div className="p-3">
-        <div className="overflow-x-auto rounded border border-amber-200">
-          <table className="min-w-full divide-y divide-amber-200">
-            <thead className="bg-amber-50 uppercase text-sm">
+      <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">
+        <div className="overflow-y-auto max-h-[450px] custom-scrollbar">
+          <table className="min-w-full border-collapse table-fixed">
+            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
               <tr>
-                {[
-                  "Menu Date",
-                  "Name",
-                  "Price",
-                  "Item Category",
-                  "Unit",
-                  "Image",
-                  "Actions",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="border border-gray-300 px-4 py-3 text-left"
-                  >
-                    {h}
-                  </th>
-                ))}
+                <th className="w-1/15 border px-4 py-2 text-left">SN</th>
+                <th className="w-1/7 border px-6 py-2 text-left">Date</th>
+                <th className="w-1/5 border px-6 py-2 text-left">Name</th>
+                <th className="w-1/7 border px-6 py-2 text-left">Price</th>
+                <th className="w-1/7 border px-4 py-2 text-left">Category</th>
+                <th className="w-1/7 border px-2 py-2 text-left">Unit</th>
+                <th className="w-1/12 border px-2 py-2 text-left">Image</th>
+                <th className="w-1/12 border px-2 py-2 text-left">Action</th>
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-amber-200 text-sm">
-              {menus.map((menu) => (
-                <tr
-                  key={menu.reference_id}
-                  className="border-b hover:bg-amber-50 transition"
-                >
-                  <td className="border px-4 py-2">{menu.menu_date}</td>
-                  <td className="border px-4 py-2">{menu.name}</td>
-                  <td className="border px-4 py-2">{menu.price}</td>
-                  <td className="border px-4 py-2">
-                    {getCategoryName(menu.item_category)}
-                  </td>
-                  <td className="border px-4 py-2">{getUnitName(menu.unit)}</td>
-                  <td className="border px-4 py-2">
-                    {menu.image || menu.image_url ? (
-                      <img
-                        src={menu.image || menu.image_url}
-                        alt={menu.name}
-                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
-                      />
-                    ) : (
-                      "No Image"
-                    )}
-                  </td>
-                  <td className="px-4 py-2 flex justify-center gap-4">
-                    <button
-                      onClick={() => {
-                        handleEditMenu(menu);
-                        setShowForm(true);
-                      }}
-                      className="text-amber-600 hover:bg-amber-100 p-2 rounded"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMenu(menu.reference_id)}
-                      className="text-red-600 hover:bg-red-100 p-2 rounded"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
+            <tbody className="text-sm">
+              {filteredMenus.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="text-center py-6 text-gray-400 border "
+                  >
+                    {search
+                      ? "menu not match your search"
+                      : "menu not found"}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredMenus.map((menu, index) => (
+                  <tr
+                    key={menu.reference_id}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    <td className="border px-4">{index + 1}</td>
+                    <td className="border px-4">{menu.menu_date}</td>
+                    <td className="border px-4">{menu.name}</td>
+                    <td className="border px-4">{menu.price}</td>
+                    <td className="border px-4">
+                      {getCategoryName(menu.item_category)}
+                    </td>
+                    <td className="border px-4 ">{getUnitName(menu.unit)}</td>
+                    <MenuImageHover src={menu.image || menu.image_url} />
+
+                    {/* <td className="border px-4 ">
+                      {menu.image || menu.image_url ? (
+                        <img
+                          src={menu.image || menu.image_url}
+                          className="w-5 h-5 object-cover rounded"
+                        />
+                      ) : (
+                        "No Image"
+                      )}
+                    </td> */}
+                    <td className="px-2  border">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => handleEditMenu(menu)}
+                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteMenu(menu);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

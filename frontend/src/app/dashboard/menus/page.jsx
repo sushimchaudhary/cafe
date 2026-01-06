@@ -2,7 +2,6 @@
 import React from "react";
 
 import AddItemForm from "@/components/AddItemForm";
-import AdminHeader from "../../../components/AdminHeader";
 
 export default function MenuManagement() {
   const handleAddItem = (item) => {
@@ -12,8 +11,7 @@ export default function MenuManagement() {
   return (
     <>
       <div>
-        {/* header */}
-        <AdminHeader  />
+        
         <div>
           <AddItemForm onAddItem={handleAddItem} />
         </div>
