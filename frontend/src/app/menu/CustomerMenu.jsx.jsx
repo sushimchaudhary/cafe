@@ -113,7 +113,7 @@ export default function CustomerMenu() {
     );
   };
 
-  /* ------------------ TOTALS ------------------ */
+  
   const totalItems = menuList.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = menuList.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
