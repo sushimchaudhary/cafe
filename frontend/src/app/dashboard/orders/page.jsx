@@ -209,8 +209,8 @@ const AdminOrdersDashboard = () => {
     if (t) {
       setToken(t);
       fetchOrders(t);
-      const i = setInterval(() => fetchOrders(t), 5000);
-      return () => clearInterval(i);
+      // const i = setInterval(() => fetchOrders(t), 5000);
+      // return () => clearInterval(i);
     }
   }, []);
 
