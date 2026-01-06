@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
+  
   Store,
   Building2,
   Table,
@@ -19,7 +19,7 @@ import { useSidebar } from "./SidebarContext";
 export default function DesktopSidebar({ is_superuser, children }) {
   const { collapsed, setCollapsed, setSidebarOpen } = useSidebar();
   const pathname = usePathname();
-  const router = useRouter(); // ✅ useRouter directly here
+  const router = useRouter(); 
   const isSuperUser = is_superuser === true;
 
   const [hovered, setHovered] = useState(false);
@@ -68,13 +68,13 @@ export default function DesktopSidebar({ is_superuser, children }) {
               }
               setSidebarOpen(false);
             }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg w-full transition
+            className={`flex items-center gap-1 px-2 py-1 rounded border-b w-full transition
               ${active
                 ? "bg-amber-100 text-amber-700 font-semibold"
                 : "text-gray-800 hover:bg-amber-50 hover:text-amber-600"
               }`}
           >
-            <Icon size={20} className="w-5 h-5" />
+            <Icon size={10} className="w-4 h-4" />
             {(!collapsed || hovered) && <span>{item.label}</span>}
           </button>
         );
@@ -89,17 +89,17 @@ export default function DesktopSidebar({ is_superuser, children }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={`hidden lg:flex flex-col bg-white text-gray-800 shadow-md border border-gray-200 transition-all duration-300
-          ${collapsed && !hovered ? "w-20" : "w-64"}`}
+          ${collapsed && !hovered ? "w-13" : "w-50"}`}
       >
-        <div className="flex items-center gap-3 px-4 py-3 h-16">
-          <div className="p-3 rounded hover:bg-gray-100">
+        <div className="flex items-center px-2 py-1 h-16">
+          <div className="p-1 rounded hover:bg-gray-100">
             <LayoutDashboardIcon size={20} />
           </div>
           {(!collapsed || hovered) && (
-            <h2 className="font-bold text-lg">Admin Panel</h2>
+            <h2 className="font-bold text-md">Admin Panel</h2>
           )}
         </div>
-        <nav className="flex-1 p-3 space-y-2">
+        <nav className="flex-1 p-1">
           <SidebarContent />
         </nav>
       </aside>
@@ -113,19 +113,19 @@ export default function DesktopSidebar({ is_superuser, children }) {
           />
         )}
         <aside
-          className={`absolute left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300
+          className={`absolute left-0 top-0 h-full w-45 bg-white shadow-md transform transition-transform duration-300
             ${collapsed ? "-translate-x-full" : "translate-x-0"}`}
         >
-          <div className="flex items-center justify-between gap-3 px-4 py-3 h-16">
-            <div className="flex items-center gap-3">
-              <LayoutDashboardIcon size={20} />
-              <h2 className="font-bold text-lg">Admin Panel</h2>
+          <div className="flex items-center justify-between  px-2 py-1 h-14">
+            <div className="flex items-center gap-1">
+              <LayoutDashboardIcon size={18} />
+              <h2 className="font-bold text-sm ">Admin Panel</h2>
             </div>
-            <button onClick={() => setCollapsed(true)} className="lg:hidden text-xl font-bold">
+            <button onClick={() => setCollapsed(true)} className="lg:hidden text-sm font-bold">
               ✕
             </button>
           </div>
-          <nav className="p-3 space-y-2">
+          <nav className="p-1 ">
             <SidebarContent />
           </nav>
         </aside>

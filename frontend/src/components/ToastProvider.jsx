@@ -7,14 +7,16 @@ const ToastProvider = () => {
     <Toaster
       position="top-right"
       toastOptions={{
-        // Default Amber Theme
+        // Default Amber Theme (smaller height)
         style: {
-          background: "#FEF3C7",  
-          color: "#92400E",         
+          background: "#FEF3C7",
+          color: "#92400E",
           border: "1px solid #FCD34D",
-          padding: "12px 16px",
+          padding: "6px 12px", // smaller padding = shorter height
           borderRadius: "8px",
           fontSize: "14px",
+          lineHeight: "1.2",   // makes text more compact
+          minHeight: "auto",   // remove default minHeight
         },
 
         // Success Toast - Green
@@ -23,6 +25,9 @@ const ToastProvider = () => {
             background: "#ECFDF5",
             color: "#065F46",
             border: "1px solid #34D399",
+            padding: "6px 12px",
+            lineHeight: "1.2",
+            minHeight: "auto",
           },
         },
 
@@ -32,8 +37,11 @@ const ToastProvider = () => {
             background: "#FEF2F2",
             color: "#B91C1C",
             border: "1px solid #F87171",
+            padding: "6px 12px",
+            lineHeight: "1.2",
+            minHeight: "auto",
           },
-        }
+        },
       }}
     />
   );

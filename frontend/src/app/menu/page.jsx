@@ -16,12 +16,31 @@ export default function CustomerMenu() {
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(true);
+  const [lastOrderTime, setLastOrderTime] = useState(null);
+
 
   const searchParams = useSearchParams();
   const tableToken =
     searchParams.get("table_token") || searchParams.get("token");
   console.log("Customer page tableToken:", tableToken);
 
+
+
+  const formatNepalTime = (iso) => {
+    if (!iso) return "-";
+    const date = new Date(iso);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kathmandu",
+    });
+  };
+  
+  
   /* ------------------ FETCH TABLE INFO ------------------ */
   const fetchTableInfo = async (token) => {
     try {
@@ -144,6 +163,8 @@ export default function CustomerMenu() {
 
       console.log("Order response:", res.data);
       toast.success("Order placed successfully ✅");
+      setLastOrderTime(res.data.created_at);
+
 
       setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
     } catch (err) {
@@ -379,7 +400,9 @@ export default function CustomerMenu() {
           <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-amber-100 to-orange-100 border-t-4 border-amber-600 rounded-t-3xl p-5 shadow-2xl backdrop-blur-sm z-20">
             <div className="flex justify-between font-bold text-amber-900 mb-3">
               <span className="text-lg">Total Items: {totalItems}</span>
-              <span className="text-lg">Total: Rs {totalPrice.toFixed(2)}</span>
+              <span className="text-lg">Total: Rs {totalPrice.toFixed(2)}
+              {lastOrderTime && ` | Ordered at: ${formatNepalTime(lastOrderTime)}`}
+              </span>
             </div>
             <div className="flex justify-center">
               <button

@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminRegisterPage({
   adminData = null,
-refreshAdmins,
+  refreshAdmins,
   closeModal,
 }) {
   const [restaurants, setRestaurants] = useState([]);
@@ -111,25 +111,26 @@ refreshAdmins,
     }
   }, [adminData]);
 
- 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!adminToken) return toast.error("Admin token missing!");
 
     try {
       let res;
-      if(adminData?.reference_id) {
+      if (adminData?.reference_id) {
         // Edit mode
-        res = await fetch(`${API_URL}/api/user/admins/${adminData.reference_id}/`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${adminToken}`,
-          },
-          body: JSON.stringify(form),
-        });
+        res = await fetch(
+          `${API_URL}/api/user/admins/${adminData.reference_id}/`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Token ${adminToken}`,
+            },
+            body: JSON.stringify(form),
+          }
+        );
       } else {
-       
         res = await fetch(`${API_URL}/api/user/admins/`, {
           method: "POST",
           headers: {
@@ -145,18 +146,24 @@ refreshAdmins,
 
       toast.success(adminData ? "Admin updated!" : "Admin registered!");
 
-       // 🔹 Save all fields in localStorage
-    localStorage.setItem("username", form.username);
-    localStorage.setItem("first_name", form.first_name);
-    localStorage.setItem("last_name", form.last_name);
-    localStorage.setItem("email", form.email);
-    localStorage.setItem("mobile_number", form.mobile_number);
-    localStorage.setItem("address", form.address);
-    localStorage.setItem("restaurant_name", restaurants.find(r => r.reference_id === form.restaurant)?.name || "-");
-    localStorage.setItem("branch_name", branches.find(b => b.reference_id === form.branch)?.name || "-");
+      // 🔹 Save all fields in localStorage
+      localStorage.setItem("username", form.username);
+      localStorage.setItem("first_name", form.first_name);
+      localStorage.setItem("last_name", form.last_name);
+      localStorage.setItem("email", form.email);
+      localStorage.setItem("mobile_number", form.mobile_number);
+      localStorage.setItem("address", form.address);
+      localStorage.setItem(
+        "restaurant_name",
+        restaurants.find((r) => r.reference_id === form.restaurant)?.name || "-"
+      );
+      localStorage.setItem(
+        "branch_name",
+        branches.find((b) => b.reference_id === form.branch)?.name || "-"
+      );
 
       // Refresh parent table
-      
+
       closeModal();
 
       setForm({
@@ -176,14 +183,19 @@ refreshAdmins,
     }
   };
 
- 
-  
   return (
-    <div className="min-h-screen flex justify-center items-center bg-amber-50 relative rounded-2xl ">
+    <div
+    className="
+      relative rounded flex justify-center items-center
+      bg-amber-50 lg:bg-amber-50
+      sm:bg-transparent md:bg-transparent
+      min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-screen
+    "
+  >
       <ToastProvider />
 
       <svg
-        className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
+        className="not-last:absolute inset-0 w-full h-full top-0  left-0 opacity-[0.25] pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
@@ -291,131 +303,142 @@ refreshAdmins,
         <rect width="100%" height="100%" fill="url(#momo-pattern)" />
       </svg>
 
-      <div className="w-full max-w-2xl bg-white rounded-xl border border-amber-200 p-3 m-1 sm:p-8 z-10">
+      <div className="w-full max-w-2xl bg-white rounded-xl border border-amber-200 p-2 m-1 sm:p-8 z-10">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 rounded-full mb-3">
-            <UserPlus className="w-7 h-7 text-amber-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-amber-600 mb-1">
+          <h2 className="text-[20px] font-bold text-amber-600 ">
             Admin Register
           </h2>
-          <p className="text-gray-600 text-sm">Create a new admin account</p>
+          <p className="text-gray-600 text-[13px]">
+            Create a new admin account
+          </p>
         </div>
 
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
         >
           {/* Username */}
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Username"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
               required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* Password */}
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="password"
               placeholder="Password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* First Name */}
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="text"
               placeholder="First Name"
               value={form.first_name}
               onChange={(e) => setForm({ ...form, first_name: e.target.value })}
               required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* Last Name */}
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Last Name"
               value={form.last_name}
               onChange={(e) => setForm({ ...form, last_name: e.target.value })}
               required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* Email */}
           <div className="relative sm:col-span-2">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="email"
               placeholder="Email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* Address */}
           <div className="relative sm:col-span-2">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Address"
               value={form.address || ""}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full pl-10 pr-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+              outline-none transition"
             />
           </div>
 
           {/* Mobile */}
           <div className="relative sm:col-span-2">
-  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
 
-  <input
-    type="tel"
-    placeholder="Mobile Number"
-    value={form.mobile_number}
-    onChange={(e) => {
-      const value = e.target.value.replace(/\D/g, ""); 
-      if (value.length <= 10) {
-        setForm({ ...form, mobile_number: value });
-      }
-    }}
-    required
-    maxLength={10}
-    pattern="[0-9]{10}"
-    title="Mobile number must be exactly 10 digits"
-    className="w-full pl-10 pr-3 py-2
-      border border-amber-300 rounded-lg
-      focus:outline-none focus:ring-1 focus:ring-amber-400
-      text-sm"
-  />
-</div>
-
+            <input
+              type="tel"
+              placeholder="Mobile Number"
+              value={form.mobile_number}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                if (value.length <= 10) {
+                  setForm({ ...form, mobile_number: value });
+                }
+              }}
+              required
+              maxLength={10}
+              pattern="[0-9]{10}"
+              title="Mobile number must be exactly 10 digits"
+              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+    focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+    outline-none transition"
+            />
+          </div>
 
           {/* Restaurant */}
           <select
             value={form.restaurant}
             onChange={(e) => setForm({ ...form, restaurant: e.target.value })}
             required
-            className="w-full sm:col-span-1 px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+            className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+            focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+            outline-none transition"
           >
             <option value="">Select Restaurant</option>
             {restaurants.map((r) => (
@@ -430,7 +453,9 @@ refreshAdmins,
             value={form.branch}
             onChange={(e) => setForm({ ...form, branch: e.target.value })}
             required
-            className="w-full sm:col-span-1 px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-400 text-sm"
+            className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+            focus:ring-1 focus:ring-amber-300 focus:border-amber-300
+            outline-none transition"
           >
             <option value="">Select Branch</option>
             {filteredBranches.map((b) => (
@@ -440,11 +465,10 @@ refreshAdmins,
             ))}
           </select>
 
-          
           <div className="sm:col-span-2 flex flex-col items-center gap-2">
             <button
               type="submit"
-              className="w-full bg-amber-600 text-white py-2 rounded-lg font-medium hover:bg-amber-700 transition transform active:scale-95 text-sm"
+              className="w-full bg-amber-600 text-white py-2 rounded font-medium hover:bg-amber-700 transition transform active:scale-95 text-sm"
             >
               Register Admin
             </button>

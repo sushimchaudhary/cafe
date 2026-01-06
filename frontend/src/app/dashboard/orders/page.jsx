@@ -5,19 +5,38 @@ import Swal from "sweetalert2";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Convert ISO/UTC time to Nepal time
+const toNepalDate = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  
+  return new Date(d.getTime() + 5.75 * 60 * 60 * 1000);
+};
 const formatNepalTime = (iso) => {
   if (!iso) return "-";
   const date = new Date(iso);
-  const nepal = new Date(date.getTime() + (5 * 60 + 45) * 60000);
-  return nepal.toLocaleString("en-US", {
+  return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    timeZone: "Asia/Kathmandu",
   });
 };
+
+
+// Format Nepal date as YYYY-MM-DD (for today filter)
+const getNepalDateString = (date) => {
+  const nepal = toNepalDate(date);
+  if (!nepal) return "";
+  const yyyy = nepal.getFullYear();
+  const mm = String(nepal.getMonth() + 1).padStart(2, "0");
+  const dd = String(nepal.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 
 const getStatusIndicator = (status) => {
   const colors = {
@@ -61,7 +80,7 @@ const AdminOrdersDashboard = () => {
           : [];
 
         return {
-          order_id: o.reference_id, // ✅ consistent everywhere
+          order_id: o.reference_id, 
           table_id: o.table_id,
           tableName: o.table_number ? `Table ${o.table_number}` : "Table",
           items,
@@ -89,54 +108,151 @@ const AdminOrdersDashboard = () => {
     });
   };
 
-  /* ================= CANCEL ================= */
- /* ================= CANCEL (temporary UI only) ================= */
-const cancelOrder = (order_id) => {
-  const orderIndex = orders.findIndex((o) => o.order_id === order_id);
-  if (orderIndex === -1) return;
+// const cancelOrder = (order_id) => {
+//   const orderIndex = orders.findIndex((o) => o.order_id === order_id);
+//   if (orderIndex === -1) return;
 
+//   Swal.fire({
+//     title: "Cancel order?",
+//     icon: "warning",
+//     showCancelButton: true,
+//   }).then((ok) => {
+//     if (!ok.isConfirmed) return;
+
+//     showToast("Order Cancelled ");
+
+ 
+//     setOrders((prev) =>
+//       prev.map((o) =>
+//         o.order_id === order_id ? { ...o, status: "Cancelled" } : o
+//       )
+//     );
+//   });
+// };
+
+
+const cancelOrder = async (reference_id) => {
   Swal.fire({
     title: "Cancel order?",
+    
     icon: "warning",
     showCancelButton: true,
-  }).then((ok) => {
+  }).then(async (ok) => {
     if (!ok.isConfirmed) return;
 
-    showToast("Order Cancelled ");
+    try {
+      const res = await fetch(
+        `${API_URL}/api/orders/cancel/${reference_id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // Update local state only
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.order_id === order_id ? { ...o, status: "Cancelled" } : o
-      )
-    );
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Cancel failed");
+      }
+
+      showToast("Order Cancelled");
+
+     
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === reference_id
+            ? { ...o, status: "Cancelled" }
+            : o
+        )
+      );
+    } catch (err) {
+      Swal.fire("Error", err.message, "error");
+    }
   });
 };
 
-const toggleStatus = (order_id) => {
-  const order = orders.find((o) => o.order_id === order_id);
+
+
+// const toggleStatus = (order_id) => {
+//   const order = orders.find((o) => o.order_id === order_id);
+//   if (!order || order.status === "Cancelled") return;
+
+//   const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
+//   const currentIndex = statusFlow.indexOf(order.status);
+//   const nextStatus = statusFlow[currentIndex + 1] || order.status;
+
+//   Swal.fire({
+//     title: "Change Status?",
+//     text: `${order.status} → ${nextStatus}`,
+//     showCancelButton: true,
+//   }).then((ok) => {
+//     if (!ok.isConfirmed) return;
+
+//     showToast("Status Updated");
+
+  
+//     setOrders((prev) =>
+//       prev.map((o) =>
+//         o.order_id === order_id ? { ...o, status: nextStatus } : o
+//       )
+//     );
+//   });
+// };
+
+
+const toggleStatus = async (reference_id) => {
+  const order = orders.find((o) => o.order_id === reference_id);
   if (!order || order.status === "Cancelled") return;
 
   const statusFlow = ["Pending", "In Progress", "Served", "Paid"];
   const currentIndex = statusFlow.indexOf(order.status);
-  const nextStatus = statusFlow[currentIndex + 1] || order.status;
+  const nextStatus = statusFlow[currentIndex + 1];
 
-  Swal.fire({
+  if (!nextStatus) return;
+
+  const confirm = await Swal.fire({
     title: "Change Status?",
     text: `${order.status} → ${nextStatus}`,
     showCancelButton: true,
-  }).then((ok) => {
-    if (!ok.isConfirmed) return;
+  });
 
-    showToast("Status Updated (temporary)");
+  if (!confirm.isConfirmed) return;
 
-    // Update local state only
+  try {
+    const res = await fetch(
+      `${API_URL}/api/orders/status/${reference_id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Status update failed");
+    }
+
+    showToast("Status Updated");
+
+    // UI update after success
     setOrders((prev) =>
       prev.map((o) =>
-        o.order_id === order_id ? { ...o, status: nextStatus } : o
+        o.order_id === reference_id
+          ? { ...o, status: nextStatus }
+          : o
       )
     );
-  });
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
 };
 
 
@@ -168,16 +284,25 @@ const toggleStatus = (order_id) => {
     }
   }, []);
 
-  const todayOrders = orders;
+ 
+
+
+      // Filter today’s orders (Nepal time)
+      const todayNepal = getNepalDateString(new Date());
+      const todayOrders = orders.filter(
+        (o) => getNepalDateString(o.created_at) === todayNepal
+      );
+      
+
   const todayTotal = todayOrders
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
-
+    
   return (
-    <div className=" min-h-screen font-sans p-4 sm:p-6 lg:p-8">
+    <div className=" min-h-screen font-sans p-4 sm:p-6 lg:p-2">
       <header className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">
+          <h1 className="text-sm sm:text-xl font-bold text-gray-800 tracking-tight">
             Kitchen Dashboard
           </h1>
           <p className="text-gray-500 text-sm mt-1">

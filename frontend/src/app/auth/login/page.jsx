@@ -277,37 +277,35 @@ const AdminLoginPage = () => {
         <rect width="100%" height="100%" fill="url(#momo-pattern)" />
       </svg>
 
-      <div className="z-10 bg-white/90 rounded-2xl shadow-2xl p-8 md:p-10 w-full max-w-md border border-amber-100">
+      <div className="z-10 bg-white/90 rounded-2xl shadow-2xl p-5 md:p-7 w-[350px] max-w-md border border-amber-100">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-            <LogIn className="w-8 h-8 text-amber-600" />
-          </div>
-          <h2 className="text-3xl font-bold text-amber-600 mb-2">
+        <div className="text-center mb-3">
+          
+          <h2 className="text-[20px] font-bold text-amber-600">
             Admin Login
           </h2>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-[13px]">
             Sign in to access your dashboard
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-1 ">
           {/* Username */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
               Username
             </label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
                 required
-                className="w-full pl-11 pr-4 py-3 border border-amber-300 rounded-xl
-              focus:ring-2 focus:ring-amber-400 focus:border-amber-400
+                className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
               outline-none transition"
               />
             </div>
@@ -319,26 +317,26 @@ const AdminLoginPage = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500 w-5 h-5" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                className="w-full pl-11 pr-12 py-3 border border-amber-300 rounded-xl
-              focus:ring-2 focus:ring-amber-400 focus:border-amber-400
+                className="w-full pl-8 pr-11 py-1 placeholder:text-sm border border-amber-300 rounded
+              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
               outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-500"
               >
                 {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
+                  <EyeOff className="w-4 h-4" />
                 ) : (
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-4 h-4" />
                 )}
               </button>
             </div>
@@ -348,7 +346,7 @@ const AdminLoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-600 text-white py-3 rounded-xl
+            className="w-full bg-amber-600 mt-4 text-white py-2 rounded
           font-semibold shadow-lg transition duration-300
           hover:bg-amber-700 focus:ring-2 focus:ring-amber-400
           disabled:opacity-50 flex items-center justify-center gap-2"
@@ -379,7 +377,7 @@ const AdminLoginPage = () => {
               </>
             ) : (
               <>
-                <LogIn className="w-5 h-5" />
+                <LogIn className="w-4 h-4" />
                 Login
               </>
             )}
