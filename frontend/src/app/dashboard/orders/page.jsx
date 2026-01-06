@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { X, Printer, CheckCircle } from "lucide-react";
+import { X, Printer } from "lucide-react";
 import Swal from "sweetalert2";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -9,9 +9,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const toNepalDate = (date) => {
   if (!date) return null;
   const d = new Date(date);
-
   return new Date(d.getTime() + 5.75 * 60 * 60 * 1000);
 };
+
+// Format Nepal time
 const formatNepalTime = (iso) => {
   if (!iso) return "-";
   const date = new Date(iso);
@@ -36,7 +37,7 @@ const getNepalDateString = (date) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
-
+// Normalize backend status
 const normalizeStatus = (status) => {
   switch (status.toLowerCase()) {
     case "pending":
@@ -54,10 +55,10 @@ const normalizeStatus = (status) => {
   }
 };
 
-
-
+// Convert status for backend
 const backendStatus = (status) => status.toLowerCase();
 
+// Status indicator colors
 const getStatusIndicator = (status) => {
   const colors = {
     Pending: "bg-yellow-300",
@@ -66,8 +67,6 @@ const getStatusIndicator = (status) => {
     Served: "bg-green-300",
     Cancelled: "bg-red-300",
   };
-
-
 
   return (
     <span
@@ -78,52 +77,13 @@ const getStatusIndicator = (status) => {
   );
 };
 
+const statusOptions = ["Pending", "Preparing", "Ready", "Served", "Cancelled"];
+
 const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState("");
 
-  // const fetchOrders = async (authToken) => {
-  //   try {
-  //     const res = await fetch(`${API_URL}/api/orders-list/`, {
-  //       headers: {
-  //         Authorization: `Token ${authToken}`,
-  //       },
-  //     });
-  //     const result = await res.json();
-  //     const ordersData = result?.data || [];
-
-  //     console.log("API URL:", `${API_URL}/api/orders-list/`);
-  //     console.log("Raw API Response:", result);
-  //     console.log("Orders Array:", ordersData);
-
-  //     const normalized = ordersData.map((o) => {
-  //       const items = Array.isArray(o.items)
-  //         ? o.items.map((i) => ({
-  //             name: i.menu_name,
-  //             quantity: Number(i.quantity),
-  //             unit_name: i.unit_name || "-",
-  //             total_price: Number(i.total_price),
-  //           }))
-  //         : [];
-
-  //       return {
-  //         order_id: o.reference_id,
-  //         table_id: o.table_id,
-  //         tableName: o.table_number ? `Table ${o.table_number}` : "Table",
-  //         items,
-  //         total_price: Number(o.total_amount),
-  //         status: o.status,
-  //         created_at: o.order_time,
-  //       };
-  //     });
-
-  //     setOrders(normalized);
-  //   } catch (err) {
-  //     console.error("Fetch error:", err);
-  //     setOrders([]);
-  //   }
-  // };
-
+  // Fetch orders from backend
   const fetchOrders = async (authToken) => {
     try {
       const res = await fetch(`${API_URL}/api/orders-list/`, {
@@ -156,7 +116,7 @@ const AdminOrdersDashboard = () => {
     }
   };
 
-
+  // Toast notification
   const showToast = (title, icon = "success") => {
     Swal.fire({
       toast: true,
@@ -168,27 +128,7 @@ const AdminOrdersDashboard = () => {
     });
   };
 
-  // const cancelOrder = (order_id) => {
-  //   const orderIndex = orders.findIndex((o) => o.order_id === order_id);
-  //   if (orderIndex === -1) return;
-
-  //   Swal.fire({
-  //     title: "Cancel order?",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //   }).then((ok) => {
-  //     if (!ok.isConfirmed) return;
-
-  //     showToast("Order Cancelled ");
-
-  //     setOrders((prev) =>
-  //       prev.map((o) =>
-  //         o.order_id === order_id ? { ...o, status: "Cancelled" } : o
-  //       )
-  //     );
-  //   });
-  // };
-
+  // Cancel order
   const cancelOrder = async (reference_id) => {
     Swal.fire({
       title: "Cancel order?",
@@ -221,32 +161,19 @@ const AdminOrdersDashboard = () => {
     });
   };
 
-  const toggleStatus = async (reference_id) => {
-    const order = orders.find((o) => o.order_id === reference_id);
+  // Update status from dropdown
+  const handleStatusChange = async (order_id, newStatus) => {
+    const order = orders.find((o) => o.order_id === order_id);
     if (!order || order.status === "Cancelled") return;
 
-    const flow = ["Pending", "Preparing", "Ready", "Served"];
-    const idx = flow.indexOf(order.status);
-    if (idx === -1 || !flow[idx + 1]) return;
-
-    const nextStatus = flow[idx + 1];
-
-    const ok = await Swal.fire({
-      title: "Change Status?",
-      text: `${order.status} → ${nextStatus}`,
-      showCancelButton: true,
-    });
-
-    if (!ok.isConfirmed) return;
-
     try {
-      const res = await fetch(`${API_URL}/api/orders/status/${reference_id}`, {
+      const res = await fetch(`${API_URL}/api/orders/status/${order_id}`, {
         method: "PATCH",
         headers: {
           Authorization: `Token ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: backendStatus(nextStatus) }),
+        body: JSON.stringify({ status: backendStatus(newStatus) }),
       });
 
       if (!res.ok) throw new Error("Status update failed");
@@ -255,7 +182,7 @@ const AdminOrdersDashboard = () => {
 
       setOrders((prev) =>
         prev.map((o) =>
-          o.order_id === reference_id ? { ...o, status: nextStatus } : o
+          o.order_id === order_id ? { ...o, status: newStatus } : o
         )
       );
     } catch (err) {
@@ -263,16 +190,15 @@ const AdminOrdersDashboard = () => {
     }
   };
 
+  // Print bill
   const printBill = (order) => {
     const w = window.open("", "", "width=400,height=600");
     w.document.write(`<h2>Restaurant Bill</h2>`);
     w.document.write(`<p>${order.tableName}</p>`);
     w.document.write(`<p>${formatNepalTime(order.created_at)}</p><hr/>`);
-
     order.items.forEach((i) => {
       w.document.write(`<p>${i.quantity}x ${i.name} - Rs.${i.total_price}</p>`);
     });
-
     w.document.write(`<hr/><b>Total: Rs.${order.total_price}</b>`);
     w.document.close();
     w.print();
@@ -299,7 +225,7 @@ const AdminOrdersDashboard = () => {
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
 
   return (
-    <div className=" min-h-screen font-sans p-4 sm:p-6 lg:p-2">
+    <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-2">
       <header className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-sm sm:text-xl font-bold text-gray-800 tracking-tight">
@@ -307,9 +233,7 @@ const AdminOrdersDashboard = () => {
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             Orders for{" "}
-            <span className="font-medium text-gray-700">
-              {todayOrders.length}
-            </span>
+            <span className="font-medium text-gray-700">{todayOrders.length}</span>
           </p>
         </div>
 
@@ -328,9 +252,7 @@ const AdminOrdersDashboard = () => {
           <div
             key={order.order_id}
             className={`flex flex-col justify-between border border-gray-200 rounded-2xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-              order.status === "Cancelled"
-                ? "opacity-60 bg-gray-50 grayscale"
-                : ""
+              order.status === "Cancelled" ? "opacity-60 bg-gray-50 grayscale" : ""
             }`}
           >
             <div className="p-4 border-b border-gray-100">
@@ -370,13 +292,8 @@ const AdminOrdersDashboard = () => {
                       className="flex justify-between items-center text-sm"
                     >
                       <span className="text-gray-700 font-medium">
-                        <span className="text-gray-400 text-xs mr-1">
-                          {i.quantity}x
-                        </span>
-                        {i.name}{" "}
-                        <span className="text-xs text-gray-400">
-                          ({i.unit_name})
-                        </span>
+                        <span className="text-gray-400 text-xs mr-1">{i.quantity}x</span>
+                        {i.name} <span className="text-xs text-gray-400">({i.unit_name})</span>
                       </span>
                       <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
                         Rs.{i.total_price.toFixed(0)}
@@ -386,9 +303,7 @@ const AdminOrdersDashboard = () => {
                 </ul>
               </div>
               <div className="flex justify-between items-center mt-2 px-1">
-                <span className="text-gray-500 text-sm font-medium">
-                  Order Total
-                </span>
+                <span className="text-gray-500 text-sm font-medium">Order Total</span>
                 <span className="text-lg font-bold text-gray-900">
                   Rs.{order.total_price.toFixed(2)}
                 </span>
@@ -399,15 +314,25 @@ const AdminOrdersDashboard = () => {
               <div className="flex items-center justify-between border-t border-gray-100 pt-2">
                 <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
                   {getStatusIndicator(order.status)}
-                  <span
-                    className={`text-xs font-semibold uppercase tracking-wide ${
-                      order.status === "Cancelled"
-                        ? "text-red-500"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
+                  {order.status !== "Cancelled" ? (
+                    <select
+                      value={order.status}
+                      onChange={(e) =>
+                        handleStatusChange(order.order_id, e.target.value)
+                      }
+                      className="bg-transparent border-none text-xs font-semibold uppercase tracking-wide text-gray-600 focus:outline-none"
+                    >
+                      {statusOptions.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-xs font-semibold uppercase tracking-wide text-red-500">
+                      {order.status}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   {order.status !== "Cancelled" && (
@@ -418,13 +343,6 @@ const AdminOrdersDashboard = () => {
                         title="Print Bill"
                       >
                         <Printer className="w-4 h-4" />
-                      </button>
-                      <button
-                        className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
-                        onClick={() => toggleStatus(order.order_id)}
-                        title="Change Status"
-                      >
-                        <CheckCircle className="w-4 h-4" />
                       </button>
                     </>
                   )}
