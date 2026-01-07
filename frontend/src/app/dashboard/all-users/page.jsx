@@ -328,20 +328,12 @@ export default function AdminManagementPage() {
                       </td>
                       <td className="px-2 py-1 border">{admin.address}</td>
                       <td className="px-2 py-1 border">
-                        {restaurants.find(
-                          (r) =>
-                            r.reference_id === admin.restaurant ||
-                            r.id === admin.restaurant ||
-                            r._id === admin.restaurant
-                        )?.name || "-"}
+                      {admin.restaurant_name || "-"}
+
                       </td>
                       <td className="px-2 py-1 border">
-                        {branches.find(
-                          (b) =>
-                            b.reference_id === admin.branch ||
-                            b.id === admin.branch ||
-                            b._id === admin.branch
-                        )?.name || "-"}
+                      {admin.branch_name || "-"}
+
                       </td>
                       <td className="px-2 py-1 border">
                         <div className="flex pl-3 justify-center ">

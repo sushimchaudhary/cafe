@@ -86,15 +86,15 @@ export default function AdminRegisterPage({
   useEffect(() => {
     if (adminData) {
       setForm({
-        username: adminData.username,
+        username: adminData.username || "",
         password: "",
-        first_name: adminData.first_name,
-        last_name: adminData.last_name,
-        email: adminData.email,
-        mobile_number: adminData.mobile_number,
-        address: adminData.address,
-        restaurant: adminData.restaurant,
-        branch: adminData.branch,
+        first_name: adminData.first_name || "",
+        last_name: adminData.last_name || "",
+        email: adminData.email || "",
+        mobile_number: adminData.mobile_number || "",
+        address: adminData.address || "",
+        restaurant: adminData.restaurant?.reference_id || "",
+        branch: adminData.branch?.reference_id || "",
       });
     } else {
       setForm({
@@ -110,6 +110,7 @@ export default function AdminRegisterPage({
       });
     }
   }, [adminData]);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -146,6 +147,11 @@ export default function AdminRegisterPage({
 
       toast.success(adminData ? "Admin updated!" : "Admin registered!");
 
+      console.log("Submitting:", {
+        restaurant: form.restaurant,
+        branch: form.branch,
+      });
+      
       // 🔹 Save all fields in localStorage
       localStorage.setItem("username", form.username);
       localStorage.setItem("first_name", form.first_name);
