@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, Edit2, X } from "lucide-react";
+import { Trash2, Edit2, X, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import ToastProvider from "./ToastProvider";
@@ -459,159 +459,176 @@ export default function AdminMenuManager() {
         </div>
       )}
 
-      {/* FORM MODAL */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
-          <div className="bg-white w-full max-w-3xl lg:max-w-3xl rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200 lg:mb-20">
-            <div className="flex justify-end p-1 border-b">
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-red-500 transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="max-h-[50vh] overflow-y-auto pt-2 px-2 space-y-1">
-              <form onSubmit={handleSubmit} className="space-y-1">
-                <div>
-                  <label className="block mb-1 text-sm">Menu Date</label>
+{showForm && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center pl-15 bg-black/40 p-3">
+    <div className="bg-white w-auto max-w-4xl rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center p-2 border-b sticky top-0 bg-white z-10">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-gray-700">Menu Categories</span>
+        </div>
+        <button
+          onClick={() => setShowForm(false)}
+          className="text-gray-400 hover:text-red-500 transition"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* MENU DATE */}
+      <div className="p-3 border-b">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
+          Menu Date
+        </label>
+        <input
+          type="date"
+          value={form.menu_date}
+          onChange={(e) =>
+            setForm({ ...form, menu_date: e.target.value })
+          }
+          className="w-full border border-amber-300 p-2 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+          required
+        />
+      </div>
+
+      {/* TABLE */}
+      <div className="overflow-x-auto max-h-[60vh] custom-scrollbar p-3">
+        <table className="min-w-auto border-collapse table-auto">
+          <thead className="sticky top-0 bg-[#236B28] text-white text-[10px] font-semibold">
+            <tr>
+              <th className="border px-2 py-1">Name</th>
+              <th className="border px-2 py-1">Price</th>
+              <th className="border px-2 py-1">Category</th>
+              <th className="border px-2 py-1">Unit</th>
+              <th className="border px-2 py-1">Image</th>
+              <th className="border px-2 py-1">Action</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {form.categories.map((cat, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                {/* Name */}
+                <td className="border px-2 py-1">
                   <input
-                    type="date"
-                    value={form.menu_date}
-                    onChange={(e) =>
-                      setForm({ ...form, menu_date: e.target.value })
-                    }
-                    className="w-full placeholder:text-sm border border-amber-300 p-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    type="text"
+                    value={cat.name}
+                    onChange={(e) => handleCategoryChange(idx, "name", e.target.value)}
+                    className="w-[150px] border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
                     required
                   />
-                </div>
+                </td>
 
-                {form.categories.map((cat, idx) => (
-                  <div
-                    key={idx}
-                    className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2 border p-1 rounded items-center"
+                {/* Price */}
+                <td className="border px-2 py-1">
+                  <input
+                    type="number"
+                    value={cat.price}
+                    onChange={(e) => handleCategoryChange(idx, "price", e.target.value)}
+                    className="w-[150px] border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    required
+                  />
+                </td>
+
+                {/* Category */}
+                <td className="border px-2 py-1">
+                  <select
+                    value={cat.item_category}
+                    onChange={(e) => handleCategoryChange(idx, "item_category", e.target.value)}
+                    className="w-full border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    required
                   >
-                    <input
-                      type="text"
-                      placeholder="Name"
-                      value={cat.name}
-                      onChange={(e) =>
-                        handleCategoryChange(idx, "name", e.target.value)
-                      }
-                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                      required
-                    />
-                    <input
-                      type="number"
-                      placeholder="Price"
-                      value={cat.price}
-                      onChange={(e) =>
-                        handleCategoryChange(idx, "price", e.target.value)
-                      }
-                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                      required
-                    />
-                    <select
-                      value={cat.item_category}
-                      onChange={(e) =>
-                        handleCategoryChange(
-                          idx,
-                          "item_category",
-                          e.target.value
-                        )
-                      }
-                      className="border p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {categoriesList.map((c) => (
-                        <option key={c.reference_id} value={c.reference_id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={cat.unit}
-                      onChange={(e) =>
-                        handleCategoryChange(idx, "unit", e.target.value)
-                      }
-                      className="border p-1 text-sm  border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                      required
-                    >
-                      <option value="">Select Unit</option>
-                      {units.map((u) => (
-                        <option key={u.reference_id} value={u.reference_id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </select>
+                    <option value="">Select Category</option>
+                    {categoriesList.map((c) => (
+                      <option key={c.reference_id} value={c.reference_id}>{c.name}</option>
+                    ))}
+                  </select>
+                </td>
 
-                    <div className="flex items-center gap-4 ">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        id={`upload-${idx}`}
-                        onChange={(e) => handleCategoryImage(idx, e)}
-                        className="hidden"
+                {/* Unit */}
+                <td className="border px-2 py-1">
+                  <select
+                    value={cat.unit}
+                    onChange={(e) => handleCategoryChange(idx, "unit", e.target.value)}
+                    className="w-full border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    required
+                  >
+                    <option value="">Select Unit</option>
+                    {units.map((u) => (
+                      <option key={u.reference_id} value={u.reference_id}>{u.name}</option>
+                    ))}
+                  </select>
+                </td>
+
+                {/* Image */}
+                <td className="border px-2 py-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id={`upload-${idx}`}
+                    onChange={(e) => handleCategoryImage(idx, e)}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor={`upload-${idx}`}
+                    className="w-full px-1 py-1 rounded text-sm text-center cursor-pointer border border-dashed border-amber-300 hover:bg-amber-50 transition"
+                  >
+                    {cat.imagePreview ? (
+                      <img
+                        src={cat.imagePreview}
+                        className="w-full h-16 object-cover rounded"
                       />
-                      <label
-                        htmlFor={`upload-${idx}`}
-                        className="border p-1 text-sm border-amber-300 w-full  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                      >
-                        {cat.imagePreview ? (
-                          <img
-                            src={cat.imagePreview}
-                            className="w-full h-20 object-cover rounded"
-                          />
-                        ) : (
-                          "Upload"
-                        )}
-                      </label>
+                    ) : (
+                      "Upload"
+                    )}
+                  </label>
+                </td>
+
+                {/* Action */}
+                <td className="border px-2 py-1 text-center">
+                  <div className="flex justify-center items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCategoryForm(idx)}
+                      className="p-1 rounded hover:bg-red-100 transition"
+                      title="Delete"
+                    >
+                      <X size={20} className="text-red-600 hover:text-red-800" />
+                    </button>
+
+                    {idx === form.categories.length - 1 && (
                       <button
                         type="button"
-                        onClick={() => handleDeleteCategoryForm(idx)}
-                        className="text-red-600"
+                        onClick={handleAddCategory}
+                        className="p-1 rounded hover:bg-green-100 transition"
+                        title="Add Category"
                       >
-                        <X size={20} />
+                        <Plus size={20} className="text-green-600 hover:text-green-800" />
                       </button>
-                    </div>
+                    )}
                   </div>
-                ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-                <div className="flex justify-between  p-2 border-t bg-white sticky bottom-0">
-                  <button
-                    type="button"
-                    onClick={handleAddCategory}
-                    className="
-    flex items-center justify-center 
-    h-[24px] w-[80px] px-4 mt-2
-    bg-amber-500 hover:shadow-amber-500
-    text-black text-sm cursor-pointer
-    rounded shadow-sm
-    transition active:scale-95
-  "
-                  >
-                    Add
-                  </button>
+      {/* SUBMIT */}
+      <div className="flex justify-end p-3 border-t bg-white sticky bottom-0">
+        <button
+          type="submit"
+          disabled={loading}
+          onClick={handleSubmit}
+          className="formButton px-4 py-2 bg-[#236B28] text-white rounded-lg hover:bg-green-800 transition"
+        >
+          {loading ? "Saving..." : editingMenuId ? "Update" : "Create"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    onClick={handleSubmit}
-                    className="formButton px-3 py-1 bg-amber-600 text-white rounded-lg"
-                  >
-                    {loading
-                      ? "Saving..."
-                      : editingMenuId
-                      ? "Update"
-                      : "Create"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* TABLE */}
       <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">

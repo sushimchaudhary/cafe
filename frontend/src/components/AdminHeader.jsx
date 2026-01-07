@@ -29,57 +29,76 @@ export default function AdminHeader({ title = "Restaurant Management", pendingOr
   }, []);
 
   return (
-    <div className="flex justify-between font-sans items-center lg:mb-1 p-4 md:p-3 border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center gap-3 md:gap-3">
-        {/* Sidebar Toggle */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded  bg-gray-100 hover:bg-gray-200 transition-colors"
-          title="Toggle Sidebar"
-        >
-          <Menu size={24} className="text-gray-700" />
-        </button>
+    <>
+      <>
+        <div className="flex justify-between font-sans items-center lg:mb-0 p-4 md:p-3
+    border-b border-[#1C5721]
+    bg-[#236B28]
+    shadow-sm
+  ">
+          <div className="flex items-center gap-3 md:gap-3">
+            {/* Sidebar Toggle */}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1 rounded
+        bg-[#1C5721]
+        hover:bg-[#184A1C]
+        transition-colors"
+              title="Toggle Sidebar"
+            >
+              <Menu size={24} className="text-[#EAF5EA]" />
+            </button>
 
-        {/* <h1 className="text-xl md:text-2xl lg:text-2xl font-bold ">{title}</h1> */}
-      </div>
+            {/* <h1 className="text-xl md:text-2xl lg:text-2xl font-bold text-[#EAF5EA]">{title}</h1> */}
+          </div>
 
-      <div className="flex items-center gap-3 md:gap-5 pr-5">
-        {/* Notification Bell */}
-        <div className="relative">
-          <Bell className="w-5 h-5 text-amber-700" />
-          {pendingOrders > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 rounded-full">
-              {pendingOrders}
-            </span>
-          )}
-        </div>
-
-        {/* Profile Dropdown */}
-        <div className="relative" ref={dropdownRef}>
-          <button
-            className="p-2 bg-green-50 rounded-full cursor-pointer"
-            onClick={() => setShowProfile(!showProfile)}
-          >
-            <User className="w-5 h-5 text-green-500" />
-          </button>
-
-          {showProfile && (
-            <div className="absolute right-0 mt-3 w-30 bg-white border shadow rounded-lg z-50">
-              <button className="w-full flex items-center gap-1 p-2 hover:bg-gray-100">
-                <User size={18} />
-                <a href="/dashboard/profile">Profile</a>
-              </button>
-              <button
-                className="w-full flex items-center gap-1 p-2 hover:bg-gray-100 text-red-600"
-                onClick={handleLogout}
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
+          <div className="flex items-center gap-3 md:gap-5 pr-5">
+            {/* Notification Bell */}
+            <div className="relative">
+              <Bell className="w-5 h-5 text-[#EAF5EA]" />
+              {pendingOrders > 0 && (
+                <span className="absolute -top-2 -right-2
+            bg-red-500 text-white text-xs px-2 rounded-full">
+                  {pendingOrders}
+                </span>
+              )}
             </div>
-          )}
+
+            {/* Profile Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                className="p-2 rounded-full cursor-pointer
+          bg-[#1C5721]
+          hover:bg-[#184A1C]
+          transition-colors"
+                onClick={() => setShowProfile(!showProfile)}
+              >
+                <User className="w-5 h-5 text-[#EAF5EA]" />
+              </button>
+
+              {showProfile && (
+                <div className="absolute right-0 mt-3 w-30
+            bg-white
+            border border-gray-200
+            shadow-lg rounded-lg z-50">
+                  <button className="w-full flex items-center gap-1 p-2 hover:bg-gray-100">
+                    <User size={18} />
+                    <a href="/dashboard/profile">Profile</a>
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-1 p-2 hover:bg-gray-100 text-red-600"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </>
+
+    </>
   );
 }

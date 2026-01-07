@@ -185,7 +185,7 @@ export default function CustomerMenu() {
     );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-amber-50 via-orange-50 to-amber-100 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-linear-to-br from-green-50 via-orange-50 to-green-100 relative overflow-hidden font-sans">
       <svg
         className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
         xmlns="http://www.w3.org/2000/svg"
@@ -297,18 +297,18 @@ export default function CustomerMenu() {
 
       <div className="container mx-auto sm:p-6 relative z-10">
         <ToastProvider />
-        <div className="fixed top-0 left-0 w-full border-b-4 border-amber-600 px-4 py-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-b-2xl shadow-lg backdrop-blur-sm z-50">
+        <div className="fixed top-0 left-0 w-full border-b-4 border-green-600 px-4 py-4 bg-gradient-to-r from-green-100 to-orange-100 rounded-b-2xl shadow-lg backdrop-blur-sm z-50">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-[20px] font-extrabold text-amber-700 tracking-tight">
+              <h1 className="text-[20px] font-extrabold text-green-700 tracking-tight">
                 Menu
               </h1>
-              <p className="text-sm text-amber-600 font-medium">
+              <p className="text-sm text-green-600 font-medium">
                 Table {tableNumber}
               </p>
             </div>
             <div className="relative">
-              <div className="bg-amber-600 p-3 rounded-full shadow-lg">
+              <div className="bg-green-600 p-3 rounded-full shadow-lg">
                 <ShoppingCart className="h-5 w-5 text-white" />
               </div>
               {totalItems > 0 && (
@@ -324,8 +324,8 @@ export default function CustomerMenu() {
           {menuList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="text-center">
-                <Soup className="w-20 h-20 text-amber-400 mx-auto mb-4 opacity-50" />
-                <h3 className="text-2xl font-bold text-amber-700 mb-2">
+                <Soup className="w-20 h-20 text-green-400 mx-auto mb-4 opacity-50" />
+                <h3 className="text-2xl font-bold text-green-700 mb-2">
                   No Menu Available
                 </h3>
               </div>
@@ -334,15 +334,15 @@ export default function CustomerMenu() {
             menuList.map((menu, index) => (
               <div
                 key={index}
-                className="flex bg-white/40 backdrop-blur-sm border-l-4 border-amber-600 p-1 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="flex bg-white/40 backdrop-blur-sm border-l-4 border-green-600 p-1 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <div className="relative mr-3">
-                  <div className="absolute bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-xl blur opacity-50"></div>
+                  <div className="absolute bg-gradient-to-br from-green-400 via-orange-400 to-green-500 rounded-xl blur opacity-50"></div>
                   <img
                     src={getImageUrl(menu)}
                     alt={menu.name || "Menu item"}
                     onClick={() => setPreviewImage(getImageUrl(menu))}
-                    className="relative w-24 h-24 rounded-xl object-cover border-[2px] border-amber-400  ring-2 ring-amber-200"
+                    className="relative w-24 h-24 rounded-xl object-cover border-[2px] border-green-400  ring-2 ring-green-200"
                     onError={(e) => {
                       e.target.src = "/images/placeholder.jpg";
                     }}
@@ -351,10 +351,10 @@ export default function CustomerMenu() {
 
                 <div className="flex-1 mt-4 flex justify-between">
                   <div>
-                    <h2 className="text-md font-bold text-amber-700">
+                    <h2 className="text-md font-bold text-green-700">
                       {menu.name || "Unnamed Item"}
                     </h2>
-                    <p className="font-semibold text-amber-900 text-sm ">
+                    <p className="font-semibold text-green-900 text-sm ">
                       Rs {menu.price || "0.00"}
                     </p>
                     <div className="text-sm text-gray-600  space-y-0.5">
@@ -368,16 +368,16 @@ export default function CustomerMenu() {
                   <div className="flex items-center px-2">
                     <button
                       onClick={() => handleQtyChange(index, -1)}
-                      className="w-7 h-7 border-2 rounded-full font-bold border-amber-600 text-amber-700 hover:bg-amber-100"
+                      className="w-7 h-7 border-2 rounded-full font-bold border-green-600 text-green-700 hover:bg-green-100"
                     >
                       -
                     </button>
-                    <span className="font-bold text-sm text-amber-900 min-w-[2rem] text-center">
+                    <span className="font-bold text-sm text-green-900 min-w-[2rem] text-center">
                       {menu.quantity}
                     </span>
                     <button
                       onClick={() => handleQtyChange(index, 1)}
-                      className="w-7 h-7 border-2 rounded-full font-bold border-amber-600 bg-amber-600 text-white hover:bg-amber-700"
+                      className="w-7 h-7 border-2 rounded-full font-bold border-green-600 bg-green-600 text-white hover:bg-green-700"
                     >
                       +
                     </button>
@@ -405,7 +405,7 @@ export default function CustomerMenu() {
 
                       <button
                         onClick={() => setPreviewImage(null)}
-                        className="mt-3 w-full bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700"
+                        className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
                       >
                         Close
                       </button>
@@ -418,8 +418,8 @@ export default function CustomerMenu() {
         </div>
 
         {totalItems > 0 && (
-          <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-amber-100 to-orange-100 border-t-4 border-amber-600 rounded-t-3xl p-5 shadow-2xl backdrop-blur-sm z-20">
-            <div className="flex justify-between font-bold text-amber-900 mb-3">
+          <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-green-100 to-orange-100 border-t-4 border-green-600 rounded-t-3xl p-5 shadow-2xl backdrop-blur-sm z-20">
+            <div className="flex justify-between font-bold text-green-900 mb-3">
               <span className="text-sm">Total Items: {totalItems}</span>
               <span className="text-sm">
                 Total: Rs {totalPrice.toFixed(2)}
@@ -430,7 +430,7 @@ export default function CustomerMenu() {
             <div className="flex justify-center">
               <button
                 onClick={handleSubmitOrder}
-                className="w-full md:w-auto bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-3 rounded font-bold text-white shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-300 active:scale-95 text-md"
+                className="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 px-8 py-3 rounded font-bold text-white shadow-lg hover:shadow-xl hover:from-green-600 hover:to-orange-600 transition-all duration-300 active:scale-95 text-md"
               >
                 Place Order
               </button>
