@@ -385,18 +385,18 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    <div className="container mx-auto min-h-screen font-sans px-1">
+    <div className=" mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
-        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
+        <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
           Menu
         </h1>
 
         <div className="flex w-full md:w-auto items-center gap-2">
           <div className="relative">
             <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -414,8 +414,8 @@ export default function AdminMenuManager() {
               placeholder="Search Menu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
-             focus:outline-none focus:ring-1 focus:ring-amber-200"
+              className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px]
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40"
             />
           </div>
 
@@ -424,12 +424,14 @@ export default function AdminMenuManager() {
               resetForm();
               setShowForm(true);
             }}
-            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
+            className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold
+      bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
           >
             Create
           </button>
         </div>
       </div>
+
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -603,8 +605,8 @@ export default function AdminMenuManager() {
                     {loading
                       ? "Saving..."
                       : editingMenuId
-                      ? "Update"
-                      : "Create"}
+                        ? "Update"
+                        : "Create"}
                   </button>
                 </div>
               </form>
@@ -614,76 +616,73 @@ export default function AdminMenuManager() {
       )}
 
       {/* TABLE */}
-      <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">
+      <div className="flex-1 min-h-0 bg-white rounded-sm border border-[#236B28]/20 shadow-sm overflow-hidden">
         <div className="overflow-y-auto max-h-[450px] custom-scrollbar">
-          <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
+          <table className="min-w-full border-collapse table-fixed text-[12px]">
+            <thead className="sticky top-0 bg-[#EAF5EA] uppercase text-[11px] font-semibold text-[#236B28] z-10">
               <tr>
-                <th className="w-1/15 border px-4 py-2 text-left">SN</th>
-                <th className="w-1/7 border px-6 py-2 text-left">Date</th>
-                <th className="w-1/5 border px-6 py-2 text-left">Name</th>
-                <th className="w-1/7 border px-6 py-2 text-left">Price</th>
-                <th className="w-1/7 border px-4 py-2 text-left">Category</th>
-                <th className="w-1/7 border px-2 py-2 text-left">Unit</th>
-                <th className="w-1/12 border px-2 py-2 text-left">Image</th>
-                <th className="w-1/12 border px-2 py-2 text-left">Action</th>
+                <th className="w-1/15 border-b border-[#236B28]/20 px-4 py-2 text-left">SN</th>
+                <th className="w-1/7 border-b border-[#236B28]/20 px-6 py-2 text-left">Date</th>
+                <th className="w-1/5 border-b border-[#236B28]/20 px-6 py-2 text-left">Name</th>
+                <th className="w-1/7 border-b border-[#236B28]/20 px-6 py-2 text-left">Price</th>
+                <th className="w-1/7 border-b border-[#236B28]/20 px-4 py-2 text-left">Category</th>
+                <th className="w-1/7 border-b border-[#236B28]/20 px-2 py-2 text-left">Unit</th>
+                <th className="w-1/12 border-b border-[#236B28]/20 px-2 py-2 text-left">Image</th>
+                <th className="w-1/12 border-b border-[#236B28]/20 px-2 py-2 text-right">Action</th>
               </tr>
             </thead>
 
-            <tbody className="text-sm">
+            <tbody className="text-[12px] text-slate-700">
               {filteredMenus.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
-                    className="text-center py-6 text-gray-400 border "
+                    colSpan={8}
+                    className="text-center py-8 text-gray-400 border-b"
                   >
-                    {search
-                      ? "menu not match your search"
-                      : "menu not found"}
+                    {search ? "Menu not matching your search" : "Menu not found"}
                   </td>
                 </tr>
               ) : (
                 filteredMenus.map((menu, index) => (
                   <tr
                     key={menu.reference_id}
-                    className="hover:bg-gray-50 transition"
+                    className="hover:bg-[#F3FBF5] transition"
                   >
-                    <td className="border px-4">{index + 1}</td>
-                    <td className="border px-4">{menu.menu_date}</td>
-                    <td className="border px-4">{menu.name}</td>
-                    <td className="border px-4">{menu.price}</td>
-                    <td className="border px-4">
+                    <td className="border-b px-4 py-2">{index + 1}</td>
+                    <td className="border-b px-4 py-2">{menu.menu_date}</td>
+                    <td className="border-b px-4 py-2 font-medium text-slate-800">
+                      {menu.name}
+                    </td>
+                    <td className="border-b px-4 py-2">{menu.price}</td>
+                    <td className="border-b px-4 py-2">
                       {getCategoryName(menu.item_category)}
                     </td>
-                    <td className="border px-4 ">{getUnitName(menu.unit)}</td>
+                    <td className="border-b px-4 py-2">
+                      {getUnitName(menu.unit)}
+                    </td>
+
+                    {/* IMAGE (unchanged component) */}
                     <MenuImageHover src={menu.image || menu.image_url} />
 
-                    {/* <td className="border px-4 ">
-                      {menu.image || menu.image_url ? (
-                        <img
-                          src={menu.image || menu.image_url}
-                          className="w-5 h-5 object-cover rounded"
-                        />
-                      ) : (
-                        "No Image"
-                      )}
-                    </td> */}
-                    <td className="px-2  border">
+                    {/* ACTION */}
+                    <td className="border-b px-2 py-2">
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => handleEditMenu(menu)}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
+                          className="p-1.5 text-[#236B28] bg-[#EAF5EA]
+                    hover:bg-[#236B28] hover:text-white rounded-md transition"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => {
                             setDeleteMenu(menu);
                             setShowDeleteModal(true);
                           }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
+                          className="p-1.5 text-red-500 bg-red-50
+                    hover:bg-red-500 hover:text-white rounded-md transition"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -694,6 +693,10 @@ export default function AdminMenuManager() {
           </table>
         </div>
       </div>
+
+
+
+
     </div>
   );
 }
