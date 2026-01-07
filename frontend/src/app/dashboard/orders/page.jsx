@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Printer, CheckCircle } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -76,6 +76,17 @@ const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchOrders = async (authToken) => {
     try {
@@ -120,44 +131,18 @@ const AdminOrdersDashboard = () => {
     });
   };
 
-  const cancelOrder = async (reference_id) => {
-    const order = orders.find((o) => o.order_id === reference_id);
-    if (!order || ["Cancelled", "Served"].includes(order.status)) return;
-
-    Swal.fire({
-      title: "Cancel order?",
-      icon: "warning",
-      showCancelButton: true,
-    }).then(async (ok) => {
-      if (!ok.isConfirmed) return;
-
-      try {
-        const res = await fetch(`${API_URL}/api/orders/cancel/${reference_id}`, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!res.ok) throw new Error("Cancel failed");
-
-        showToast("Order Cancelled");
-
-        setOrders((prev) =>
-          prev.map((o) =>
-            o.order_id === reference_id ? { ...o, status: "Cancelled" } : o
-          )
-        );
-      } catch (err) {
-        Swal.fire("Error", err.message, "error");
-      }
-    });
-  };
-
   const handleStatusChange = async (order_id, newStatus) => {
     const order = orders.find((o) => o.order_id === order_id);
-    if (!order || ["Cancelled", "Served"].includes(order.status)) return;
+    if (!order || order.status === "Served") return; // Served मा केही change हुँदैन
+
+    if (newStatus === "Cancelled") {
+      const ok = await Swal.fire({
+        title: "Cancel order?",
+        icon: "warning",
+        showCancelButton: true,
+      });
+      if (!ok.isConfirmed) return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/orders/status/${order_id}`, {
@@ -171,7 +156,9 @@ const AdminOrdersDashboard = () => {
 
       if (!res.ok) throw new Error("Status update failed");
 
-      showToast("Status Updated");
+      showToast(
+        newStatus === "Cancelled" ? "Order Cancelled" : "Status Updated"
+      );
 
       setOrders((prev) =>
         prev.map((o) =>
@@ -204,8 +191,8 @@ const AdminOrdersDashboard = () => {
     if (t) {
       setToken(t);
       fetchOrders(t);
-      const i = setInterval(() => fetchOrders(t), 5000);
-      return () => clearInterval(i);
+      // const i = setInterval(() => fetchOrders(t), 5000);
+      // return () => clearInterval(i);
     }
   }, []);
 
@@ -227,7 +214,9 @@ const AdminOrdersDashboard = () => {
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             Orders for{" "}
-            <span className="font-medium text-gray-700">{todayOrders.length}</span>
+            <span className="font-medium text-gray-700">
+              {todayOrders.length}
+            </span>
           </p>
         </div>
 
@@ -244,94 +233,74 @@ const AdminOrdersDashboard = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {todayOrders.map((order, idx) => (
           <div
-            key={order.order_id}
-            className={`flex flex-col justify-between border border-gray-200 rounded-2xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-              order.status === "Cancelled" || order.status === "Served"
-                ? "opacity-60 bg-gray-50 grayscale"
-                : ""
-            }`}
-          >
-            <div className="p-4 border-b border-gray-100">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
-                      #{idx + 1}
-                    </span>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {order.tableName}
-                    </h3>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1 font-mono">
-                    {formatNepalTime(order.created_at)}
-                  </p>
-                </div>
-
-                {/* Cancel button only for Pending, Preparing, Ready */}
-                {["Pending", "Preparing", "Ready"].includes(order.status) && (
-                  <button
-                    className="p-1.5 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                    onClick={() => cancelOrder(order.order_id)}
-                    title="Cancel Order"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="p-4 flex-grow">
-              <div className="bg-gray-50 rounded-xl p-3 mb-3">
-                <ul className="space-y-2">
-                  {order.items.map((i, idx) => (
-                    <li
-                      key={idx}
-                      className="flex justify-between items-center text-sm"
-                    >
-                      <span className="text-gray-700 font-medium">
-                        <span className="text-gray-400 text-xs mr-1">
-                          {i.quantity}x
-                        </span>
-                        {i.name}{" "}
-                        <span className="text-xs text-gray-400">
-                          ({i.unit_name})
-                        </span>
-                      </span>
-                      <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
-                        Rs.{i.total_price.toFixed(0)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex justify-between items-center mt-2 px-1">
-                <span className="text-gray-500 text-sm font-medium">
-                  Order Total
-                </span>
-                <span className="text-lg font-bold text-gray-900">
-                  Rs.{order.total_price.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3 pt-2">
-              <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                  {getStatusIndicator(order.status)}
-                  <span
-                    className={`text-xs font-semibold uppercase tracking-wide ${
-                      order.status === "Cancelled"
-                        ? "text-red-500"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {order.status}
+          key={order.order_id}
+          className={`flex flex-col justify-between border rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
+            ${
+              order.status === "Cancelled"
+                ? "bg-red-50 border-red-200 opacity-90"
+                : "bg-white border-gray-200"
+            }
+          `}
+        >
+          {/* Card Header */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                    #{idx + 1}
                   </span>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {order.tableName}
+                  </h3>
                 </div>
-
+                <p className="text-xs text-gray-400 mt-1 font-mono">
+                  {formatNepalTime(order.created_at)}
+                </p>
+              </div>
+            </div>
+          </div>
+        
+          {/* Order Items */}
+          <div className="p-4 flex-grow">
+            <div className="bg-gray-50 rounded-xl p-3 mb-3">
+              <ul className="space-y-2">
+                {order.items.map((i, idx) => (
+                  <li key={idx} className="flex justify-between items-center text-sm">
+                    <span className="text-gray-700 font-medium">
+                      <span className="text-gray-400 text-xs mr-1">{i.quantity}x</span>
+                      {i.name} <span className="text-xs text-gray-400">({i.unit_name})</span>
+                    </span>
+                    <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
+                      Rs.{i.total_price.toFixed(0)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex justify-between items-center mt-2 px-1">
+              <span className="text-gray-500 text-sm font-medium">Order Total</span>
+              <span className="text-lg font-bold text-gray-900">Rs.{order.total_price.toFixed(2)}</span>
+            </div>
+          </div>
+        
+          {/* Status + Actions */}
+          <div className="p-3 pt-2">
+            <div className="flex items-center justify-between border-t border-gray-100 pt-2">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                order.status === "Cancelled"
+                  ? "bg-red-100 border-red-200 text-red-600"
+                  : "bg-gray-50 border-gray-200 text-gray-600"
+              }`}>
+                {getStatusIndicator(order.status)}
+                <span className="text-xs font-semibold uppercase tracking-wide">
+                  {order.status}
+                </span>
+              </div>
+        
+              {/* Only show buttons if not cancelled */}
+              {order.status !== "Cancelled" && (
                 <div className="flex gap-2 relative">
-
-                 
                   <button
                     className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                     onClick={() => printBill(order)}
@@ -339,7 +308,7 @@ const AdminOrdersDashboard = () => {
                   >
                     <Printer className="w-4 h-4" />
                   </button>
-                  
+        
                   {["Pending", "Preparing", "Ready"].includes(order.status) && (
                     <div className="relative">
                       <button
@@ -353,18 +322,23 @@ const AdminOrdersDashboard = () => {
                       >
                         <CheckCircle className="w-4 h-4" />
                       </button>
-
+        
                       {openDropdown === order.order_id && (
-                        <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50">
-                          {statusOptions
+                        <div
+                          ref={dropdownRef}
+                          className="absolute  right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                        >
+                          {[...statusOptions, "Cancelled"]
                             .filter((s) => s !== order.status)
                             .map((s) => (
                               <div
                                 key={s}
-                                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                onClick={() =>
-                                  handleStatusChange(order.order_id, s)
-                                }
+                                className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
+                                  s === "Cancelled"
+                                    ? "text-red-500 font-semibold"
+                                    : "text-gray-700"
+                                }`}
+                                onClick={() => handleStatusChange(order.order_id, s)}
                               >
                                 {s}
                               </div>
@@ -373,12 +347,12 @@ const AdminOrdersDashboard = () => {
                       )}
                     </div>
                   )}
-
-                  
                 </div>
-              </div>
+              )}
             </div>
           </div>
+        </div>
+        
         ))}
       </div>
 
