@@ -60,19 +60,19 @@
   align-items: center;
   cursor: pointer;
   font-family: sans-serif ;
-  border: solid #0dd906 1px;
+  border: solid #236B28 1px;
   font-size: 16px;
   color: #fff;
   transition: 500ms;
   border-radius: 5px;
-  background: linear-gradient(145deg, #0dd906, #0dd906); 
+  background: linear-gradient(145deg, #236B28, #236B28); 
 }
 
 
 
 
 .button:hover {
-  box-shadow: 1px 1px 13px #0dd906, -1px -1px 13px ;
+  box-shadow: 1px 1px 13px #236B28, -1px -1px 13px ;
   color: #fff;
   transition: 500ms;
 }
@@ -130,17 +130,17 @@
   align-items: center;
   cursor: pointer;
   font-family: sans-serif ;
-  border: solid #0dd906 1px; 
+  border: solid #236B28 1px; 
   font-size: 16px;
   color: #fff;
   transition: 500ms;
   border-radius: 5px;
-  background: linear-gradient(145deg, #0dd906, #0dd906); 
+  background: linear-gradient(145deg, #236B28, #236B28); 
   
 }
 
 .formButton:hover {
-  box-shadow: 1px 1px 13px #0dd906, -1px -1px 13px ;
+  box-shadow: 1px 1px 13px #236B28, -1px -1px 13px ;
   color: #fff;
   transition: 500ms;
 }
