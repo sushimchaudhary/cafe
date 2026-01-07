@@ -63,9 +63,8 @@ const getStatusIndicator = (status) => {
   };
   return (
     <span
-      className={`w-2 h-2 rounded-full inline-block mr-1 ${
-        colors[status] || "bg-gray-200"
-      }`}
+      className={`w-2 h-2 rounded-full inline-block mr-1 ${colors[status] || "bg-gray-200"
+        }`}
     ></span>
   );
 };
@@ -102,11 +101,11 @@ const AdminOrdersDashboard = () => {
         tableName: o.table_number ? `Table ${o.table_number}` : "Table",
         items: Array.isArray(o.items)
           ? o.items.map((i) => ({
-              name: i.menu_name,
-              quantity: Number(i.quantity),
-              unit_name: i.unit_name || "-",
-              total_price: Number(i.total_price),
-            }))
+            name: i.menu_name,
+            quantity: Number(i.quantity),
+            unit_name: i.unit_name || "-",
+            total_price: Number(i.total_price),
+          }))
           : [],
         total_price: Number(o.total_amount),
         status: normalizeStatus(o.status),
@@ -206,161 +205,162 @@ const AdminOrdersDashboard = () => {
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
 
   return (
-    <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-2">
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-sm sm:text-xl font-bold text-gray-800 tracking-tight">
-            Kitchen Dashboard
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Orders for{" "}
-            <span className="font-medium text-gray-700">
-              {todayOrders.length}
+    <>
+      <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-3 bg-[#ddf4e2]">
+        <header className="mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#1C5721]">
+              Kitchen Dashboard
+            </h1>
+
+            <p className="text-sm mt-1 text-[#236B28]">
+              Orders for{" "}
+              <span className="font-semibold text-[#2baf36] bg-[#EAF5EA] px-2 py-[2px] rounded-md">
+                {todayOrders.length}
+              </span>
+            </p>
+          </div>
+
+
+          <div className="bg-white px-5 py-2 rounded-sm shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
+            <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+              Total Revenue
             </span>
-          </p>
-        </div>
+            <span className="text-xl font-bold text-emerald-600">
+              Rs. {todayTotal.toFixed(2)}
+            </span>
+          </div>
+        </header>
 
-        <div className="bg-white px-5 py-2 rounded-full shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
-          <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-            Total Revenue
-          </span>
-          <span className="text-xl font-bold text-emerald-600">
-            Rs. {todayTotal.toFixed(2)}
-          </span>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-        {todayOrders.map((order, idx) => (
-          <div
-          key={order.order_id}
-          className={`flex flex-col justify-between border rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
-            ${
-              order.status === "Cancelled"
-                ? "bg-red-50 border-red-200 opacity-90"
-                : "bg-white border-gray-200"
-            }
+        <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+          {todayOrders.map((order, idx) => (
+            <div
+              key={order.order_id}
+              className={`flex flex-col justify-between border rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
+            ${order.status === "Cancelled"
+                  ? "bg-red-50 border-red-200 opacity-90"
+                  : "bg-white border-gray-200"
+                }
           `}
-        >
-          {/* Card Header */}
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
-                    #{idx + 1}
-                  </span>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {order.tableName}
-                  </h3>
+            >
+              {/* Card Header */}
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                        #{idx + 1}
+                      </span>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {order.tableName}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 font-mono">
+                      {formatNepalTime(order.created_at)}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-1 font-mono">
-                  {formatNepalTime(order.created_at)}
-                </p>
               </div>
-            </div>
-          </div>
-        
-          {/* Order Items */}
-          <div className="p-4 flex-grow">
-            <div className="bg-gray-50 rounded-xl p-3 mb-3">
-              <ul className="space-y-2">
-                {order.items.map((i, idx) => (
-                  <li key={idx} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700 font-medium">
-                      <span className="text-gray-400 text-xs mr-1">{i.quantity}x</span>
-                      {i.name} <span className="text-xs text-gray-400">({i.unit_name})</span>
-                    </span>
-                    <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
-                      Rs.{i.total_price.toFixed(0)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex justify-between items-center mt-2 px-1">
-              <span className="text-gray-500 text-sm font-medium">Order Total</span>
-              <span className="text-lg font-bold text-gray-900">Rs.{order.total_price.toFixed(2)}</span>
-            </div>
-          </div>
-        
-          {/* Status + Actions */}
-          <div className="p-3 pt-2">
-            <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                order.status === "Cancelled"
-                  ? "bg-red-100 border-red-200 text-red-600"
-                  : "bg-gray-50 border-gray-200 text-gray-600"
-              }`}>
-                {getStatusIndicator(order.status)}
-                <span className="text-xs font-semibold uppercase tracking-wide">
-                  {order.status}
-                </span>
+
+              {/* Order Items */}
+              <div className="p-4 flex-grow">
+                <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                  <ul className="space-y-2">
+                    {order.items.map((i, idx) => (
+                      <li key={idx} className="flex justify-between items-center text-sm">
+                        <span className="text-gray-700 font-medium">
+                          <span className="text-gray-400 text-xs mr-1">{i.quantity}x</span>
+                          {i.name} <span className="text-xs text-gray-400">({i.unit_name})</span>
+                        </span>
+                        <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
+                          Rs.{i.total_price.toFixed(0)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex justify-between items-center mt-2 px-1">
+                  <span className="text-gray-500 text-sm font-medium">Order Total</span>
+                  <span className="text-lg font-bold text-gray-900">Rs.{order.total_price.toFixed(2)}</span>
+                </div>
               </div>
-        
-              {/* Only show buttons if not cancelled */}
-              {order.status !== "Cancelled" && (
-                <div className="flex gap-2 relative">
-                  <button
-                    className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                    onClick={() => printBill(order)}
-                    title="Print Bill"
-                  >
-                    <Printer className="w-4 h-4" />
-                  </button>
-        
-                  {["Pending", "Preparing", "Ready"].includes(order.status) && (
-                    <div className="relative">
+
+              {/* Status + Actions */}
+              <div className="p-3 pt-2">
+                <div className="flex items-center justify-between border-t border-gray-100 pt-2">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${order.status === "Cancelled"
+                      ? "bg-red-100 border-red-200 text-red-600"
+                      : "bg-gray-50 border-gray-200 text-gray-600"
+                    }`}>
+                    {getStatusIndicator(order.status)}
+                    <span className="text-xs font-semibold uppercase tracking-wide">
+                      {order.status}
+                    </span>
+                  </div>
+
+                  {/* Only show buttons if not cancelled */}
+                  {order.status !== "Cancelled" && (
+                    <div className="flex gap-2 relative">
                       <button
-                        className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
-                        title="Change Status"
-                        onClick={() =>
-                          setOpenDropdown((prev) =>
-                            prev === order.order_id ? null : order.order_id
-                          )
-                        }
+                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        onClick={() => printBill(order)}
+                        title="Print Bill"
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <Printer className="w-4 h-4" />
                       </button>
-        
-                      {openDropdown === order.order_id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute  right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
-                        >
-                          {[...statusOptions, "Cancelled"]
-                            .filter((s) => s !== order.status)
-                            .map((s) => (
-                              <div
-                                key={s}
-                                className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
-                                  s === "Cancelled"
-                                    ? "text-red-500 font-semibold"
-                                    : "text-gray-700"
-                                }`}
-                                onClick={() => handleStatusChange(order.order_id, s)}
-                              >
-                                {s}
-                              </div>
-                            ))}
+
+                      {["Pending", "Preparing", "Ready"].includes(order.status) && (
+                        <div className="relative">
+                          <button
+                            className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
+                            title="Change Status"
+                            onClick={() =>
+                              setOpenDropdown((prev) =>
+                                prev === order.order_id ? null : order.order_id
+                              )
+                            }
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+
+                          {openDropdown === order.order_id && (
+                            <div
+                              ref={dropdownRef}
+                              className="absolute  right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                            >
+                              {[...statusOptions, "Cancelled"]
+                                .filter((s) => s !== order.status)
+                                .map((s) => (
+                                  <div
+                                    key={s}
+                                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${s === "Cancelled"
+                                        ? "text-red-500 font-semibold"
+                                        : "text-gray-700"
+                                      }`}
+                                    onClick={() => handleStatusChange(order.order_id, s)}
+                                  >
+                                    {s}
+                                  </div>
+                                ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
-        </div>
-        
-        ))}
-      </div>
 
-      <div className="mt-12 max-w-7xl mx-auto border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
-        <span>End of list</span>
-        <span className="mt-2 md:mt-0">Total Orders: {todayOrders.length}</span>
+          ))}
+        </div>
+
+        <div className="mt-12  mx-auto border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
+          <span>End of list</span>
+          <span className="mt-2 md:mt-0">Total Orders: {todayOrders.length}</span>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

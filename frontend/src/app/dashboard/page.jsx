@@ -72,10 +72,10 @@ export default function AdminDashboard() {
       const normalizedOrders = ordersData.map((o) => {
         const items = Array.isArray(o.items)
           ? o.items.map((i) => ({
-              name: i.menu_name,
-              quantity: Number(i.quantity),
-              total_price: Number(i.total_price),
-            }))
+            name: i.menu_name,
+            quantity: Number(i.quantity),
+            total_price: Number(i.total_price),
+          }))
           : [];
 
         return {
@@ -152,9 +152,11 @@ export default function AdminDashboard() {
   const weeklyData = getLast7DaysData();
 
   return (
-    <div className="min-h-screen px/6-1 font-sans antialiased text-slate-900">
-      <div
-        className="max-w-7xl mx-auto mb-3 flex justify-between items-center p-3 rounded shadow-md
+    <>
+      <div className="min-h-screen px-2 font-sans antialiased text-slate-900 p-3">
+
+        {/* <div
+        className="max-w-8xl mx-auto mb-3 flex justify-between items-center rounded shadow-md
 
         bg-gradient-to-r from-amber-100 via-orange-100 to-amber-200 border border-amber-300"
       >
@@ -179,196 +181,217 @@ export default function AdminDashboard() {
             Live Update
           </div>
         </div>
-      </div>
+      </div> */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-12">
-        {" "}
-        {[
-          {
-            title: "Today Orders",
-            value: totalOrdersToday,
-            icon: <Package className="w-6 h-6 text-amber-700" />,
-          },
-          {
-            title: "Items Sold",
-            value: totalItemsSold,
-            icon: <Tag className="w-6 h-6 text-blue-700" />,
-          },
-          {
-            title: "Today Revenue",
-            value: `Rs. ${todayRevenue.toLocaleString()}`,
-            icon: <DollarSign className="w-6 h-6 text-emerald-700" />,
-          },
-          {
-            title: "Pending Order",
-            value: pendingOrdersToday,
-            icon: <Clock className="w-6 h-6 text-rose-700" />,
-          },
-        ].map((stat, i) => (
-          <div
-            key={stat.title}
-            className="bg-white p-6 rounded-xl shadow-md border border-slate-100 relative overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold uppercase tracking-wider text-gray-700">
-                {stat.title}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mx-auto mb-12">
+          {[
+            {
+              title: "Today Orders",
+              value: totalOrdersToday,
+              icon: <Package className="w-6 h-6 text-[#236B28]" />,
+            },
+            {
+              title: "Items Sold",
+              value: totalItemsSold,
+              icon: <Tag className="w-6 h-6 text-[#236B28]" />,
+            },
+            {
+              title: "Today Revenue",
+              value: `Rs. ${todayRevenue.toLocaleString()}`,
+              icon: <DollarSign className="w-6 h-6 text-[#236B28]" />,
+            },
+            {
+              title: "Pending Order",
+              value: pendingOrdersToday,
+              icon: <Clock className="w-6 h-6 text-[#236B28]" />,
+            },
+          ].map((stat) => (
+            <div
+              key={stat.title}
+              className={`relative bg-gradient-to-br
+              from-[#F1F8F2] via-white to-[#EAF5EA]
+              px-5 py-4 rounded-xl
+             border border-[#D5E8D8]
+             shadow-sm
+              transition-all duration-300
+             hover:-translate-y-0.5 hover:shadow-md`}
+            >
+              {/* soft green glow */}
+              <div className="absolute -top-6 -right-6 w-20 h-20 bg-[#236B28]/10 rounded-full blur-2xl" />
+
+              <div className="flex items-center justify-between mb-2 relative z-10">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[#1C5721]">
+                  {stat.title}
+                </p>
+
+                <div className="p-2 rounded-lg bg-[#EAF5EA]">
+                  {stat.icon}
+                </div>
+              </div>
+
+              <p className="text-xl font-bold text-[#1C5721] relative z-10">
+                {stat.value}
               </p>
-              {stat.icon}
             </div>
-            <p className={`text-xl font-black ${stat.text}`}>{stat.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
-        <div className="bg-amber-50 p-2 rounded shadow-lg border border-amber-200 relative overflow-hidden">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h2 className="text-xl font-extrabold text-black tracking-tight">
-                Revenue Stream
-              </h2>
-              <p className="text-amber-600 text-sm">Weekly growth trajectory</p>
-            </div>
-            <div className="bg-amber-100 p-1 rounded flex  border border-amber-200">
-              <div className="px-2 bg-amber-200 shadow-sm rounded text-[10px] font-bold text-amber-800 uppercase italic flex items-center justify-center">
-                Revenue
-              </div>
-
-              <div className="px-3 py-1 text-[10px] font-bold text-green-500 uppercase italic">
-                Units
-              </div>
-            </div>
-          </div>
-
-          <div className="h-[320px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={weeklyData}
-                margin={{ top: 0, right: 10, left: -20, bottom: 2 }}
-              >
-                <defs>
-                  <linearGradient
-                    id="lineGradAmber"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="6 6"
-                  vertical={false}
-                  stroke="#fef3c7"
-                />
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#d97706", fontSize: 12 }}
-                  dy={15}
-                />
-                <YAxis
-                  yAxisId="left"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#d97706", fontSize: 12 }}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#10b981", fontSize: 12 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(255, 251, 235, 0.95)",
-                    borderRadius: "15px",
-                    border: "1px solid #fcd34d",
-                    color: "#92400e",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                  }}
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#f59e0b"
-                  strokeWidth={3}
-                  dot={false}
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="itemsSold"
-                  stroke="#10b981"
-                  strokeWidth={3}
-                  strokeDasharray="6 3"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          ))}
         </div>
 
-        {/* --- BAR CHART CARD --- */}
-        <div className="bg-amber-100 p-2 rounded shadow-lg border border-amber-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-300/20 blur-[60px] rounded-full"></div>
 
-          <div className="relative z-10">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-black tracking-tight">
-                Order Intensity
-              </h2>
-              <p className="text-amber-700 font-medium text-sm">
-                Daily transaction volume
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mx-auto">
+          {/* ---- LINE CHART CARD ---- */}
+          <div className="bg-[#F1F8F2] p-4 rounded-xl shadow-sm border border-[#D5E8D8] relative overflow-hidden">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-bold text-[#1C5721] tracking-tight">
+                  Revenue Stream
+                </h2>
+                <p className="text-[#236B28] text-sm">
+                  Weekly growth trajectory
+                </p>
+              </div>
+
+              <div className="bg-[#EAF5EA] p-1 rounded flex border border-[#D5E8D8]">
+                <div className="px-2 bg-[#236B28]/10 rounded text-[10px] font-bold text-[#1C5721] uppercase italic">
+                  Revenue
+                </div>
+                <div className="px-3 py-1 text-[10px] font-bold text-[#236B28] uppercase italic">
+                  Units
+                </div>
+              </div>
             </div>
 
-            <div className="h-[320px] w-full">
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={weeklyData}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 2 }}
-                >
+                <LineChart data={weeklyData} margin={{ top: 0, right: 10, left: -20, bottom: 2 }}>
+                  <defs>
+                    <linearGradient id="lineGradGreen" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#236B28" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#236B28" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid
+                    strokeDasharray="5 5"
+                    vertical={false}
+                    stroke="#D5E8D8"
+                  />
+
                   <XAxis
                     dataKey="day"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: "#b45309", fontSize: 12, fontWeight: 600 }}
+                    tick={{ fill: "#1C5721", fontSize: 12 }}
                     dy={15}
                   />
+
                   <YAxis
+                    yAxisId="left"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: "#10b981 ", fontSize: 12 }}
+                    tick={{ fill: "#1C5721", fontSize: 12 }}
                   />
+
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#236B28", fontSize: 12 }}
+                  />
+
                   <Tooltip
-                    cursor={{ fill: "rgba(255,255,255,0.1)" }}
                     contentStyle={{
-                      backgroundColor: "rgba(255, 251, 235, 0.95)",
-                      borderRadius: "15px",
-                      border: "1px solid #fcd34d",
-                      color: "#92400e",
-                      boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                      backgroundColor: "#F1F8F2",
+                      borderRadius: "12px",
+                      border: "1px solid #D5E8D8",
+                      color: "#1C5721",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                     }}
                   />
-                  <Bar
-                    dataKey="ordersCount"
-                    fill="#d97706"
-                    radius={[10, 10, 0, 0]}
-                    barSize={28}
+
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#236B28"
+                    strokeWidth={3}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                    fill="url(#lineGradGreen)"
                   />
-                </BarChart>
+
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="itemsSold"
+                    stroke="#4CAF50"
+                    strokeWidth={3}
+                    strokeDasharray="6 3"
+                    dot={false}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
+
+          {/* ---- BAR CHART CARD ---- */}
+          <div className="bg-[#F1F8F2] p-4 rounded-xl shadow-sm border border-[#D5E8D8] relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#236B28]/10 blur-[60px] rounded-full" />
+
+            <div className="relative z-10">
+              <div className="mb-4">
+                <h2 className="text-lg font-bold text-[#1C5721] tracking-tight">
+                  Order Intensity
+                </h2>
+                <p className="text-[#236B28] text-sm font-medium">
+                  Daily transaction volume
+                </p>
+              </div>
+
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyData} margin={{ top: 0, right: 0, left: -20, bottom: 2 }}>
+                    <XAxis
+                      dataKey="day"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#1C5721", fontSize: 12, fontWeight: 600 }}
+                      dy={15}
+                    />
+
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#236B28", fontSize: 12 }}
+                    />
+
+                    <Tooltip
+                      cursor={{ fill: "rgba(35,107,40,0.08)" }}
+                      contentStyle={{
+                        backgroundColor: "#F1F8F2",
+                        borderRadius: "12px",
+                        border: "1px solid #D5E8D8",
+                        color: "#1C5721",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                      }}
+                    />
+
+                    <Bar
+                      dataKey="ordersCount"
+                      fill="#236B28"
+                      radius={[8, 8, 0, 0]}
+                      barSize={26}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
         </div>
+
+
+
       </div>
-    </div>
+    </>
   );
 }
