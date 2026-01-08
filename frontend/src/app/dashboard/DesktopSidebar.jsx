@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-
   Store,
   Building2,
   Table,
@@ -13,6 +12,7 @@ import {
   User,
   Menu,
   LayoutDashboardIcon,
+  GaugeCircle,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 
@@ -38,11 +38,7 @@ export default function DesktopSidebar({ is_superuser, children }) {
   ];
 
   const menuItemsStaff = [
-    {
-      label: "Dashboard",
-      route: "/dashboard",
-      icon: (props) => <img src="/statisctics.png" alt="Dashboard" {...props} />,
-    },
+    {label: "Dashboard",route: "/dashboard",icon: GaugeCircle,},
     { label: "Orders", route: "/dashboard/orders", icon: ShoppingCart },
     { label: "Menus", route: "/dashboard/menus", icon: Menu },
     { label: "Tables", route: "/dashboard/table-management", icon: Table },
@@ -58,7 +54,6 @@ export default function DesktopSidebar({ is_superuser, children }) {
         const Icon = item.icon;
         const active = pathname === item.route;
 
-        
         return (
           <button
             key={i}
@@ -70,15 +65,17 @@ export default function DesktopSidebar({ is_superuser, children }) {
               setSidebarOpen(false);
             }}
             className={`flex items-center gap-1 px-2 py-1 rounded border-b border-[#1C5721] w-full transition-colors
-      ${active
-                ? "bg-white text-[#236B28] font-semibold"
-                : "text-[#EAF5EA] hover:bg-[#1C5721] hover:text-white"
-              }`}
+      ${
+        active
+          ? "bg-white text-[#236B28] font-semibold"
+          : "text-[#EAF5EA] hover:bg-[#1C5721] hover:text-white"
+      }`}
           >
             <Icon
               size={10}
-              className={`w-4 h-4 ${active ? "text-[#236B28]" : "text-[#EAF5EA]"
-                }`}
+              className={`w-4 h-4 ${
+                active ? "text-[#236B28]" : "text-[#EAF5EA]"
+              }`}
             />
             {(!collapsed || hovered) && (
               <span className={active ? "text-[#236B28]" : "text-[#EAF5EA]"}>
@@ -87,13 +84,11 @@ export default function DesktopSidebar({ is_superuser, children }) {
             )}
           </button>
         );
-
       })}
     </>
   );
 
   return (
-    
     <>
       <div className="flex min-h-screen">
         {/* Desktop Sidebar */}
@@ -124,8 +119,9 @@ export default function DesktopSidebar({ is_superuser, children }) {
 
         {/* Mobile Sidebar */}
         <div
-          className={`fixed inset-0 z-40 lg:hidden transition-all ${collapsed ? "pointer-events-none" : ""
-            }`}
+          className={`fixed inset-0 z-40 lg:hidden transition-all ${
+            collapsed ? "pointer-events-none" : ""
+          }`}
         >
           {!collapsed && (
             <div
@@ -165,7 +161,6 @@ export default function DesktopSidebar({ is_superuser, children }) {
         {/* Content */}
         <main className="flex-1 lg:mt-0">{children}</main>
       </div>
-
     </>
   );
 }

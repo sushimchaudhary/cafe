@@ -1,7 +1,9 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { X, Printer, CheckCircle } from "lucide-react";
-import Swal from "sweetalert2";
+import {Printer, CheckCircle } from "lucide-react";
+
+import toast from "react-hot-toast";
+
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -35,6 +37,7 @@ const getNepalDateString = (date) => {
 };
 
 const normalizeStatus = (status) => {
+  if (!status) return "Pending";
   switch (status.toLowerCase()) {
     case "pending":
       return "Pending";
@@ -71,11 +74,20 @@ const getStatusIndicator = (status) => {
 
 const statusOptions = ["Pending", "Preparing", "Ready", "Served"];
 
+
+
+
 const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const prevOrdersCount = useRef(0);
+
+ 
+  const lastOrderIdRef = useRef(null);
+ 
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,6 +106,23 @@ const AdminOrdersDashboard = () => {
       });
       const result = await res.json();
       const ordersData = result?.data || [];
+
+      if (ordersData.length > 0) {
+        
+        const latestOrder = ordersData[0];
+        const latestId = latestOrder.reference_id;
+  
+       
+        if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
+          playNotificationSound();
+          toast.success("New Order Received!", { icon: "🔔" });
+        }
+  
+        
+        lastOrderIdRef.current = latestId;
+      }
+
+      prevOrdersCount.current = ordersData.length;
 
       const normalized = ordersData.map((o) => ({
         order_id: o.reference_id,
@@ -119,29 +148,13 @@ const AdminOrdersDashboard = () => {
     }
   };
 
-  const showToast = (title, icon = "success") => {
-    Swal.fire({
-      toast: true,
-      position: "top-end",
-      icon,
-      title,
-      showConfirmButton: false,
-      timer: 2500,
-    });
-  };
+
 
   const handleStatusChange = async (order_id, newStatus) => {
     const order = orders.find((o) => o.order_id === order_id);
-    if (!order || order.status === "Served") return; // Served मा केही change हुँदैन
+    if (!order || order.status === "Served") return;
 
-    if (newStatus === "Cancelled") {
-      const ok = await Swal.fire({
-        title: "Cancel order?",
-        icon: "warning",
-        showCancelButton: true,
-      });
-      if (!ok.isConfirmed) return;
-    }
+    
 
     try {
       const res = await fetch(`${API_URL}/api/orders/status/${order_id}`, {
@@ -155,8 +168,10 @@ const AdminOrdersDashboard = () => {
 
       if (!res.ok) throw new Error("Status update failed");
 
-      showToast(
-        newStatus === "Cancelled" ? "Order Cancelled" : "Status Updated"
+      toast.success(
+        newStatus === "Cancelled"
+          ? "Order Cancelled"
+          : "Status Updated"
       );
 
       setOrders((prev) =>
@@ -166,7 +181,8 @@ const AdminOrdersDashboard = () => {
       );
       setOpenDropdown(null);
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      toast.error(err.message || "Something went wrong");
+
     }
   };
 
@@ -190,7 +206,12 @@ const AdminOrdersDashboard = () => {
     if (t) {
       setToken(t);
       fetchOrders(t);
-     
+
+      const interval = setInterval(() => {
+        fetchOrders(t);
+      }, 10000);
+
+      return () => clearInterval(interval);
     }
   }, []);
 
@@ -212,8 +233,8 @@ const AdminOrdersDashboard = () => {
               Kitchen Dashboard
             </h1>
 
-            <p className="text-sm mt-1 text-[#236B28]">
-              Orders for{" "}
+            <p className="text-sm text-[#236B28]">
+              Order for{" "}
               <span className="font-semibold text-[#2baf36] bg-[#EAF5EA] px-2 py-[2px] rounded-md">
                 {todayOrders.length}
               </span>
@@ -241,7 +262,6 @@ const AdminOrdersDashboard = () => {
                   : "bg-white border-gray-200"
                 }`}
             >
-              {/* Card Header */}
               <div className="p-3 border-b border-gray-100">
                 <div className="flex justify-between items-start">
                   <div>
@@ -260,7 +280,6 @@ const AdminOrdersDashboard = () => {
                 </div>
               </div>
 
-              {/* Order Items */}
               <div className="p-1 flex-grow">
                 <div className="bg-gray-50 rounded p-3 mb-3">
                   <ul className="space-y-2">
@@ -336,7 +355,7 @@ const AdminOrdersDashboard = () => {
                           {openDropdown === order.order_id && (
                             <div
                               ref={dropdownRef}
-                              className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                              className="absolute right-0 bottom-full mb-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
                             >
                               {[...statusOptions, "Cancelled"]
                                 .filter((s) => s !== order.status)
@@ -367,9 +386,6 @@ const AdminOrdersDashboard = () => {
           ))}
         </div>
 
-
-
-
         <div className="mt-8 mx-auto border-t border-[#236B28]/20 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
           <span className="text-[#236B28]/70 font-medium">
             End of list
@@ -379,10 +395,6 @@ const AdminOrdersDashboard = () => {
             Total Orders: {todayOrders.length}
           </span>
         </div>
-
-
-
-
       </div>
     </>
   );
