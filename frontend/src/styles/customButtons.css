@@ -147,3 +147,19 @@
   color: #fff;
   transition: 100ms;
 }
+
+
+
+
+
+
+
+
+.scrollbar-hide {
+    -ms-overflow-style: none;  
+    scrollbar-width: none; 
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; 
+}

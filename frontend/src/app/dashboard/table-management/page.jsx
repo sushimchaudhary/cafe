@@ -161,19 +161,20 @@ export default function TableManager() {
   };
 
   return (
-    <div className="container mx-auto h-[500px] font-sans px-1">
+    <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
 
       {/* HEADER + SEARCH */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
-        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
+        <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
           Table
         </h1>
 
         <div className="flex w-full md:w-auto items-center gap-2">
+          {/* Search Input Area */}
           <div className="relative">
             <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -191,8 +192,8 @@ export default function TableManager() {
               placeholder="Search Table..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
-             focus:outline-none focus:ring-1 focus:ring-amber-200"
+              className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px] 
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[200px]"
             />
           </div>
 
@@ -201,12 +202,18 @@ export default function TableManager() {
               resetForm();
               setShowForm(true);
             }}
-            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
+            className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold 
+      bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
           >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
             Create
           </button>
         </div>
       </div>
+
+
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -240,41 +247,48 @@ export default function TableManager() {
 
       {/* FORM MODAL */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
-          <div className="bg-white w-full max-w-md lg:max-w-lg rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200 lg:mb-34">
-            <div className="flex justify-end items-end p-1 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
+
+          <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+
+
+            <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-[13px] font-bold text-gray-700">
+                {editId ? "Edit Table" : "Add New Table"}
+              </h2>
               <button
                 onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-red-500 transition"
+                className="text-gray-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-gray-100"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-2 space-y-1">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Table
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
+              {/* Input Field Area */}
+              <div className="space-y-1.5">
+                <label className="block text-[12px] font-semibold text-gray-600">
+                  Table Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={tableName}
                   onChange={(e) => setTableName(e.target.value)}
-                  placeholder="Table Number"
-                  className="border w-full p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                  placeholder="e.g. T-01"
+                  className="w-full px-3 py-1.5 text-[12px] border border-gray-300 rounded focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 outline-none transition-all placeholder:text-gray-400"
                   required
                 />
               </div>
 
-              <div className="flex justify-end">
+    
+              <div className="flex justify-end gap-2 pt-2">
+               
                 <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="formCancleButton px-3 py-1 border-2 cursor-pointer text-gray-600 hover:bg-gray-100 rounded transition"
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-1.5 text-[12px] font-semibold text-white rounded shadow-sm transition-all
+              ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#236B28] hover:bg-[#1C5721] active:scale-95'}`}
                 >
-                  Cancel
-                </button>
-                <button type="submit" disabled={loading} className="formButton">
                   {loading ? "Saving..." : editId ? "Update" : "Create"}
                 </button>
               </div>
@@ -283,71 +297,82 @@ export default function TableManager() {
         </div>
       )}
 
-      {/* TABLE */}
-      <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">
-        <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
-          <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
-              <tr>
-                <th className="w-1/12 border px-4 py-2 text-left">SN</th>
+      {/* TABLE WRAPPER */}
+      <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
 
-                <th className="w-1/4 border px-6 py-2 text-left">Table</th>
-                <th className="w-1/4 border px-4 py-2 text-left">QR</th>
-                <th className="w-1/15 border px-2 py-2 text-end pr-4">
-                  Action
-                </th>
+        {/* scrollbar-hide*/}
+        <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 150px)' }}>
+          <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
+
+            {/*HEADER*/}
+            <thead className="sticky top-0 bg-[#fafafa] z-10">
+              <tr>
+                <th className="w-[50px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">SN</th>
+                <th className="border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">Table Name</th>
+                <th className="w-[100px] border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">QR Code</th>
+                <th className="w-[80px] border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700">Action</th>
               </tr>
             </thead>
 
-            <tbody className="text-sm">
+
+            <tbody className="bg-white">
               {filteredTables.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-6 text-gray-400 border "
-                  >
-                    {searchQuery
-                      ? "table not match your search"
-                      : "table not found"}
+                  <td colSpan={4} className="text-center py-8 text-gray-400 border-b border-gray-200">
+                    {searchQuery ? "No tables match your search" : "No tables found"}
                   </td>
                 </tr>
               ) : (
                 filteredTables.map((t, index) => (
-                  <tr
-                    key={t.reference_id}
-                    className="hover:bg-gray-50 transition"
-                  >
-                    <td className="px-4 py-1 border ">{index + 1}</td>
+                  <tr key={t.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    <td className="px-4 py-1 border">T {t.table_number}</td>
-                    <td className="px-4 py-1 border  ">
-                      {t.qr_code ? (
-                        <img
-                          src={t.qr_code}
-                          alt="QR"
-                          className="w-7 h-7  cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => setOpenQr(t.qr_code)}
-                        />
-                      ) : (
-                        <span className="text-gray-400">No QR</span>
-                      )}
+                    {/* SN */}
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
+                      {index + 1}
                     </td>
-                    <td className="px-2 py-1 border ">
-                      <div className="flex justify-end ">
+
+                    {/* Table Number with Input Style UI */}
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                      <div className="border border-gray-200 rounded px-2 py-0.5 bg-gray-50/50 text-gray-800 font-medium">
+                        T {t.table_number}
+                      </div>
+                    </td>
+
+                    {/* QR Code */}
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                      <div className="flex items-center justify-start h-full">
+                        {t.qr_code ? (
+                          <div className="p-0.5 border border-gray-200 rounded bg-white shadow-sm">
+                            <img
+                              src={t.qr_code}
+                              alt="QR"
+                              className="w-6 h-6 cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => setOpenQr(t.qr_code)}
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-gray-400 italic">No QR</span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Action Buttons */}
+                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(t)}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
+                          className="p-1 text-blue-500 hover:bg-blue-50 rounded transition"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => {
                             setDeleteTable(t);
                             setShowDeleteModal(true);
                           }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
+                          className="p-1 text-red-400 hover:bg-red-50 rounded transition"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>

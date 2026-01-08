@@ -10,12 +10,8 @@ export default function MenuManagement() {
 
   return (
     <>
-      <div>
-        
-        <div>
-          <AddItemForm onAddItem={handleAddItem} />
-        </div>
-      </div>
+
+      <AddItemForm onAddItem={handleAddItem} />
     </>
   );
 }

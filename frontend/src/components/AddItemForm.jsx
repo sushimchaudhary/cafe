@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, Edit2, X, Plus } from "lucide-react";
+import { Trash2, Edit2, X, Plus, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import ToastProvider from "./ToastProvider";
@@ -385,332 +385,303 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    <div className="container mx-auto h-[500px] font-sans px-1">
-      <ToastProvider />
+    <>
+      <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2] ">
+        <ToastProvider />
 
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
-        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
-          Menu
-        </h1>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
+          <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
+            Menu
+          </h1>
 
-        <div className="flex w-full md:w-auto items-center gap-2">
-          <div className="relative">
-            <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+          <div className="flex w-full md:w-auto items-center gap-2">
+            <div className="relative">
+              <svg
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                />
+              </svg>
+
+              <input
+                type="text"
+                placeholder="Search Menu..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px]
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40"
               />
-            </svg>
+            </div>
 
-            <input
-              type="text"
-              placeholder="Search Menu..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
-             focus:outline-none focus:ring-1 focus:ring-amber-200"
-            />
+            <button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold
+      bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
+            >
+              Create
+            </button>
           </div>
-
-          <button
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
-          >
-            Create
-          </button>
         </div>
-      </div>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
-            <h2 className="text-lg font-bold text-red-600 mb-3">
-              Confirm Delete
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Are you sure you want to delete menu item{" "}
-              <span className="font-semibold">{deleteMenu?.name}</span>?
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirmed}
-                className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
-              >
-                Delete
-              </button>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
+              <h2 className="text-lg font-bold text-red-600 mb-3">
+                Confirm Delete
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete menu item{" "}
+                <span className="font-semibold">{deleteMenu?.name}</span>?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirmed}
+                  className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-{showForm && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center pl-15 bg-black/40 p-3">
-    <div className="bg-white w-auto max-w-4xl rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200">
-      
-      {/* HEADER */}
-      <div className="flex justify-between items-center p-2 border-b sticky top-0 bg-white z-10">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-gray-700">Menu Categories</span>
-        </div>
-        <button
-          onClick={() => setShowForm(false)}
-          className="text-gray-400 hover:text-red-500 transition"
-        >
-          <X size={20} />
-        </button>
-      </div>
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
+            <div className="bg-white w-full max-w-2xl rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-200">
 
-      {/* MENU DATE */}
-      <div className="p-3 border-b">
-        <label className="block mb-1 text-sm font-medium text-gray-700">
-          Menu Date
-        </label>
-        <input
-          type="date"
-          value={form.menu_date}
-          onChange={(e) =>
-            setForm({ ...form, menu_date: e.target.value })
-          }
-          className="w-full border border-amber-300 p-2 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-          required
-        />
-      </div>
+              {/* HEADER*/}
+              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-white">
+                <h2 className="text-[14px] font-semibold text-gray-800 tracking-tight">Menu Categorie</h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-all p-1 hover:bg-gray-100 rounded"
+                >
+                  <X size={16} strokeWidth={2} />
+                </button>
+              </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto max-h-[60vh] custom-scrollbar p-3">
-        <table className="min-w-auto border-collapse table-auto">
-          <thead className="sticky top-0 bg-[#236B28] text-white text-[10px] font-semibold">
-            <tr>
-              <th className="border px-2 py-1">Name</th>
-              <th className="border px-2 py-1">Price</th>
-              <th className="border px-2 py-1">Category</th>
-              <th className="border px-2 py-1">Unit</th>
-              <th className="border px-2 py-1">Image</th>
-              <th className="border px-2 py-1">Action</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm">
-            {form.categories.map((cat, idx) => (
-              <tr key={idx} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                {/* Name */}
-                <td className="border px-2 py-1">
+              <div className="p-3">
+                {/* MENU DATE*/}
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="text-[12px] text-gray-600 font-medium whitespace-nowrap">Menu Date:</label>
                   <input
-                    type="text"
-                    value={cat.name}
-                    onChange={(e) => handleCategoryChange(idx, "name", e.target.value)}
-                    className="w-[150px] border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
+                    type="date"
+                    value={form.menu_date}
+                    onChange={(e) => setForm({ ...form, menu_date: e.target.value })}
+                    className="w-40 border border-gray-300 px-2 py-1 rounded hover:border-blue-400 focus:border-blue-500 outline-none transition-all text-[12px]"
                     required
                   />
-                </td>
+                </div>
 
-                {/* Price */}
-                <td className="border px-2 py-1">
-                  <input
-                    type="number"
-                    value={cat.price}
-                    onChange={(e) => handleCategoryChange(idx, "price", e.target.value)}
-                    className="w-[150px] border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                    required
-                  />
-                </td>
+                {/* TABLE*/}
+                <div className="overflow-hidden border border-gray-100 rounded">
+                  <table className="w-full border-collapse">
+                    <thead className="bg-[#fafafa] border-b border-gray-200">
+                      <tr className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                        <th className="px-2 py-1.5 text-left border-r border-gray-100">Name</th>
+                        <th className="px-2 py-1.5 text-left w-20 border-r border-gray-100">Price</th>
+                        <th className="px-2 py-1.5 text-left border-r border-gray-100">Category</th>
+                        <th className="px-2 py-1.5 text-left w-24 border-r border-gray-100">Unit</th>
+                        <th className="px-2 py-1.5 text-center w-12 border-r border-gray-100">Img</th>
+                        <th className="px-2 py-1.5 text-center w-16">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {form.categories.map((cat, idx) => (
+                        <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                          <td className="p-1">
+                            <input
+                              type="text"
+                              value={cat.name}
+                              placeholder="Enter your menu name"
+                              onChange={(e) => handleCategoryChange(idx, "name", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 rounded text-[12px] focus:border-blue-400 outline-none transition-all"
+                              required
+                            />
+                          </td>
+                          <td className="p-1">
+                            <input
+                              type="number"
+                              value={cat.price}
+                              placeholder="0.00"
+                              onChange={(e) => handleCategoryChange(idx, "price", e.target.value)}
+                              className="w-full border border-gray-200 px-2 py-1 rounded text-[12px] focus:border-blue-400 outline-none transition-all"
+                              required
+                            />
+                          </td>
+                          {/* Category Select */}
+                          <td className="p-1">
+                            <div className="relative group">
+                              <select
+                                value={cat.item_category}
+                                onChange={(e) => handleCategoryChange(idx, "item_category", e.target.value)}
+                                className="w-full appearance-none bg-white border border-[#d9d9d9] hover:border-[#40a9ff] focus:border-[#40a9ff] focus:shadow-[0_0_0_2px_rgba(24,144,255,0.2)] px-2 py-1 pr-6 rounded text-[12px] transition-all outline-none cursor-pointer"
+                                required
+                              >
+                                <option value="" disabled>Select</option>
+                                {categoriesList.map((c) => (
+                                  <option key={c.reference_id} value={c.reference_id}>{c.name}</option>
+                                ))}
+                              </select>
+                              {/* AntD style arrow icon */}
+                              <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
+                                <ChevronDown size={12} />
+                              </div>
+                            </div>
+                          </td>
 
-                {/* Category */}
-                <td className="border px-2 py-1">
-                  <select
-                    value={cat.item_category}
-                    onChange={(e) => handleCategoryChange(idx, "item_category", e.target.value)}
-                    className="w-full border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {categoriesList.map((c) => (
-                      <option key={c.reference_id} value={c.reference_id}>{c.name}</option>
-                    ))}
-                  </select>
-                </td>
+                          {/* Unit Select */}
+                          <td className="p-1">
+                            <div className="relative group">
+                              <select
+                                value={cat.unit}
+                                onChange={(e) => handleCategoryChange(idx, "unit", e.target.value)}
+                                className="w-full appearance-none bg-white border border-[#d9d9d9] hover:border-[#40a9ff] focus:border-[#40a9ff] focus:shadow-[0_0_0_2px_rgba(24,144,255,0.2)] px-2 py-1 pr-6 rounded text-[12px] transition-all outline-none cursor-pointer"
+                                required
+                              >
+                                <option value="" disabled>Unit</option>
+                                {units.map((u) => (
+                                  <option key={u.reference_id} value={u.reference_id}>{u.name}</option>
+                                ))}
+                              </select>
+                              {/* AntD style arrow icon */}
+                              <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
+                                <ChevronDown size={12} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-1 text-center">
+                            <input type="file" id={`upload-${idx}`} onChange={(e) => handleCategoryImage(idx, e)} className="hidden" />
+                            <label htmlFor={`upload-${idx}`} className="mx-auto w-6 h-6 flex items-center justify-center border border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-500 bg-white">
+                              {cat.imagePreview ? <img src={cat.imagePreview} className="w-full h-full object-cover rounded" /> : <Plus size={10} className="text-gray-400" />}
+                            </label>
+                          </td>
+                          <td className="p-1 text-center">
+                            <div className="flex justify-center items-center gap-1">
+                              <button type="button" onClick={() => handleDeleteCategoryForm(idx)} className="p-1 text-gray-400 hover:text-red-500">
+                                <X size={14} />
+                              </button>
+                              {idx === form.categories.length - 1 && (
+                                <button type="button" onClick={handleAddCategory} className="p-1 text-blue-500 hover:bg-blue-50 rounded">
+                                  <Plus size={14} strokeWidth={3} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-                {/* Unit */}
-                <td className="border px-2 py-1">
-                  <select
-                    value={cat.unit}
-                    onChange={(e) => handleCategoryChange(idx, "unit", e.target.value)}
-                    className="w-full border px-1 py-1 rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                    required
-                  >
-                    <option value="">Select Unit</option>
-                    {units.map((u) => (
-                      <option key={u.reference_id} value={u.reference_id}>{u.name}</option>
-                    ))}
-                  </select>
-                </td>
+              {/*buttons */}
+              <div className="flex justify-end gap-2 px-4 py-2 border-t border-gray-100 bg-gray-50/50">
 
-                {/* Image */}
-                <td className="border px-2 py-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id={`upload-${idx}`}
-                    onChange={(e) => handleCategoryImage(idx, e)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor={`upload-${idx}`}
-                    className="w-full px-1 py-1 rounded text-sm text-center cursor-pointer border border-dashed border-amber-300 hover:bg-amber-50 transition"
-                  >
-                    {cat.imagePreview ? (
-                      <img
-                        src={cat.imagePreview}
-                        className="w-full h-16 object-cover rounded"
-                      />
-                    ) : (
-                      "Upload"
-                    )}
-                  </label>
-                </td>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                  className="px-4 py-1 bg-[#236B28] text-white rounded text-[12px] hover:bg-green-800 transition-all font-medium shadow-sm"
+                >
+                  {loading ? "saving..." : "save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Action */}
-                <td className="border px-2 py-1 text-center">
-                  <div className="flex justify-center items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCategoryForm(idx)}
-                      className="p-1 rounded hover:bg-red-100 transition"
-                      title="Delete"
-                    >
-                      <X size={20} className="text-red-600 hover:text-red-800" />
-                    </button>
+        <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 150px)' }}>
+            <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
 
-                    {idx === form.categories.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={handleAddCategory}
-                        className="p-1 rounded hover:bg-green-100 transition"
-                        title="Add Category"
-                      >
-                        <Plus size={20} className="text-green-600 hover:text-green-800" />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* SUBMIT */}
-      <div className="flex justify-end p-3 border-t bg-white sticky bottom-0">
-        <button
-          type="submit"
-          disabled={loading}
-          onClick={handleSubmit}
-          className="formButton px-4 py-2 bg-[#236B28] text-white rounded-lg hover:bg-green-800 transition"
-        >
-          {loading ? "Saving..." : editingMenuId ? "Update" : "Create"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-      {/* TABLE */}
-      <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">
-        <div className="overflow-y-auto max-h-[450px] custom-scrollbar">
-          <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
-              <tr>
-                <th className="w-1/15 border px-4 py-2 text-left">SN</th>
-                {/* <th className="w-1/7 border px-6 py-2 text-left">Date</th> */}
-                <th className="w-1/5 border px-6 py-2 text-left">Name</th>
-                <th className="w-1/7 border px-6 py-2 text-left">Price</th>
-                <th className="w-1/7 border px-4 py-2 text-left">Category</th>
-                <th className="w-1/7 border px-2 py-2 text-left">Unit</th>
-                <th className="w-1/12 border px-2 py-2 text-left">Image</th>
-                <th className="w-1/12 border px-2 py-2 text-left">Action</th>
-              </tr>
-            </thead>
-
-            <tbody className="text-sm">
-              {filteredMenus.length === 0 ? (
+              <thead className="sticky top-0 bg-[#fafafa] z-10">
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-6 text-gray-400 border "
-                  >
-                    {search
-                      ? "menu not match your search"
-                      : "menu not found"}
-                  </td>
+                  {["SN", "Date", "Name", "Price", "Category", "Unit", "Image", "Action"].map((header, i) => (
+                    <th
+                      key={header}
+                      className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
+                      style={{ width: header === "SN" ? "40px" : header === "Action" ? "80px" : "auto" }}
+                    >
+                      {header}
+                    </th>
+                  ))}
                 </tr>
-              ) : (
-                filteredMenus.map((menu, index) => (
-                  <tr
-                    key={menu.reference_id}
-                    className="hover:bg-gray-50 transition"
-                  >
-                    <td className="border px-4">{index + 1}</td>
-                    {/* <td className="border px-4">{menu.menu_date}</td> */}
-                    <td className="border px-4">{menu.name}</td>
-                    <td className="border px-4">{menu.price}</td>
-                    <td className="border px-4">
-                      {getCategoryName(menu.item_category)}
-                    </td>
-                    <td className="border px-4 ">{getUnitName(menu.unit)}</td>
-                    <MenuImageHover src={menu.image || menu.image_url} />
+              </thead>
 
-                    {/* <td className="border px-4 ">
-                      {menu.image || menu.image_url ? (
-                        <img
-                          src={menu.image || menu.image_url}
-                          className="w-5 h-5 object-cover rounded"
-                        />
-                      ) : (
-                        "No Image"
-                      )}
-                    </td> */}
-                    <td className="px-2  border">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => handleEditMenu(menu)}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
-                        >
-                          <PencilIcon className="w-4 h-4" />
+              <tbody className="bg-white">
+                {filteredMenus.map((menu, index) => (
+                  <tr key={menu.reference_id} className="hover:bg-blue-50/30 transition-all">
+
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">{index + 1}</td>
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 last:border-r-0">{menu.menu_date}</td>
+
+                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
+                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                        {menu.name}
+                      </div>
+                    </td>
+
+                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
+                      <div className="border border-gray-200 rounded px-1 py-0.5 text-center">
+                        {menu.price}
+                      </div>
+                    </td>
+
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0">
+                      <span className="text-[10px] px-1.5 py-0 border border-gray-200 rounded bg-white text-gray-500">
+                        {getCategoryName(menu.item_category)}
+                      </span>
+                    </td>
+
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0 text-gray-500">
+                      {getUnitName(menu.unit)}
+                    </td>
+
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0">
+                      <div className="w-6 h-6 rounded border border-gray-200 overflow-hidden mx-auto bg-gray-50">
+                        <MenuImageHover src={menu.image || menu.image_url} />
+                      </div>
+                    </td>
+
+                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handleEditMenu(menu)} className="text-blue-500 hover:scale-110 transition">
+                          <PencilIcon className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => {
-                            setDeleteMenu(menu);
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
+                          onClick={() => { setDeleteMenu(menu); setShowDeleteModal(true); }}
+                          className="text-red-400 hover:scale-110 transition"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+
       </div>
-    </div>
+    </>
   );
 }
