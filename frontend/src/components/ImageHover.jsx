@@ -134,10 +134,14 @@
 import React from 'react';
 import { Image } from 'antd';
 const MenuImageHover = ({ src, name = "Menu Item" }) => (
-  <Image src={src}
-    width={40}
-    alt={name}
-  />
+  <Image
+  src={src}
+  alt={name || 'Item image'}
+  width={25}
+  height={25}
+  className="rounded object-cover items-center justify-center transition-transform duration-200 hover:scale-105"
+/>
+
 
   
 );
