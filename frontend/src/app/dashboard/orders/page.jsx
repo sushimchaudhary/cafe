@@ -84,10 +84,19 @@ const AdminOrdersDashboard = () => {
   const dropdownRef = useRef(null);
   const prevOrdersCount = useRef(0);
 
- 
+  const audioRef = useRef(null);
   const lastOrderIdRef = useRef(null);
  
 
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+   
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.warn("Autoplay blocked: Please click anywhere on the page first.");
+      });
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {

@@ -316,7 +316,7 @@ export default function RestaurantPage() {
               {filteredRestaurants.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-6 text-gray-400">
-                    {search ? "user not match search" : "user not found"}
+                    {search ? "restaurant not match search" : "resstaurant not found"}
                   </td>
                 </tr>
               ) : (

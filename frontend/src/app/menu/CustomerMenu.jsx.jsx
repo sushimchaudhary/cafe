@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ShoppingCart, Soup, Plus, Minus, Info } from "lucide-react";
+import { ShoppingCart, Soup, Plus, Minus, Info, Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Commet } from "react-loading-indicators";
 import ToastProvider from "@/components/ToastProvider";
@@ -11,10 +11,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerMenu() {
   const [menuList, setMenuList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [tableNumber, setTableNumber] = useState("-");
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [lastOrderTime, setLastOrderTime] = useState(null);
+
   const [previewImage, setPreviewImage] = useState(null);
 
   const searchParams = useSearchParams();
@@ -73,6 +74,10 @@ export default function CustomerMenu() {
     );
   };
 
+  const filteredMenu = menuList.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const totalItems = menuList.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = menuList.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -81,6 +86,9 @@ export default function CustomerMenu() {
 
   const handleSubmitOrder = async () => {
     if (!totalItems) return toast.error("Your cart is empty!");
+
+    // const loadingToast = toast.loading("Placing your order...");
+
     try {
       const payload = {
         table_id: table?.table_id || "",
@@ -99,12 +107,23 @@ export default function CustomerMenu() {
         status: "pending",
         token: tableToken,
       };
+
       const res = await axios.post(`${API_URL}/api/orders/`, payload);
-      toast.success("Order placed successfully!");
-      setLastOrderTime(res.data.created_at);
-      setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
+
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Order placed successfully!");
+
+        if (res.data && res.data.created_at) {
+          setLastOrderTime(res.data.created_at);
+        }
+
+        setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
+      } else {
+        throw new Error("Something went wrong");
+      }
     } catch (err) {
-      toast.error("Order failed. Try again.");
+      console.error("Order Error:", err);
+      toast.error("Order failed. Please try again.", { id: loadingToast });
     }
   };
 
@@ -119,141 +138,164 @@ export default function CustomerMenu() {
     );
 
   return (
+    <>
+      <div className="min-h-screen bg-slate-50 font-sans pb-40">
+        <ToastProvider />
 
-    <>    
-    <div className="min-h-screen bg-slate-50 font-sans pb-40">
-      <ToastProvider />   
-
-      {/* Header Section */}
-      <header className="sticky top-0 z-50  bg-[#236B28] text-white p-3  shadow-xl">
-        <div className="flex justify-between items-center max-w-2xl mx-auto">
-          <div>
-            <h1 className="text-md font-black tracking-tight">EAT & REPEAT</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="bg-white/20 px-2  rounded-full text-xs font-semibold backdrop-blur-md">
-                Table {tableNumber}
-              </span>
-            </div>
-          </div>
-          <div className="relative p-2   backdrop-blur-md  border-white/30">
-            <ShoppingCart className="w-6 h-6" />
-            {totalItems > 0 && (
-              <span className="absolute -top-0 -right-1 bg-orange-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold animate-bounce">
-                {totalItems}
-              </span>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Menu List */}
-      <main className="max-w-2xl mx-auto px-2 mt-4 space-y-3">
-        {menuList.length === 0 ? (
-          <div className="text-center py-20 opacity-40">
-            <Soup className="w-16 h-16 mx-auto mb-4" />
-            <p className="text-lg font-medium text-slate-500">
-              No dishes available right now.
-            </p>
-          </div>
-        ) : (
-          menuList.map((menu, index) => (
-            <div
-              key={index}
-              className="group relative flex bg-white rounded p-2 shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 items-center"
-            >
-              
-              <div className="relative w-16 h-16 overflow-hidden rounded-xl shadow-inner flex-shrink-0">
-                <img
-                  src={menu.image || "https://via.placeholder.com/150"}
-                  alt={menu.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 cursor-pointer"
-                  onClick={() => setPreviewImage(menu.image)}
-                />
+        <header className="sticky top-0 z-50 p-2 bg-[#236B28] text-white shadow-xl">
+          <div className="max-w-2xl mx-auto px-3 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <h1 className="text-md font-black leading-none uppercase tracking-tighter">
+                  Eat & Repeat
+                </h1>
+                <div className="inline-block bg-white/20 px-1.5 py-0.5 rounded text-[9px] font-bold backdrop-blur-md uppercase mt-1">
+                  T-{tableNumber}
+                </div>
               </div>
 
-              <div className="flex flex-1 justify-between items-center ml-3">
-                <div className="flex flex-col">
-                  <h3 className="text-[15px] font-bold text-slate-800 leading-tight">
-                    {menu.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-[#236B28] font-extrabold text-[16px]">
-                      Rs {menu.price}
-                    </p>
-                    <span className="text-slate-400 text-[10px] uppercase font-semibold">
-                      / {menu.unit_name}
-                    </span>
+              <div className="flex-1 relative group ">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50 group-focus-within:text-white" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 pl-8 pr-8 text-sm placeholder:text-white/40 focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                  >
+                    <X className="w-3.5 h-3.5 text-white/50 hover:text-white" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex-shrink-0 relative pl-2 ">
+                <ShoppingCart className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-1 bg-orange-500 text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold shadow-lg animate-bounce">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Menu List */}
+        <main className="max-w-2xl mx-auto px-3 mt-6 space-y-3">
+          {filteredMenu.length === 0 ? (
+            <div className="text-center py-20 opacity-40">
+              <Soup className="w-16 h-16 mx-auto mb-4" />
+              <p className="text-lg font-medium text-slate-500">
+                {searchTerm
+                  ? "No results found for your search."
+                  : "No dishes available right now."}
+              </p>
+            </div>
+          ) : (
+            filteredMenu.map((menu, index) => {
+              // खास इन्डेक्स पत्ता लगाउन (फिल्टर हुँदा पनि सही क्वान्टिटी अपडेट होस् भनेर)
+              const originalIndex = menuList.findIndex(
+                (m) => m.reference_id === menu.reference_id
+              );
+              return (
+                <div
+                  key={index}
+                  className="flex bg-white rounded-2xl p-2 shadow-sm border border-slate-100 items-center"
+                >
+                  <div className="relative w-16 h-16 overflow-hidden rounded-xl flex-shrink-0">
+                    <img
+                      src={menu.image || "https://via.placeholder.com/150"}
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => setPreviewImage(menu.image)}
+                    />
+                  </div>
+                  <div className="flex flex-1 justify-between items-center ml-3">
+                    <div>
+                      <h3 className="text-[15px] font-bold text-slate-800 leading-tight">
+                        {menu.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[#236B28] font-extrabold text-[16px]">
+                          Rs {menu.price}
+                        </p>
+                        <span className="text-slate-400 text-[10px] font-semibold uppercase">
+                          / {menu.unit_name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center bg-slate-50 rounded-full p-0.5 border border-slate-200">
+                      <button
+                        onClick={() => handleQtyChange(originalIndex, -1)}
+                        className={`p-1 rounded-full ${
+                          menu.quantity > 0
+                            ? "bg-white text-[#236B28] shadow-sm"
+                            : "text-slate-300"
+                        }`}
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="px-2 font-bold text-slate-700 text-sm min-w-[1.8rem] text-center">
+                        {menu.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQtyChange(originalIndex, 1)}
+                        className="p-1 rounded-full bg-[#236B28] text-white shadow-sm"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              );
+            })
+          )}
+        </main>
 
-                <div className="flex items-center bg-slate-50 rounded-full p-0.5 border border-slate-200">
-                  <button
-                    onClick={() => handleQtyChange(index, -1)}
-                    className={`p-1 rounded-full transition-all ${
-                      menu.quantity > 0
-                        ? "bg-white text-[#236B28] shadow-sm"
-                        : "text-slate-300"
-                    }`}
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span className="px-2 font-bold text-slate-700 text-sm min-w-[1.8rem] text-center">
-                    {menu.quantity}
-                  </span>
-                  <button
-                    onClick={() => handleQtyChange(index, 1)}
-                    className="p-1 rounded-full bg-[#236B28] text-white shadow-sm active:scale-90 transition-transform"
-                  >
-                    <Plus size={14} />
-                  </button>
+        {totalItems > 0 && (
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 animate-slideUp">
+            <div className="bg-[#236B28] p-2 shadow-2xl border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-3 text-white">
+                <div>
+                  <p className="text-white/70 text-sm">Total Amount</p>
+                  <p className="text-md font-black">
+                    Rs {totalPrice.toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white/70 text-sm">Items</p>
+                  <p className="text-md font-bold">{totalItems}</p>
                 </div>
               </div>
+              <button
+                onClick={handleSubmitOrder}
+                className="w-full bg-white text-[#236B28] py-2 mb-3 rounded font-black text-md shadow-lg hover:bg-orange-50 transition-colors active:scale-[0.98]"
+              >
+                PLACE ORDER NOW
+              </button>
             </div>
-          ))
+          </div>
         )}
-      </main>
 
-      {totalItems > 0 && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 animate-slideUp">
-          <div className="bg-[#236B28] p-2 shadow-2xl border border-white/20 backdrop-blur-lg">
-            <div className="flex justify-between items-center mb-3 text-white">
-              <div>
-                <p className="text-white/70 text-sm">Total Amount</p>
-                <p className="text-md font-black">
-                  Rs {totalPrice.toFixed(2)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-white/70 text-sm">Items</p>
-                <p className="text-md font-bold">{totalItems}</p>
-              </div>
+        {previewImage && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setPreviewImage(null)}
+          >
+            <div className="relative max-w-lg w-full">
+              <img
+                src={previewImage}
+                className="w-full h-auto rounded-[2rem] shadow-2xl"
+                alt="Preview"
+              />
             </div>
-            <button
-              onClick={handleSubmitOrder}
-              className="w-full bg-white text-[#236B28] py-2 mb-3 rounded font-black text-md shadow-lg hover:bg-orange-50 transition-colors active:scale-[0.98]"
-            >
-              PLACE ORDER NOW
-            </button>
           </div>
-        </div>
-      )}
-
-     
-      {previewImage && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          onClick={() => setPreviewImage(null)}
-        >
-          <div className="relative max-w-lg w-full">
-            <img
-              src={previewImage}
-              className="w-full h-auto rounded-[2rem] shadow-2xl"
-              alt="Preview"
-            />
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
     </>
   );
 }
