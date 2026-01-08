@@ -161,7 +161,7 @@ export default function TableManager() {
   };
 
   return (
-    <div className="mx-auto min-h-screen font-sans p-4">
+    <div className="container mx-auto h-[500px] font-sans px-1">
       <ToastProvider />
 
       {/* HEADER + SEARCH */}
