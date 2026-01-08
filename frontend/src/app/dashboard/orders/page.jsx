@@ -190,8 +190,7 @@ const AdminOrdersDashboard = () => {
     if (t) {
       setToken(t);
       fetchOrders(t);
-      // const i = setInterval(() => fetchOrders(t), 5000);
-      // return () => clearInterval(i);
+     
     }
   }, []);
 
@@ -222,7 +221,7 @@ const AdminOrdersDashboard = () => {
           </div>
 
 
-          <div className="bg-white px-5 py-2 rounded-sm shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
+          <div className="bg-white px-5 py-1 rounded-sm shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
             <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
               Total Revenue
             </span>
@@ -232,12 +231,12 @@ const AdminOrdersDashboard = () => {
           </div>
         </header>
 
-        <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+        <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {todayOrders.map((order, idx) => (
             <div
               key={order.order_id}
-              className={`flex flex-col justify-between border rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
-               ${order.status === "Cancelled"
+              className={`flex flex-col justify-between border rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
+            ${order.status === "Cancelled"
                   ? "bg-red-50 border-red-200 opacity-90"
                   : "bg-white border-gray-200"
                 }`}
@@ -262,9 +261,9 @@ const AdminOrdersDashboard = () => {
               </div>
 
               {/* Order Items */}
-              <div className="p-3 flex-grow">
-                <div className="bg-gray-50 rounded-xl p-2 mb-3">
-                  <ul className="space-y-1.5">
+              <div className="p-1 flex-grow">
+                <div className="bg-gray-50 rounded p-3 mb-3">
+                  <ul className="space-y-2">
                     {order.items.map((i, idx) => (
                       <li
                         key={idx}
@@ -297,8 +296,7 @@ const AdminOrdersDashboard = () => {
                 </div>
               </div>
 
-              {/* Status + Actions */}
-              <div className="p-3 pt-2">
+              <div className="p-2 pt-2">
                 <div className="flex items-center justify-between border-t border-gray-100 pt-2">
                   <div
                     className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold uppercase tracking-wide

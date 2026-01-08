@@ -79,6 +79,7 @@ export default function BranchPage() {
     address: "",
     mobile_number: "",
     restaurant_id: "",
+    email: "",
   });
 
   const confirmDelete = (b) => {
@@ -188,7 +189,6 @@ export default function BranchPage() {
   };
 
   const handleDeleteConfirmed = async (b) => {
-    
     try {
       const token = localStorage.getItem("adminToken");
       const res = await fetch(`${API_URL}/api/branches/${b.reference_id}/`, {
@@ -309,6 +309,16 @@ export default function BranchPage() {
                     required
                   />
                   <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="Email"
+                    className="border border-amber-300 p-1 rounded text-sm"
+                    required
+                  />
+
+                  <input
                     name="address"
                     value={form.address}
                     onChange={handleChange}
@@ -319,11 +329,18 @@ export default function BranchPage() {
                   <input
                     name="mobile_number"
                     value={form.mobile_number}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      // Allow only numbers and max length of 10
+                      const value = e.target.value;
+                      if (/^\d*$/.test(value) && value.length <= 10) {
+                        handleChange(e);
+                      }
+                    }}
                     placeholder="Mobile Number"
                     className="border border-amber-300 p-1 rounded text-sm"
                     required
                   />
+
                   <RestaurantDropdown
                     restaurants={restaurants}
                     value={form.restaurant_id}
@@ -361,6 +378,8 @@ export default function BranchPage() {
               <tr>
                 <th className="border px-4 py-2 text-left">SN</th>
                 <th className="border px-4 py-2 text-left">Name</th>
+                <th className="border px-4 py-2 text-left">Email</th>
+
                 <th className="border px-4 py-2 text-left">Address</th>
                 <th className="border px-4 py-2 text-left">Phone</th>
                 <th className="border px-4 py-2 text-left">Restaurant</th>
@@ -382,6 +401,8 @@ export default function BranchPage() {
                   <tr key={b.reference_id} className="hover:bg-gray-50">
                     <td className="px-2 py-1 border">{index + 1}</td>
                     <td className="border px-4 py-1">{b.name}</td>
+                    <td className="border px-4 py-1">{b.email}</td>
+
                     <td className="border px-4 py-1">{b.address}</td>
                     <td className="border px-4 py-1">{b.mobile_number}</td>
                     <td className="border px-4 py-1">{b.restaurant_name}</td>
