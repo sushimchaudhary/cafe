@@ -385,7 +385,7 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    <div className="container mx-auto min-h-screen font-sans px-1">
+    <div className="container mx-auto h-[500px] font-sans px-1">
       <ToastProvider />
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
@@ -637,7 +637,7 @@ export default function AdminMenuManager() {
             <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
               <tr>
                 <th className="w-1/15 border px-4 py-2 text-left">SN</th>
-                <th className="w-1/7 border px-6 py-2 text-left">Date</th>
+                {/* <th className="w-1/7 border px-6 py-2 text-left">Date</th> */}
                 <th className="w-1/5 border px-6 py-2 text-left">Name</th>
                 <th className="w-1/7 border px-6 py-2 text-left">Price</th>
                 <th className="w-1/7 border px-4 py-2 text-left">Category</th>
@@ -666,7 +666,7 @@ export default function AdminMenuManager() {
                     className="hover:bg-gray-50 transition"
                   >
                     <td className="border px-4">{index + 1}</td>
-                    <td className="border px-4">{menu.menu_date}</td>
+                    {/* <td className="border px-4">{menu.menu_date}</td> */}
                     <td className="border px-4">{menu.name}</td>
                     <td className="border px-4">{menu.price}</td>
                     <td className="border px-4">

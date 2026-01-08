@@ -122,7 +122,7 @@ export default function AdminCategoryManager() {
   };
   
   return (
-    <div className="container mx-auto h-screen flex flex-col font-sans px-1  ">
+    <div className="container mx-auto h-[500px] flex flex-col font-sans px-1  ">
       <ToastProvider />
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 py-0 my-0 mb-1">
@@ -257,7 +257,7 @@ export default function AdminCategoryManager() {
       <div className="min-h-0 bg-white rounded border shadow-sm overflow-hidden">
         <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
           <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
+            <thead className="sticky top-0 bg-green-700 uppercase text-sm font-bold text-black z-10">
               <tr>
                 <th className="w-1/12 border px-4 py-2 text-left">SN</th>
                 <th className="w-1/3 border  px-6 py-2 text-left">Name</th>

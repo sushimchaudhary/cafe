@@ -209,7 +209,7 @@ export default function BranchPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="container mx-auto h-screen flex flex-col px-1">
+    <div className="container mx-auto h-[500px] flex flex-col px-1">
       <ToastProvider />
 
       {/* HEADER */}
