@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ShoppingCart, Soup } from "lucide-react";
+import { ShoppingCart, Soup, Plus, Minus, Info, Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Commet } from "react-loading-indicators";
 import ToastProvider from "@/components/ToastProvider";
@@ -11,98 +11,59 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerMenu() {
   const [menuList, setMenuList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [tableNumber, setTableNumber] = useState("-");
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tableLoading, setTableLoading] = useState(true);
-  const [lastOrderTime, setLastOrderTime] = useState(null);
+
   const [previewImage, setPreviewImage] = useState(null);
 
   const searchParams = useSearchParams();
   const tableToken =
     searchParams.get("table_token") || searchParams.get("token");
-  console.log("Customer page tableToken:", tableToken);
 
-  const formatNepalTime = (iso) => {
-    if (!iso) return "-";
-    const date = new Date(iso);
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-      timeZone: "Asia/Kathmandu",
-    });
-  };
-
-  /* ------------------ FETCH TABLE INFO ------------------ */
   const fetchTableInfo = async (token) => {
     try {
-      console.log("Fetching table info for token:", token);
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
         params: { token },
       });
-      console.log("Table info response:", res.data);
-
       if (res.data.code === "0" && res.data.data?.summary_data) {
-        const table = res.data.data.summary_data;
-        setTable(table);
-        setTableNumber(table?.table_number || "-");
-        console.log("Table number set:", table?.table_number);
-      } else {
-        setTable(null);
-        setTableNumber("-");
-        console.warn("No table info found for token:", token);
+        const tableData = res.data.data.summary_data;
+        setTable(tableData);
+        setTableNumber(tableData?.table_number || "-");
       }
     } catch (err) {
-      console.error("Error fetching table info:", err);
-      setTable(null);
-      setTableNumber("-");
-    } finally {
-      setTableLoading(false);
+      console.error("Table info error:", err);
     }
   };
 
-  /* ------------------ FETCH MENUS ------------------ */
   const fetchMenus = async (token) => {
     try {
-      console.log("Fetching menus for token:", token);
       const res = await axios.get(`${API_URL}/api/order-scan/`, {
         params: { token },
       });
-      console.log("Menu fetch response:", res.data);
-
-      if (res.data.code !== "0") {
-        toast.error("Menu load failed");
-        return;
+      if (res.data.code === "0") {
+        const menus = res.data.data?.details_data || [];
+        setMenuList(
+          menus.map((m) => ({ ...m, quantity: 0, price: Number(m.price) }))
+        );
       }
-
-      const menus = res.data.data?.details_data || [];
-      setMenuList(
-        menus.map((menu) => ({
-          ...menu,
-          quantity: 0,
-          price: Number(menu.price), // parse string to number
-        }))
-      );
     } catch (err) {
-      console.error("Menu fetch error:", err);
-      toast.error("Menu load failed");
+      toast.error("Failed to load menu");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ------------------ IMAGE HELPER ------------------ */
-  const getImageUrl = (menu) => {
-    if (menu?.image) return menu.image;
-    if (menu?.image_url) return menu.image_url;
-    return "https://via.placeholder.com/150?text=No+Image";
-  };
+  useEffect(() => {
+    if (tableToken) {
+      fetchTableInfo(tableToken);
+      fetchMenus(tableToken);
+    } else {
+      setLoading(false);
+    }
+  }, [tableToken]);
 
-  /* ------------------ QUANTITY HANDLER ------------------ */
   const handleQtyChange = (index, change) => {
     setMenuList((prev) =>
       prev.map((item, i) =>
@@ -113,331 +74,228 @@ export default function CustomerMenu() {
     );
   };
 
-  
+  const filteredMenu = menuList.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const totalItems = menuList.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = menuList.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 
   const handleSubmitOrder = async () => {
-    if (!totalItems) {
-      toast.error("Cart is empty!");
-      return;
-    }
+    if (!totalItems) return toast.error("Your cart is empty!");
+
+    // const loadingToast = toast.loading("Placing your order...");
 
     try {
-      console.log("Submitting order...");
-
       const payload = {
         table_id: table?.table_id || "",
         table_number: table?.table_number || "",
         items: menuList
           .filter((m) => m.quantity > 0)
-          .map((item) => ({
-            menu_id: item.reference_id,
-            name: item.name,
-            unit_name: item.unit_name,
-            quantity: item.quantity,
-            item_price: item.price,
-            total_price: item.price * item.quantity,
+          .map((i) => ({
+            menu_id: i.reference_id,
+            name: i.name,
+            unit_name: i.unit_name,
+            quantity: i.quantity,
+            item_price: i.price,
+            total_price: i.price * i.quantity,
           })),
-        total_price: menuList
-          .filter((m) => m.quantity > 0)
-          .reduce((sum, i) => sum + i.price * i.quantity, 0),
+        total_price: totalPrice,
         status: "pending",
         token: tableToken,
       };
 
-      const res = await axios.post(`${API_URL}/api/orders/`, payload, {
-        // params: { token: tableToken },
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await axios.post(`${API_URL}/api/orders/`, payload);
 
-      console.log("Order response:", res.data);
-      toast.success("Order successful! Please wait a few minutes");
-      setLastOrderTime(res.data.created_at);
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Order placed successfully!");
 
-      setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
+        if (res.data && res.data.created_at) {
+          setLastOrderTime(res.data.created_at);
+        }
+
+        setMenuList((prev) => prev.map((m) => ({ ...m, quantity: 0 })));
+      } else {
+        throw new Error("Something went wrong");
+      }
     } catch (err) {
-      console.error("Order submission error:", err);
-      toast.error("Order failed");
+      console.error("Order Error:", err);
+      toast.error("Order failed. Please try again.", { id: loadingToast });
     }
   };
 
-  useEffect(() => {
-    if (tableToken) {
-      fetchTableInfo(tableToken);
-      fetchMenus(tableToken);
-    } else {
-      setLoading(false);
-      console.warn("No table token found in URL");
-    }
-  }, [tableToken]);
-
   if (loading)
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="flex flex-col items-center">
-          <Commet color="#f59e0b" size="medium" textColor="#f59e0b" />
-        </div>
+      <div className="flex flex-col h-screen items-center justify-center bg-white">
+        <Commet color="#236B28" size="medium" />
+        <p className="mt-4 text-[#236B28] font-medium animate-pulse">
+          Loading Menu...
+        </p>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-50 via-orange-50 to-green-100 relative overflow-hidden font-sans">
-      <svg
-        className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern
-            id="momo-pattern"
-            x="0"
-            y="0"
-            width="150"
-            height="150"
-            patternUnits="userSpaceOnUse"
-          >
-            {/* Momo dumpling with fold details */}
-            <g transform="translate(35, 50)">
-              <ellipse
-                cx="0"
-                cy="8"
-                rx="18"
-                ry="5"
-                fill="#d97706"
-                opacity="0.3"
-              />
-              <circle cx="0" cy="0" r="15" fill="#f59e0b" opacity="0.4" />
-              <path
-                d="M -12 0 Q 0 -8 12 0"
-                stroke="#d97706"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.6"
-              />
-              <path
-                d="M -10 -2 Q 0 -10 10 -2"
-                stroke="#d97706"
-                strokeWidth="1.5"
-                fill="none"
-                opacity="0.5"
-              />
-              <path
-                d="M -8 -4 Q 0 -12 8 -4"
-                stroke="#d97706"
-                strokeWidth="1"
-                fill="none"
-                opacity="0.4"
-              />
-              {/* Steam */}
-              <path
-                d="M -8 -18 Q -6 -25 -8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 0 -20 Q 2 -27 0 -34"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 8 -18 Q 10 -25 8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* Decorative plate with food */}
-            <g transform="translate(100, 100)">
-              <ellipse
-                cx="0"
-                cy="0"
-                rx="25"
-                ry="8"
-                fill="none"
-                stroke="#d97706"
-                strokeWidth="2"
-                opacity="0.4"
-              />
-              <ellipse
-                cx="0"
-                cy="-2"
-                rx="28"
-                ry="6"
-                fill="#f59e0b"
-                opacity="0.2"
-              />
-              <circle cx="-8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="0" cy="-10" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-            </g>
-
-            {/* Fork and spoon icons */}
-            <g transform="translate(115, 35)" opacity="0.25">
-              <rect x="0" y="0" width="1.5" height="25" fill="#d97706" />
-              <circle cx="0.75" cy="-2" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-6" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-10" r="2" fill="#d97706" />
-            </g>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#momo-pattern)" />
-      </svg>
-
-      <div className="container mx-auto sm:p-6 relative z-10">
+    <>
+      <div className="min-h-screen bg-slate-50 font-sans pb-40">
         <ToastProvider />
-        <div className="fixed top-0 left-0 w-full border-b-4 border-green-600 px-4 py-4 bg-gradient-to-r from-green-100 to-orange-100 rounded-b-2xl shadow-lg backdrop-blur-sm z-50">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-[20px] font-extrabold text-green-700 tracking-tight">
-                Menu
-              </h1>
-              <p className="text-sm text-green-600 font-medium">
-                Table {tableNumber}
-              </p>
-            </div>
-            <div className="relative">
-              <div className="bg-green-600 p-3 rounded-full shadow-lg">
-                <ShoppingCart className="h-5 w-5 text-white" />
+
+        <header className="sticky top-0 z-50 p-2 bg-[#236B28] text-white shadow-xl">
+          <div className="max-w-2xl mx-auto px-3 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <h1 className="text-md font-black leading-none uppercase tracking-tighter">
+                  Eat & Repeat
+                </h1>
+                <div className="inline-block bg-white/20 px-1.5 py-0.5 rounded text-[9px] font-bold backdrop-blur-md uppercase mt-1">
+                  T-{tableNumber}
+                </div>
               </div>
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-md animate-pulse">
-                  {totalItems}
-                </span>
-              )}
+
+              <div className="flex-1 relative group ">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50 group-focus-within:text-white" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 pl-8 pr-8 text-sm placeholder:text-white/40 focus:outline-none focus:bg-white/20 focus:border-white/40 transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                  >
+                    <X className="w-3.5 h-3.5 text-white/50 hover:text-white" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex-shrink-0 relative pl-2 ">
+                <ShoppingCart className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-2 -right-1 bg-orange-500 text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold shadow-lg animate-bounce">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="space-y-2 mt-22 p-1 pb-32 ">
-          {menuList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="text-center">
-                <Soup className="w-20 h-20 text-green-400 mx-auto mb-4 opacity-50" />
-                <h3 className="text-2xl font-bold text-green-700 mb-2">
-                  No Menu Available
-                </h3>
-              </div>
+        {/* Menu List */}
+        <main className="max-w-2xl mx-auto px-3 mt-6 space-y-3">
+          {filteredMenu.length === 0 ? (
+            <div className="text-center py-20 opacity-40">
+              <Soup className="w-16 h-16 mx-auto mb-4" />
+              <p className="text-lg font-medium text-slate-500">
+                {searchTerm
+                  ? "No results found for your search."
+                  : "No dishes available right now."}
+              </p>
             </div>
           ) : (
-            menuList.map((menu, index) => (
-              <div
-                key={index}
-                className="flex bg-white/40 backdrop-blur-sm border-l-4 border-green-600 p-1 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="relative mr-3">
-                  <div className="absolute bg-gradient-to-br from-green-400 via-orange-400 to-green-500 rounded-xl blur opacity-50"></div>
-                  <img
-                    src={getImageUrl(menu)}
-                    alt={menu.name || "Menu item"}
-                    onClick={() => setPreviewImage(getImageUrl(menu))}
-                    className="relative w-24 h-24 rounded-xl object-cover border-[2px] border-green-400  ring-2 ring-green-200"
-                    onError={(e) => {
-                      e.target.src = "/images/placeholder.jpg";
-                    }}
-                  />
-                </div>
-
-                <div className="flex-1 mt-4 flex justify-between">
-                  <div>
-                    <h2 className="text-md font-bold text-green-700">
-                      {menu.name || "Unnamed Item"}
-                    </h2>
-                    <p className="font-semibold text-green-900 text-sm ">
-                      Rs {menu.price || "0.00"}
-                    </p>
-                    <div className="text-sm text-gray-600  space-y-0.5">
-                      <p>Unit: {menu.unit_name}</p>
-                      {/* {menu.item_category_name && (
-                        <p>Category: {menu.item_category_name}</p>
-                      )} */}
+            filteredMenu.map((menu, index) => {
+              // खास इन्डेक्स पत्ता लगाउन (फिल्टर हुँदा पनि सही क्वान्टिटी अपडेट होस् भनेर)
+              const originalIndex = menuList.findIndex(
+                (m) => m.reference_id === menu.reference_id
+              );
+              return (
+                <div
+                  key={index}
+                  className="flex bg-white rounded-2xl p-2 shadow-sm border border-slate-100 items-center"
+                >
+                  <div className="relative w-16 h-16 overflow-hidden rounded-xl flex-shrink-0">
+                    <img
+                      src={menu.image || "https://via.placeholder.com/150"}
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={() => setPreviewImage(menu.image)}
+                    />
+                  </div>
+                  <div className="flex flex-1 justify-between items-center ml-3">
+                    <div>
+                      <h3 className="text-[15px] font-bold text-slate-800 leading-tight">
+                        {menu.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[#236B28] font-extrabold text-[16px]">
+                          Rs {menu.price}
+                        </p>
+                        <span className="text-slate-400 text-[10px] font-semibold uppercase">
+                          / {menu.unit_name}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center px-2">
-                    <button
-                      onClick={() => handleQtyChange(index, -1)}
-                      className="w-7 h-7 border-2 rounded-full font-bold border-green-600 text-green-700 hover:bg-green-100"
-                    >
-                      -
-                    </button>
-                    <span className="font-bold text-sm text-green-900 min-w-[2rem] text-center">
-                      {menu.quantity}
-                    </span>
-                    <button
-                      onClick={() => handleQtyChange(index, 1)}
-                      className="w-7 h-7 border-2 rounded-full font-bold border-green-600 bg-green-600 text-white hover:bg-green-700"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                {previewImage && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-center justify-center 
-               bg-black/10 backdrop-blur-md
-               transition-opacity duration-300 animate-fadeIn"
-                    onClick={() => setPreviewImage(null)}
-                  >
-                    <div
-                      className="relative bg-white p-2 rounded max-w-sm w-[90%]
-                 transform transition-all duration-300
-                 scale-95 opacity-0 animate-zoomIn"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <img
-                        src={previewImage}
-                        alt="Preview"
-                        className="w-full h-auto rounded object-contain"
-                      />
-
+                    <div className="flex items-center bg-slate-50 rounded-full p-0.5 border border-slate-200">
                       <button
-                        onClick={() => setPreviewImage(null)}
-                        className="mt-3 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                        onClick={() => handleQtyChange(originalIndex, -1)}
+                        className={`p-1 rounded-full ${
+                          menu.quantity > 0
+                            ? "bg-white text-[#236B28] shadow-sm"
+                            : "text-slate-300"
+                        }`}
                       >
-                        Close
+                        <Minus size={14} />
+                      </button>
+                      <span className="px-2 font-bold text-slate-700 text-sm min-w-[1.8rem] text-center">
+                        {menu.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQtyChange(originalIndex, 1)}
+                        className="p-1 rounded-full bg-[#236B28] text-white shadow-sm"
+                      >
+                        <Plus size={14} />
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
-            ))
+                </div>
+              );
+            })
           )}
-        </div>
+        </main>
 
         {totalItems > 0 && (
-          <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-green-100 to-orange-100 border-t-4 border-green-600 rounded-t-3xl p-5 shadow-2xl backdrop-blur-sm z-20">
-            <div className="flex justify-between font-bold text-green-900 mb-3">
-              <span className="text-sm">Total Items: {totalItems}</span>
-              <span className="text-sm">
-                Total: Rs {totalPrice.toFixed(2)}
-                {lastOrderTime &&
-                  ` | Ordered at: ${formatNepalTime(lastOrderTime)}`}
-              </span>
-            </div>
-            <div className="flex justify-center">
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 animate-slideUp">
+            <div className="bg-[#236B28] p-2 shadow-2xl border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-3 text-white">
+                <div>
+                  <p className="text-white/70 text-sm">Total Amount</p>
+                  <p className="text-md font-black">
+                    Rs {totalPrice.toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white/70 text-sm">Items</p>
+                  <p className="text-md font-bold">{totalItems}</p>
+                </div>
+              </div>
               <button
                 onClick={handleSubmitOrder}
-                className="w-full md:w-auto bg-gradient-to-r from-green-500 to-green-600 px-8 py-3 rounded font-bold text-white shadow-lg hover:shadow-xl hover:from-green-600 hover:to-orange-600 transition-all duration-300 active:scale-95 text-md"
+                className="w-full bg-white text-[#236B28] py-2 mb-3 rounded font-black text-md shadow-lg hover:bg-orange-50 transition-colors active:scale-[0.98]"
               >
-                Place Order
+                PLACE ORDER NOW
               </button>
             </div>
           </div>
         )}
+
+        {previewImage && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setPreviewImage(null)}
+          >
+            <div className="relative max-w-lg w-full">
+              <img
+                src={previewImage}
+                className="w-full h-auto rounded-[2rem] shadow-2xl"
+                alt="Preview"
+              />
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }

@@ -209,7 +209,8 @@ export default function BranchPage() {
 
   /* ================= UI ================= */
   return (
-    <div className="mx-auto min-h-screen flex flex-col p-4 bg-[#ddf4e2] ">
+  <>
+      <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2] ">
       <ToastProvider />
 
       {/* ================= HEADER ================= */}
@@ -246,7 +247,6 @@ export default function BranchPage() {
 
           <button
             onClick={() => {
-              // यदि resetForm फसन छ भने यहाँ थप्न सक्नुहुन्छ
               setShowForm(true);
             }}
             className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold
@@ -290,10 +290,8 @@ export default function BranchPage() {
       {/* MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-4">
-          {/* Modal Container: Ant Design inspired small width */}
-          <div className="bg-white w-full max-w-[440px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-[440px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200" >
 
-            {/* Header: Clean with Dashboard Color Text */}
             <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
               <h2 className="text-[14px] font-bold text-[#236B28] tracking-tight">
                 {editId ? "Edit Branch" : "Add New Branch"}
@@ -306,12 +304,10 @@ export default function BranchPage() {
               </button>
             </div>
 
-            {/* Body: Soft background to match dashboard content area */}
             <div className="p-4 bg-[#ddf4e2]/20">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 gap-3 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
 
-                  {/* Input Row: Branch Name */}
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                       Branch Name <span className="text-red-500">*</span>
@@ -326,7 +322,6 @@ export default function BranchPage() {
                     />
                   </div>
 
-                  {/* Input Row: Email */}
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                       Email Address <span className="text-red-500">*</span>
@@ -342,7 +337,6 @@ export default function BranchPage() {
                     />
                   </div>
 
-                  {/* Input Row: Address */}
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                       Address <span className="text-red-500">*</span>
@@ -357,7 +351,6 @@ export default function BranchPage() {
                     />
                   </div>
 
-                  {/* Input Row: Mobile Number */}
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                       Mobile Number <span className="text-red-500">*</span>
@@ -377,7 +370,6 @@ export default function BranchPage() {
                     />
                   </div>
 
-                  {/* Input Row: Restaurant Select (Ant Design Style) */}
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                       Select Restaurant <span className="text-red-500">*</span>
@@ -402,7 +394,6 @@ export default function BranchPage() {
                         ))}
                       </select>
 
-                      {/* Ant Design Style Arrow Icon */}
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 group-focus-within:text-[#236B28]">
                         <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                           <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
@@ -412,7 +403,6 @@ export default function BranchPage() {
                   </div>
                 </div>
 
-                {/* Action Buttons: AntD Style with Dashboard Green */}
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
                   <button
                     type="button"
@@ -434,14 +424,12 @@ export default function BranchPage() {
           </div>
         </div>
       )}
-      {/* TABLE WRAPPER */}
-      <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
 
-        {/* Scrollable container with hidden scrollbar line */}
+      {/* TABLE WRAPPER */}
+      <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden">
         <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 150px)' }}>
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
 
-            {/* HEADER: Sticky with light grey background and professional font */}
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
                 <th className="w-[40px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">SN</th>
@@ -466,41 +454,34 @@ export default function BranchPage() {
                 filteredBranches.map((b, index) => (
                   <tr key={b.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    {/* SN Column */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
                       {index + 1}
                     </td>
 
-                    {/* Name with Input-style look */}
                     <td className="border-b border-r border-gray-200 px-1 py-0.5">
                       <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 font-medium truncate">
                         {b.name}
                       </div>
                     </td>
 
-                    {/* Email */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 truncate">
                       {b.email}
                     </td>
 
-                    {/* Address */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 truncate">
                       {b.address}
                     </td>
 
-                    {/* Phone */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
                       {b.mobile_number}
                     </td>
 
-                    {/* Restaurant Name with Tag style */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5">
                       <span className="text-[10px] px-1.5 py-0 border border-[#236B28]/20 rounded bg-[#ddf4e2]/30 text-[#236B28]">
                         {b.restaurant_name}
                       </span>
                     </td>
 
-                    {/* Action Column */}
                     <td className="border-b border-gray-200 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -524,6 +505,8 @@ export default function BranchPage() {
           </table>
         </div>
       </div>
+
     </div>
+    </>
   );
 }

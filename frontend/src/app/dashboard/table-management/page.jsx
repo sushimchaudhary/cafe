@@ -17,8 +17,6 @@ export default function TableManager() {
   const [editId, setEditId] = useState(null);
   const [tableName, setTableName] = useState("");
   const [search, setSearch] = useState("");
-  // const [capacity, setCapacity] = useState("");
-  // const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openQr, setOpenQr] = useState(null);
@@ -74,8 +72,7 @@ export default function TableManager() {
   // ---------------- Form ----------------
   const resetForm = () => {
     setTableName("");
-    // setCapacity("");
-    // setLocation("");
+
     setEditId(null);
   };
 
@@ -97,8 +94,7 @@ export default function TableManager() {
 
       const formData = new FormData();
       formData.append("table_number", tableName);
-      // formData.append("capacity", capacity);
-      // if (location) formData.append("location", location);
+
       formData.append("qr_code", qr);
       formData.append("token", tableToken);
       if (editId) formData.append("table_id", editId);
@@ -132,8 +128,7 @@ export default function TableManager() {
   const handleEdit = (t) => {
     setEditId(t.reference_id);
     setTableName(t.table_number);
-    // setCapacity(t.capacity || "");
-    // setLocation(t.location || "");
+
     setShowForm(true);
   };
 
@@ -161,17 +156,16 @@ export default function TableManager() {
   };
 
   return (
+    <>
     <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
 
-      {/* HEADER + SEARCH */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
         <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
           Table
         </h1>
 
         <div className="flex w-full md:w-auto items-center gap-2">
-          {/* Search Input Area */}
           <div className="relative">
             <svg
               className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
@@ -265,7 +259,6 @@ export default function TableManager() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {/* Input Field Area */}
               <div className="space-y-1.5">
                 <label className="block text-[12px] font-semibold text-gray-600">
                   Table Number <span className="text-red-500">*</span>
@@ -280,9 +273,9 @@ export default function TableManager() {
                 />
               </div>
 
-    
+
               <div className="flex justify-end gap-2 pt-2">
-               
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -299,12 +292,8 @@ export default function TableManager() {
 
       {/* TABLE WRAPPER */}
       <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
-
-        {/* scrollbar-hide*/}
         <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 150px)' }}>
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
-
-            {/*HEADER*/}
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
                 <th className="w-[50px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">SN</th>
@@ -326,19 +315,16 @@ export default function TableManager() {
                 filteredTables.map((t, index) => (
                   <tr key={t.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    {/* SN */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
                       {index + 1}
                     </td>
 
-                    {/* Table Number with Input Style UI */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5">
                       <div className="border border-gray-200 rounded px-2 py-0.5 bg-gray-50/50 text-gray-800 font-medium">
                         T {t.table_number}
                       </div>
                     </td>
 
-                    {/* QR Code */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5">
                       <div className="flex items-center justify-start h-full">
                         {t.qr_code ? (
@@ -356,7 +342,6 @@ export default function TableManager() {
                       </div>
                     </td>
 
-                    {/* Action Buttons */}
                     <td className="border-b border-gray-200 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -394,7 +379,6 @@ export default function TableManager() {
             className="relative bg-white p-4 rounded-lg max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Download Button Top Right */}
             <a
               href={openQr}
               download={`Table_${selectedTable?.table_number || "QR"}.png`}
@@ -404,14 +388,12 @@ export default function TableManager() {
               <Download className="h-5 w-5 cursor-pointer" />
             </a>
 
-            {/* QR Image */}
             <img
               src={openQr}
               alt={`Table ${selectedTable?.table_number} QR`}
               className="w-full h-auto object-contain"
             />
 
-            {/* Close Button */}
             <button
               onClick={() => setOpenQr(null)}
               className="mt-4 w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-900 cursor-pointer"
@@ -421,6 +403,8 @@ export default function TableManager() {
           </div>
         </div>
       )}
+
     </div>
+    </>
   );
 }

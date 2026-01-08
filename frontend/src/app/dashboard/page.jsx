@@ -126,24 +126,25 @@ export default function AdminDashboard() {
   ).length;
 
   const getLast7DaysData = () => {
+  
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      const dateStr = toNepalDateString(d);
-      const dayOrders = orders.filter(
-        (o) => toNepalDateString(o.created_at) === dateStr
-      );
-
+      
+      
+      const dateStr = d.toISOString().split('T')[0]; 
+      const dayLabel = d.toLocaleDateString("en-US", { weekday: "short" });
+  
+      const dayOrders = orders.filter((o) => {
+        if (!o.created_at) return false;
+        const orderDate = new Date(o.created_at).toISOString().split('T')[0];
+        return orderDate === dateStr;
+      });
+  
       return {
-        day: d.toLocaleDateString("en-US", { weekday: "short" }),
-        revenue: dayOrders.reduce(
-          (sum, o) => sum + (o.status !== "cancelled" ? o.total_price : 0),
-          0
-        ),
-        itemsSold: dayOrders.reduce(
-          (sum, o) => sum + o.items.reduce((iSum, i) => iSum + i.quantity, 0),
-          0
-        ),
+        day: dayLabel,
+        revenue: dayOrders.reduce((sum, o) => sum + (o.status !== "cancelled" ? Number(o.total_price) : 0), 0),
+        itemsSold: dayOrders.reduce((sum, o) => sum + o.items.reduce((iSum, i) => iSum + Number(i.quantity), 0), 0),
         ordersCount: dayOrders.length,
       };
     });

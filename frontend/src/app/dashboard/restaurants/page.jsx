@@ -136,18 +136,17 @@ export default function RestaurantPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen flex flex-col p-4 bg-[#ddf4e2] ">
+    <>
+    <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2] ">
       <ToastProvider />
 
       {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
-        {/* Title: Restaurant */}
         <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
           Restaurant
         </h1>
 
         <div className="flex w-full md:w-auto items-center gap-2">
-          {/* Search Input Area */}
           <div className="relative">
             <svg
               className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
@@ -173,10 +172,8 @@ export default function RestaurantPage() {
             />
           </div>
 
-          {/* Create Button: Menu जस्तै सेम स्टाइल */}
           <button
             onClick={() => {
-              // यदि resetForm उपलब्ध छ भने यहाँ राख्न सक्नुहुन्छ
               setShowForm(true);
             }}
             className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold 
@@ -220,101 +217,90 @@ export default function RestaurantPage() {
       )}
 
       {/* ================= FORM MODAL ================= */}
-     {showForm && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-4">
-    {/* Modal Container: Small & Clean like AntD */}
-    <div className="bg-white w-full max-w-[480px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-      
-      {/* HEADER: Matching Dashboard Color */}
-      <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100 bg-white">
-        <h2 className="text-[14px] font-bold text-[#236B28] tracking-tight">
-          {editId ? "Edit Restaurant" : "Add New Restaurant"}
-        </h2>
-        <button
-          onClick={closeModal}
-          className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100"
-        >
-          <X size={16} strokeWidth={2.5} />
-        </button>
-      </div>
-
-      {/* BODY: Scrollable area with Dashboard background color for subtle contrast */}
-      <div className="p-4 bg-[#ddf4e2]/20">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
-            
-            {/* Restaurant Name */}
-            <div className="space-y-1">
-              <label className="block text-[12px] font-semibold text-gray-600">
-                Restaurant Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Enter restaurant name"
-                className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
-                required
-              />
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-4">
+          <div className="bg-white w-full max-w-[480px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100 bg-white">
+              <h2 className="text-[14px] font-bold text-[#236B28] tracking-tight">
+                {editId ? "Edit Restaurant" : "Add New Restaurant"}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100"
+              >
+                <X size={16} strokeWidth={2.5} />
+              </button>
             </div>
 
-            {/* Address */}
-            <div className="space-y-1">
-              <label className="block text-[12px] font-semibold text-gray-600">
-                Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                placeholder="Location details"
-                className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
-                required
-              />
-            </div>
+            <div className="p-4 bg-[#ddf4e2]/20">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
 
-            {/* Mobile Number */}
-            <div className="space-y-1">
-              <label className="block text-[12px] font-semibold text-gray-600">
-                Mobile Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                value={form.mobile_number}
-                maxLength={10}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    mobile_number: e.target.value.replace(/\D/g, ""),
-                  })
-                }
-                placeholder="98XXXXXXXX"
-                className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
-                required
-              />
+                  <div className="space-y-1">
+                    <label className="block text-[12px] font-semibold text-gray-600">
+                      Restaurant Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="Enter restaurant name"
+                      className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[12px] font-semibold text-gray-600">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={form.address}
+                      onChange={(e) => setForm({ ...form, address: e.target.value })}
+                      placeholder="Location details"
+                      className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[12px] font-semibold text-gray-600">
+                      Mobile Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={form.mobile_number}
+                      maxLength={10}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          mobile_number: e.target.value.replace(/\D/g, ""),
+                        })
+                      }
+                      placeholder="98XXXXXXXX"
+                      className="w-full border border-gray-300 px-3 py-1.5 rounded text-[12px] outline-none focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 transition-all placeholder:text-gray-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`px-6 py-1.5 bg-[#236B28] text-white rounded text-[12px] font-semibold shadow-sm transition-all hover:bg-[#1C5721] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {loading ? "Saving..." : editId ? "Update" : "Create"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-
-          {/* ACTIONS: Bottom Sticky-style bar */}
-          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className={`px-6 py-1.5 bg-[#236B28] text-white rounded text-[12px] font-semibold shadow-sm transition-all hover:bg-[#1C5721] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {loading ? "Saving..." : editId ? "Update" : "Create"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
-        {/* Scrollable Container */}
         <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 150px)' }}>
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
-
-            {/* HEADER: Sticky with light grey background */}
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
                 <th className="w-[40px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">SN</th>
@@ -337,29 +323,24 @@ export default function RestaurantPage() {
                 filteredRestaurants.map((r, index) => (
                   <tr key={r.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    {/* SN Column */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 text-center">
                       {index + 1}
                     </td>
 
-                    {/* Name with Input-style container */}
                     <td className="border-b border-r border-gray-200 px-1 py-0.5">
                       <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate font-medium">
                         {r.name}
                       </div>
                     </td>
 
-                    {/* Address */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
                       {r.address}
                     </td>
 
-                    {/* Phone */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
                       {r.mobile_number}
                     </td>
 
-                    {/* Action Column */}
                     <td className="border-b border-gray-200 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -386,8 +367,7 @@ export default function RestaurantPage() {
           </table>
         </div>
       </div>
-
-
     </div>
+    </>
   );
 }

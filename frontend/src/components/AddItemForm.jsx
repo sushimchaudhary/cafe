@@ -464,8 +464,6 @@ export default function AdminMenuManager() {
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
             <div className="bg-white w-full max-w-2xl rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-200">
-
-              {/* HEADER*/}
               <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-white">
                 <h2 className="text-[14px] font-semibold text-gray-800 tracking-tight">Menu Categorie</h2>
                 <button
@@ -477,7 +475,6 @@ export default function AdminMenuManager() {
               </div>
 
               <div className="p-3">
-                {/* MENU DATE*/}
                 <div className="flex items-center gap-2 mb-3">
                   <label className="text-[12px] text-gray-600 font-medium whitespace-nowrap">Menu Date:</label>
                   <input
@@ -489,7 +486,6 @@ export default function AdminMenuManager() {
                   />
                 </div>
 
-                {/* TABLE*/}
                 <div className="overflow-hidden border border-gray-100 rounded">
                   <table className="w-full border-collapse">
                     <thead className="bg-[#fafafa] border-b border-gray-200">
@@ -525,7 +521,6 @@ export default function AdminMenuManager() {
                               required
                             />
                           </td>
-                          {/* Category Select */}
                           <td className="p-1">
                             <div className="relative group">
                               <select
@@ -539,14 +534,12 @@ export default function AdminMenuManager() {
                                   <option key={c.reference_id} value={c.reference_id}>{c.name}</option>
                                 ))}
                               </select>
-                              {/* AntD style arrow icon */}
                               <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
                                 <ChevronDown size={12} />
                               </div>
                             </div>
                           </td>
 
-                          {/* Unit Select */}
                           <td className="p-1">
                             <div className="relative group">
                               <select
@@ -560,7 +553,6 @@ export default function AdminMenuManager() {
                                   <option key={u.reference_id} value={u.reference_id}>{u.name}</option>
                                 ))}
                               </select>
-                              {/* AntD style arrow icon */}
                               <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
                                 <ChevronDown size={12} />
                               </div>
@@ -591,7 +583,6 @@ export default function AdminMenuManager() {
                 </div>
               </div>
 
-              {/*buttons */}
               <div className="flex justify-end gap-2 px-4 py-2 border-t border-gray-100 bg-gray-50/50">
 
                 <button
@@ -669,7 +660,7 @@ export default function AdminMenuManager() {
                           onClick={() => { setDeleteMenu(menu); setShowDeleteModal(true); }}
                           className="text-red-400 hover:scale-110 transition"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -679,9 +670,8 @@ export default function AdminMenuManager() {
             </table>
           </div>
         </div>
-
-
       </div>
+      
     </>
   );
 }

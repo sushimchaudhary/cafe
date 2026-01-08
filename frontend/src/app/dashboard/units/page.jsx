@@ -116,6 +116,7 @@ export default function AdminMenuUnitPage() {
   };
 
   return (
+    <>
     <div className="mx-auto min-h-screen  font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
@@ -247,7 +248,6 @@ export default function AdminMenuUnitPage() {
           style={{ maxHeight: 'calc(100vh - 150px)' }}>
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
 
-            {/* HEADER */}
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
                 {["SN", "Name", "Action"].map((header) => (
@@ -269,7 +269,6 @@ export default function AdminMenuUnitPage() {
               </tr>
             </thead>
 
-            {/* BODY */}
             <tbody className="bg-white">
               {filteredUnits.length === 0 ? (
                 <tr>
@@ -286,19 +285,16 @@ export default function AdminMenuUnitPage() {
                     key={u.reference_id}
                     className="hover:bg-blue-50/30 transition-all"
                   >
-                    {/* SN */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">
                       {index + 1}
                     </td>
 
-                    {/* NAME */}
                     <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
                       <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
                         {u.name}
                       </div>
                     </td>
 
-                    {/* ACTION */}
                     <td className="border-b border-gray-200 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -328,10 +324,7 @@ export default function AdminMenuUnitPage() {
           </table>
         </div>
       </div>
-
-
-
-
     </div>
+    </>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { X, Printer, CheckCircle } from "lucide-react";
-import Swal from "sweetalert2";
+import { Printer, CheckCircle } from "lucide-react";
+
+import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -35,6 +36,7 @@ const getNepalDateString = (date) => {
 };
 
 const normalizeStatus = (status) => {
+  if (!status) return "Pending";
   switch (status.toLowerCase()) {
     case "pending":
       return "Pending";
@@ -76,6 +78,22 @@ const AdminOrdersDashboard = () => {
   const [token, setToken] = useState("");
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
+  const prevOrdersCount = useRef(0);
+
+  const audioRef = useRef(null);
+  const lastOrderIdRef = useRef(null);
+  const [filter, setFilter] = useState("today");
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.warn(
+          "Autoplay blocked: Please click anywhere on the page first."
+        );
+      });
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,6 +112,20 @@ const AdminOrdersDashboard = () => {
       });
       const result = await res.json();
       const ordersData = result?.data || [];
+
+      if (ordersData.length > 0) {
+        const latestOrder = ordersData[0];
+        const latestId = latestOrder.reference_id;
+
+        if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
+          playNotificationSound();
+          toast.success("New Order Received!", { icon: "🔔" });
+        }
+
+        lastOrderIdRef.current = latestId;
+      }
+
+      prevOrdersCount.current = ordersData.length;
 
       const normalized = ordersData.map((o) => ({
         order_id: o.reference_id,
@@ -119,29 +151,9 @@ const AdminOrdersDashboard = () => {
     }
   };
 
-  const showToast = (title, icon = "success") => {
-    Swal.fire({
-      toast: true,
-      position: "top-end",
-      icon,
-      title,
-      showConfirmButton: false,
-      timer: 2500,
-    });
-  };
-
   const handleStatusChange = async (order_id, newStatus) => {
     const order = orders.find((o) => o.order_id === order_id);
-    if (!order || order.status === "Served") return; // Served मा केही change हुँदैन
-
-    if (newStatus === "Cancelled") {
-      const ok = await Swal.fire({
-        title: "Cancel order?",
-        icon: "warning",
-        showCancelButton: true,
-      });
-      if (!ok.isConfirmed) return;
-    }
+    if (!order || order.status === "Served") return;
 
     try {
       const res = await fetch(`${API_URL}/api/orders/status/${order_id}`, {
@@ -155,7 +167,7 @@ const AdminOrdersDashboard = () => {
 
       if (!res.ok) throw new Error("Status update failed");
 
-      showToast(
+      toast.success(
         newStatus === "Cancelled" ? "Order Cancelled" : "Status Updated"
       );
 
@@ -166,7 +178,7 @@ const AdminOrdersDashboard = () => {
       );
       setOpenDropdown(null);
     } catch (err) {
-      Swal.fire("Error", err.message, "error");
+      toast.error(err.message || "Something went wrong");
     }
   };
 
@@ -190,7 +202,12 @@ const AdminOrdersDashboard = () => {
     if (t) {
       setToken(t);
       fetchOrders(t);
-     
+
+      const interval = setInterval(() => {
+        fetchOrders(t);
+      }, 10000);
+
+      return () => clearInterval(interval);
     }
   }, []);
 
@@ -203,36 +220,75 @@ const AdminOrdersDashboard = () => {
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
 
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoStr = getNepalDateString(sevenDaysAgo);
+
+  const filteredOrders = orders.filter((o) => {
+    const orderDate = getNepalDateString(o.created_at);
+    if (filter === "today") {
+      return orderDate === todayNepal;
+    } else {
+      return orderDate >= sevenDaysAgoStr;
+    }
+  });
+
+  const totalRevenue = filteredOrders
+    .filter((o) => o.status !== "Cancelled")
+    .reduce((sum, o) => sum + (o.total_price || 0), 0);
+
   return (
     <>
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-4 bg-[#ddf4e2]">
         <header className="mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#1C5721]">
+            <h1 className="text-xl font-bold text-[#1C5721]">
               Kitchen Dashboard
             </h1>
 
-            <p className="text-sm mt-1 text-[#236B28]">
-              Orders for{" "}
-              <span className="font-semibold text-[#2baf36] bg-[#EAF5EA] px-2 py-[2px] rounded-md">
-                {todayOrders.length}
-              </span>
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => setFilter("today")}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${filter === "today"
+                    ? "bg-[#236B28] text-white shadow-md"
+                    : "bg-white text-[#236B28] border border-[#236B28]"
+                  }`}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setFilter("weekly")}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${filter === "weekly"
+                    ? "bg-[#236B28] text-white shadow-md"
+                    : "bg-white text-[#236B28] border border-[#236B28]"
+                  }`}
+              >
+                Last 7 Days
+              </button>
+            </div>
+
+            <p className="text-sm text-[#236B28] mt-1">
+              Displaying{" "}
+              <span className="font-bold">{filteredOrders.length}</span> orders
             </p>
           </div>
 
-
-          <div className="bg-white px-5 py-1 rounded-sm shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
-            <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-              Total Revenue
+          <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
+            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider whitespace-nowrap">
+              {filter === "today" ? "Today's Revenue" : "7 Days Revenue"}
             </span>
-            <span className="text-xl font-bold text-emerald-600">
-              Rs. {todayTotal.toFixed(2)}
+
+
+            <div className="h-4 w-[1px] bg-gray-200"></div>
+
+            <span className="text-lg font-bold text-emerald-600 whitespace-nowrap">
+              Rs. {totalRevenue.toFixed(2)}
             </span>
           </div>
         </header>
 
         <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-          {todayOrders.map((order, idx) => (
+          {filteredOrders.map((order, idx) => (
             <div
               key={order.order_id}
               className={`flex flex-col justify-between border rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
@@ -241,7 +297,6 @@ const AdminOrdersDashboard = () => {
                   : "bg-white border-gray-200"
                 }`}
             >
-              {/* Card Header */}
               <div className="p-3 border-b border-gray-100">
                 <div className="flex justify-between items-start">
                   <div>
@@ -260,7 +315,6 @@ const AdminOrdersDashboard = () => {
                 </div>
               </div>
 
-              {/* Order Items */}
               <div className="p-1 flex-grow">
                 <div className="bg-gray-50 rounded p-3 mb-3">
                   <ul className="space-y-2">
@@ -319,46 +373,48 @@ const AdminOrdersDashboard = () => {
                         <Printer className="w-4 h-4" />
                       </button>
 
-                      {["Pending", "Preparing", "Ready"].includes(order.status) && (
-                        <div className="relative">
-                          <button
-                            className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
-                            title="Change Status"
-                            onClick={() =>
-                              setOpenDropdown((prev) =>
-                                prev === order.order_id ? null : order.order_id
-                              )
-                            }
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-
-                          {openDropdown === order.order_id && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                      {["Pending", "Preparing", "Ready"].includes(
+                        order.status
+                      ) && (
+                          <div className="relative">
+                            <button
+                              className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
+                              title="Change Status"
+                              onClick={() =>
+                                setOpenDropdown((prev) =>
+                                  prev === order.order_id ? null : order.order_id
+                                )
+                              }
                             >
-                              {[...statusOptions, "Cancelled"]
-                                .filter((s) => s !== order.status)
-                                .map((s) => (
-                                  <div
-                                    key={s}
-                                    className={`px-3 py-2 text-[12px] cursor-pointer hover:bg-gray-100
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+
+                            {openDropdown === order.order_id && (
+                              <div
+                                ref={dropdownRef}
+                                className="absolute right-0 bottom-full mb-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                              >
+                                {[...statusOptions, "Cancelled"]
+                                  .filter((s) => s !== order.status)
+                                  .map((s) => (
+                                    <div
+                                      key={s}
+                                      className={`px-3 py-2 text-[12px] cursor-pointer hover:bg-gray-100
                             ${s === "Cancelled"
-                                        ? "text-red-500 font-semibold"
-                                        : "text-gray-700"
-                                      }`}
-                                    onClick={() =>
-                                      handleStatusChange(order.order_id, s)
-                                    }
-                                  >
-                                    {s}
-                                  </div>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                                          ? "text-red-500 font-semibold"
+                                          : "text-gray-700"
+                                        }`}
+                                      onClick={() =>
+                                        handleStatusChange(order.order_id, s)
+                                      }
+                                    >
+                                      {s}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                     </div>
                   )}
                 </div>
@@ -367,22 +423,13 @@ const AdminOrdersDashboard = () => {
           ))}
         </div>
 
-
-
-
         <div className="mt-8 mx-auto border-t border-[#236B28]/20 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
-          <span className="text-[#236B28]/70 font-medium">
-            End of list
-          </span>
+          <span className="text-[#236B28]/70 font-medium">End of list</span>
 
           <span className="mt-2 md:mt-0 text-[#236B28]/80 font-semibold">
             Total Orders: {todayOrders.length}
           </span>
         </div>
-
-
-
-
       </div>
     </>
   );

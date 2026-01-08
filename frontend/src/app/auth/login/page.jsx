@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, LogIn, User, ShieldCheck, ChevronRight } from "lucide-react";
@@ -47,7 +46,7 @@ const AdminLoginPage = () => {
       }
 
       localStorage.setItem("adminToken", data.token || "");
-      localStorage.setItem("username", username || "");  
+      localStorage.setItem("username", username || "");
       localStorage.setItem("first_name", data.first_name || "");
       localStorage.setItem("last_name", data.last_name || "");
       localStorage.setItem("email", data.email || "");
@@ -91,28 +90,27 @@ const AdminLoginPage = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen flex bg-white font-sans">
       <ToastProvider />
-      
-      {/* LEFT SIDE: Welcome Panel (Visible on MD and larger) */}
+
       <div className="hidden lg:flex w-1/2 bg-[#1C4D21] relative overflow-hidden flex-col justify-between p-12">
-        {/* Background Decorative Circles */}
         <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-green-400/10 rounded-full blur-3xl" />
 
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-12 text-white/90">
             <ShieldCheck size={32} className="text-green-400" />
-            <span className="text-xl font-bold tracking-widest uppercase">Momo Admin</span>
+            <span className="text-xl font-bold tracking-widest uppercase">Admin</span>
           </div>
-          
+
           <div className="mt-20">
             <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
               Welcome Back to <br />
               <span className="text-green-400">Control Center.</span>
             </h1>
             <p className="text-green-100/70 text-lg max-w-md leading-relaxed">
-              Manage your orders, menu, and branches with our high-performance administrative suite. 
+              Manage your orders, menu, and branches with our high-performance administrative suite.
               Secure, fast, and easy to use.
             </p>
           </div>
@@ -121,18 +119,16 @@ const AdminLoginPage = () => {
         <div className="relative z-10 flex items-center gap-6 text-sm text-green-200/50">
           <span>Privacy Policy</span>
           <span>Terms of Service</span>
-          <span>© 2026 SysLogics</span>
+          <span>© 2026 Sajha Intotech</span>
         </div>
       </div>
 
-      {/* RIGHT SIDE: Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 md:p-20 bg-gray-50/50">
         <div className="w-full max-w-[420px]">
-          
-          {/* Mobile Logo Only */}
+
           <div className="lg:hidden flex justify-center mb-8">
             <div className="bg-[#1C4D21] p-3 rounded-xl">
-               <ShieldCheck className="text-white w-8 h-8" />
+              <ShieldCheck className="text-white w-8 h-8" />
             </div>
           </div>
 
@@ -144,7 +140,7 @@ const AdminLoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 block">Username</label>
+              <label className="text-sm font-semibold text-gray-700 block">Username <span className="text-red-400">*</span></label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
                   <User size={18} />
@@ -153,7 +149,7 @@ const AdminLoginPage = () => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin_user"
+                  placeholder="Enter your username"
                   required
                   className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
                 />
@@ -163,7 +159,7 @@ const AdminLoginPage = () => {
             {/* Password */}
             <div className="space-y-2">
               <div className="flex justify-between">
-                <label className="text-sm font-semibold text-gray-700 block">Password</label>
+                <label className="text-sm font-semibold text-gray-700 block">Password <span className="text-red-400">*</span></label>
                 <span className="text-xs text-[#1C4D21] font-semibold cursor-pointer hover:underline">Forgot password?</span>
               </div>
               <div className="relative group">
@@ -174,7 +170,7 @@ const AdminLoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Enter password"
                   required
                   className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
                 />
@@ -198,8 +194,7 @@ const AdminLoginPage = () => {
                 <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Sign into Account</span>
-                  <ChevronRight size={18} />
+                  <span>Login</span>
                 </>
               )}
             </button>
@@ -211,6 +206,7 @@ const AdminLoginPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

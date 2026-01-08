@@ -122,6 +122,7 @@ export default function AdminCategoryManager() {
   };
 
   return (
+    <>
     <div className="min-h-screen mx-auto font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
 
@@ -198,10 +199,8 @@ export default function AdminCategoryManager() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-3">
-          {/* Modal Container: AntD style, compact size */}
           <div className="bg-white w-full max-w-md rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-200">
 
-            {/* HEADER: Clean with light border */}
             <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-white">
               <h2 className="text-[14px] font-semibold text-gray-800 tracking-tight">
                 {editId ? "Edit Category" : "Create Category"}
@@ -214,9 +213,7 @@ export default function AdminCategoryManager() {
               </button>
             </div>
 
-            {/* FORM BODY */}
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              {/* Name Input */}
               <div className="space-y-1">
                 <label className="block text-[12px] font-medium text-gray-600">
                   Name <span className="text-red-500">*</span>
@@ -231,7 +228,6 @@ export default function AdminCategoryManager() {
                 />
               </div>
 
-              {/* Description Input */}
               <div className="space-y-1">
                 <label className="block text-[12px] font-medium text-gray-600">
                   Description
@@ -245,7 +241,6 @@ export default function AdminCategoryManager() {
                 />
               </div>
 
-              {/* ACTIONS / BUTTONS */}
               <div className="flex justify-end gap-2 pt-2 border-t border-gray-50 mt-4">
                
                 <button
@@ -268,7 +263,6 @@ export default function AdminCategoryManager() {
         >
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
 
-            {/* TABLE HEAD */}
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
                 {["SN", "Name", "Description", "Action"].map((header) => (
@@ -290,7 +284,6 @@ export default function AdminCategoryManager() {
               </tr>
             </thead>
 
-            {/* TABLE BODY */}
             <tbody className="bg-white">
               {filteredCategories.length === 0 ? (
                 <tr>
@@ -309,26 +302,22 @@ export default function AdminCategoryManager() {
                     key={cat.reference_id}
                     className="hover:bg-blue-50/30 transition-all"
                   >
-                    {/* SN */}
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">
                       {index + 1}
                     </td>
 
-                    {/* NAME */}
                     <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
                       <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
                         {cat.name}
                       </div>
                     </td>
 
-                    {/* DESCRIPTION */}
                     <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
                       <div className="border border-gray-200 rounded px-1 py-0.5 bg-white text-gray-500 text-[10px] max-h-8 overflow-y-auto custom-scrollbar">
                         {cat.description || "-"}
                       </div>
                     </td>
 
-                    {/* ACTION */}
                     <td className="border-b border-gray-200 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
@@ -355,9 +344,7 @@ export default function AdminCategoryManager() {
           </table>
         </div>
       </div>
-
-
-
     </div>
+    </>
   );
 }
