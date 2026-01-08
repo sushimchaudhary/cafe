@@ -153,35 +153,44 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <div className="min-h-screen px-2 font-sans antialiased text-slate-900 p-3">
+      <div className="min-h-screen font-sans antialiased text-slate-900 p-4 bg-[#ddf4e2]">
 
-        {/* <div
-        className="max-w-8xl mx-auto mb-3 flex justify-between items-center rounded shadow-md
-
-        bg-gradient-to-r from-amber-100 via-orange-100 to-amber-200 border border-amber-300"
-      >
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-extrabold bg-gradient-to-r from-amber-700 to-orange-600 bg-clip-text text-transparent">
-            {getGreeting()},{username}
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex flex-col text-right mr-2">
-            <span className="text-sm font-bold text-slate-700">
-              {formatTime(nepalTime)}
-            </span>
+        <div
+          className="max-w-8xl mx-auto mb-3 flex justify-between items-center rounded 
+   from-[#EAF5EA] via-[#DFF0E0] to-[#CFE8D2]"
+        >
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-extrabold
+      bg-gradient-to-r from-[#236B28] to-[#1F7A34]
+      bg-clip-text text-transparent">
+              {getGreeting()},{username}
+            </h1>
           </div>
 
-          <div className="bg-emerald-50 px-3 py-1 rounded border border-emerald-100 flex items-center gap-1 text-[11px] font-bold text-emerald-600 shadow-inner">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Live Update
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex flex-col text-right mr-2">
+              <span className="text-sm font-bold text-[#236B28]/80">
+                {formatTime(nepalTime)}
+              </span>
+            </div>
+
+            <div
+              className="bg-[#EAF5EA]
+      px-3 py-1 rounded
+      border border-[#236B28]/20
+      flex items-center gap-1
+      text-[11px] font-bold
+      text-[#236B28]
+      shadow-inner"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#236B28]/60 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#236B28]"></span>
+              </span>
+              Live Update
+            </div>
           </div>
         </div>
-      </div> */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mx-auto mb-12">
           {[

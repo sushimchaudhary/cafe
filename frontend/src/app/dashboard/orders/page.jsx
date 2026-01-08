@@ -205,7 +205,7 @@ const AdminOrdersDashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-3 bg-[#ddf4e2]">
+      <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-4 bg-[#ddf4e2]">
         <header className="mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#1C5721]">
@@ -239,22 +239,21 @@ const AdminOrdersDashboard = () => {
             ${order.status === "Cancelled"
                   ? "bg-red-50 border-red-200 opacity-90"
                   : "bg-white border-gray-200"
-                }
-          `}
+                }`}
             >
               {/* Card Header */}
-              <div className="p-4 border-b border-gray-100">
+              <div className="p-3 border-b border-gray-100">
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="bg-gray-800 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                      <span className="bg-[#236B28] text-white text-[10px] font-semibold px-2 py-0.5 rounded">
                         #{idx + 1}
                       </span>
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-sm font-semibold text-gray-800">
                         {order.tableName}
                       </h3>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1 font-mono">
+                    <p className="text-[11px] text-gray-400 mt-1 font-mono">
                       {formatNepalTime(order.created_at)}
                     </p>
                   </div>
@@ -266,41 +265,54 @@ const AdminOrdersDashboard = () => {
                 <div className="bg-gray-50 rounded p-3 mb-3">
                   <ul className="space-y-2">
                     {order.items.map((i, idx) => (
-                      <li key={idx} className="flex justify-between items-center text-sm">
+                      <li
+                        key={idx}
+                        className="flex justify-between items-center text-[12px]"
+                      >
                         <span className="text-gray-700 font-medium">
-                          <span className="text-gray-400 text-xs mr-1">{i.quantity}x</span>
-                          {i.name} <span className="text-xs text-gray-400">({i.unit_name})</span>
+                          <span className="text-gray-400 text-[10px] mr-1">
+                            {i.quantity}x
+                          </span>
+                          {i.name}{" "}
+                          <span className="text-[10px] text-gray-400">
+                            ({i.unit_name})
+                          </span>
                         </span>
-                        <span className="text-gray-600 font-mono text-xs whitespace-nowrap">
+                        <span className="text-gray-600 font-mono text-[11px] whitespace-nowrap">
                           Rs.{i.total_price.toFixed(0)}
                         </span>
                       </li>
                     ))}
                   </ul>
                 </div>
+
                 <div className="flex justify-between items-center mt-2 px-1">
-                  <span className="text-gray-500 text-sm font-medium">Order Total</span>
-                  <span className="text-lg font-bold text-gray-900">Rs.{order.total_price.toFixed(2)}</span>
+                  <span className="text-gray-500 text-[12px] font-medium">
+                    Order Total
+                  </span>
+                  <span className="text-[15px] font-bold text-[#236B28]">
+                    Rs.{order.total_price.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               <div className="p-2 pt-2">
                 <div className="flex items-center justify-between border-t border-gray-100 pt-2">
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${order.status === "Cancelled"
-                      ? "bg-red-100 border-red-200 text-red-600"
-                      : "bg-gray-50 border-gray-200 text-gray-600"
-                    }`}>
+                  <div
+                    className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold uppercase tracking-wide
+                   ${order.status === "Cancelled"
+                        ? "bg-red-100 border-red-200 text-red-600"
+                        : "bg-green-50 border-green-200 text-[#236B28]"
+                      }`}
+                  >
                     {getStatusIndicator(order.status)}
-                    <span className="text-xs font-semibold uppercase tracking-wide">
-                      {order.status}
-                    </span>
+                    {order.status}
                   </div>
 
-                  {/* Only show buttons if not cancelled */}
                   {order.status !== "Cancelled" && (
                     <div className="flex gap-2 relative">
                       <button
-                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        className="p-1.5 rounded-lg bg-green-50 text-[#236B28] hover:bg-[#236B28] hover:text-white transition-all shadow-sm"
                         onClick={() => printBill(order)}
                         title="Print Bill"
                       >
@@ -310,7 +322,7 @@ const AdminOrdersDashboard = () => {
                       {["Pending", "Preparing", "Ready"].includes(order.status) && (
                         <div className="relative">
                           <button
-                            className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
+                            className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
                             title="Change Status"
                             onClick={() =>
                               setOpenDropdown((prev) =>
@@ -324,18 +336,21 @@ const AdminOrdersDashboard = () => {
                           {openDropdown === order.order_id && (
                             <div
                               ref={dropdownRef}
-                              className="absolute  right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
+                              className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-50 overflow-auto"
                             >
                               {[...statusOptions, "Cancelled"]
                                 .filter((s) => s !== order.status)
                                 .map((s) => (
                                   <div
                                     key={s}
-                                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${s === "Cancelled"
+                                    className={`px-3 py-2 text-[12px] cursor-pointer hover:bg-gray-100
+                            ${s === "Cancelled"
                                         ? "text-red-500 font-semibold"
                                         : "text-gray-700"
                                       }`}
-                                    onClick={() => handleStatusChange(order.order_id, s)}
+                                    onClick={() =>
+                                      handleStatusChange(order.order_id, s)
+                                    }
                                   >
                                     {s}
                                   </div>
@@ -349,14 +364,25 @@ const AdminOrdersDashboard = () => {
                 </div>
               </div>
             </div>
-
           ))}
         </div>
 
-        <div className="mt-12  mx-auto border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
-          <span>End of list</span>
-          <span className="mt-2 md:mt-0">Total Orders: {todayOrders.length}</span>
+
+
+
+        <div className="mt-8 mx-auto border-t border-[#236B28]/20 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
+          <span className="text-[#236B28]/70 font-medium">
+            End of list
+          </span>
+
+          <span className="mt-2 md:mt-0 text-[#236B28]/80 font-semibold">
+            Total Orders: {todayOrders.length}
+          </span>
         </div>
+
+
+
+
       </div>
     </>
   );
