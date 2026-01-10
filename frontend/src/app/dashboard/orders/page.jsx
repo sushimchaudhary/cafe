@@ -1,9 +1,8 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import {Printer, CheckCircle } from "lucide-react";
+import { Printer, CheckCircle } from "lucide-react";
 
 import toast from "react-hot-toast";
-
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -66,16 +65,14 @@ const getStatusIndicator = (status) => {
   };
   return (
     <span
-      className={`w-2 h-2 rounded-full inline-block mr-1 ${colors[status] || "bg-gray-200"
-        }`}
+      className={`w-2 h-2 rounded-full inline-block mr-1 ${
+        colors[status] || "bg-gray-200"
+      }`}
     ></span>
   );
 };
 
 const statusOptions = ["Pending", "Preparing", "Ready", "Served"];
-
-
-
 
 const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -86,14 +83,15 @@ const AdminOrdersDashboard = () => {
 
   const audioRef = useRef(null);
   const lastOrderIdRef = useRef(null);
- 
+  const [filter, setFilter] = useState("today");
 
   const playNotificationSound = () => {
     if (audioRef.current) {
-   
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(err => {
-        console.warn("Autoplay blocked: Please click anywhere on the page first.");
+      audioRef.current.play().catch((err) => {
+        console.warn(
+          "Autoplay blocked: Please click anywhere on the page first."
+        );
       });
     }
   };
@@ -117,17 +115,14 @@ const AdminOrdersDashboard = () => {
       const ordersData = result?.data || [];
 
       if (ordersData.length > 0) {
-        
         const latestOrder = ordersData[0];
         const latestId = latestOrder.reference_id;
-  
-       
+
         if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
           playNotificationSound();
           toast.success("New Order Received!", { icon: "🔔" });
         }
-  
-        
+
         lastOrderIdRef.current = latestId;
       }
 
@@ -139,11 +134,11 @@ const AdminOrdersDashboard = () => {
         tableName: o.table_number ? `Table ${o.table_number}` : "Table",
         items: Array.isArray(o.items)
           ? o.items.map((i) => ({
-            name: i.menu_name,
-            quantity: Number(i.quantity),
-            unit_name: i.unit_name || "-",
-            total_price: Number(i.total_price),
-          }))
+              name: i.menu_name,
+              quantity: Number(i.quantity),
+              unit_name: i.unit_name || "-",
+              total_price: Number(i.total_price),
+            }))
           : [],
         total_price: Number(o.total_amount),
         status: normalizeStatus(o.status),
@@ -157,13 +152,9 @@ const AdminOrdersDashboard = () => {
     }
   };
 
-
-
   const handleStatusChange = async (order_id, newStatus) => {
     const order = orders.find((o) => o.order_id === order_id);
     if (!order || order.status === "Served") return;
-
-    
 
     try {
       const res = await fetch(`${API_URL}/api/orders/status/${order_id}`, {
@@ -178,9 +169,7 @@ const AdminOrdersDashboard = () => {
       if (!res.ok) throw new Error("Status update failed");
 
       toast.success(
-        newStatus === "Cancelled"
-          ? "Order Cancelled"
-          : "Status Updated"
+        newStatus === "Cancelled" ? "Order Cancelled" : "Status Updated"
       );
 
       setOrders((prev) =>
@@ -191,7 +180,6 @@ const AdminOrdersDashboard = () => {
       setOpenDropdown(null);
     } catch (err) {
       toast.error(err.message || "Something went wrong");
-
     }
   };
 
@@ -233,43 +221,86 @@ const AdminOrdersDashboard = () => {
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total_price || 0), 0);
 
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoStr = getNepalDateString(sevenDaysAgo);
+
+  const filteredOrders = orders.filter((o) => {
+    const orderDate = getNepalDateString(o.created_at);
+    if (filter === "today") {
+      return orderDate === todayNepal;
+    } else {
+      return orderDate >= sevenDaysAgoStr;
+    }
+  });
+
+  const totalRevenue = filteredOrders
+    .filter((o) => o.status !== "Cancelled")
+    .reduce((sum, o) => sum + (o.total_price || 0), 0);
+
   return (
     <>
       <div className="min-h-screen font-sans p-4 sm:p-6 lg:p-4 bg-[#ddf4e2]">
         <header className="mx-auto mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-sm sm:text-xl font-bold tracking-tight text-[#1C5721]">
+            <h1 className="text-xl font-bold text-[#1C5721]">
               Kitchen Dashboard
             </h1>
 
-            <p className="text-sm text-[#236B28]">
-              Order for{" "}
-              <span className="font-semibold text-[#2baf36] bg-[#EAF5EA] px-2 py-[2px] rounded-md">
-                {todayOrders.length}
-              </span>
+            {/* Filter Buttons */}
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => setFilter("today")}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                  filter === "today"
+                    ? "bg-[#236B28] text-white shadow-md"
+                    : "bg-white text-[#236B28] border border-[#236B28]"
+                }`}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setFilter("weekly")}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-all ${
+                  filter === "weekly"
+                    ? "bg-[#236B28] text-white shadow-md"
+                    : "bg-white text-[#236B28] border border-[#236B28]"
+                }`}
+              >
+                Last 7 Days
+              </button>
+            </div>
+
+            <p className="text-sm text-[#236B28] mt-1">
+              Displaying{" "}
+              <span className="font-bold">{filteredOrders.length}</span> orders
             </p>
           </div>
 
+          <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
+  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider whitespace-nowrap">
+    {filter === "today" ? "Today's Revenue" : "7 Days Revenue"}
+  </span>
+  
 
-          <div className="bg-white px-5 py-1 rounded-sm shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
-            <span className="text-xs uppercase font-bold text-gray-400 tracking-wider">
-              Total Revenue
-            </span>
-            <span className="text-xl font-bold text-emerald-600">
-              Rs. {todayTotal.toFixed(2)}
-            </span>
-          </div>
+  <div className="h-4 w-[1px] bg-gray-200"></div>
+
+  <span className="text-lg font-bold text-emerald-600 whitespace-nowrap">
+    Rs. {totalRevenue.toFixed(2)}
+  </span>
+</div>
         </header>
 
         <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
-          {todayOrders.map((order, idx) => (
+          {filteredOrders.map((order, idx) => (
             <div
               key={order.order_id}
               className={`flex flex-col justify-between border rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
-            ${order.status === "Cancelled"
-                  ? "bg-red-50 border-red-200 opacity-90"
-                  : "bg-white border-gray-200"
-                }`}
+            ${
+              order.status === "Cancelled"
+                ? "bg-red-50 border-red-200 opacity-90"
+                : "bg-white border-gray-200"
+            }`}
             >
               <div className="p-3 border-b border-gray-100">
                 <div className="flex justify-between items-start">
@@ -328,10 +359,11 @@ const AdminOrdersDashboard = () => {
                 <div className="flex items-center justify-between border-t border-gray-100 pt-2">
                   <div
                     className={`flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px] font-semibold uppercase tracking-wide
-                   ${order.status === "Cancelled"
-                        ? "bg-red-100 border-red-200 text-red-600"
-                        : "bg-green-50 border-green-200 text-[#236B28]"
-                      }`}
+                   ${
+                     order.status === "Cancelled"
+                       ? "bg-red-100 border-red-200 text-red-600"
+                       : "bg-green-50 border-green-200 text-[#236B28]"
+                   }`}
                   >
                     {getStatusIndicator(order.status)}
                     {order.status}
@@ -347,7 +379,9 @@ const AdminOrdersDashboard = () => {
                         <Printer className="w-4 h-4" />
                       </button>
 
-                      {["Pending", "Preparing", "Ready"].includes(order.status) && (
+                      {["Pending", "Preparing", "Ready"].includes(
+                        order.status
+                      ) && (
                         <div className="relative">
                           <button
                             className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
@@ -372,10 +406,11 @@ const AdminOrdersDashboard = () => {
                                   <div
                                     key={s}
                                     className={`px-3 py-2 text-[12px] cursor-pointer hover:bg-gray-100
-                            ${s === "Cancelled"
-                                        ? "text-red-500 font-semibold"
-                                        : "text-gray-700"
-                                      }`}
+                            ${
+                              s === "Cancelled"
+                                ? "text-red-500 font-semibold"
+                                : "text-gray-700"
+                            }`}
                                     onClick={() =>
                                       handleStatusChange(order.order_id, s)
                                     }
@@ -396,9 +431,7 @@ const AdminOrdersDashboard = () => {
         </div>
 
         <div className="mt-8 mx-auto border-t border-[#236B28]/20 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
-          <span className="text-[#236B28]/70 font-medium">
-            End of list
-          </span>
+          <span className="text-[#236B28]/70 font-medium">End of list</span>
 
           <span className="mt-2 md:mt-0 text-[#236B28]/80 font-semibold">
             Total Orders: {todayOrders.length}
