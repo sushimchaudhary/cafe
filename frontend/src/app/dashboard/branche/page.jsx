@@ -27,7 +27,7 @@ function RestaurantDropdown({ restaurants, value, onChange }) {
         onClick={() => setOpen(!open)}
         className="w-full border border-amber-300 p-1 rounded text-sm
         flex justify-between items-center
-        focus:outline-none focus:ring-1 focus:ring-amber-200"
+        focus:outline-none focus:ring-1 focus:ring-amber-300"
       >
         <span>{selected ? selected.name : "Select Restaurant"}</span>
         <span className="text-amber-500">▼</span>
@@ -36,7 +36,7 @@ function RestaurantDropdown({ restaurants, value, onChange }) {
       {open &&
         createPortal(
           <ul
-            className="absolute z-50 w-[200px] bg-white border border-amber-200 rounded shadow"
+            className="absolute z-50 w-[300px] bg-white border border-amber-300 rounded shadow"
             style={{
               top: rect?.bottom + window.scrollY,
               left: rect?.left + window.scrollX,
@@ -290,7 +290,7 @@ export default function BranchPage() {
       {/* MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-4">
-          <div className="bg-white w-full max-w-[440px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200" >
+          <div className="bg-white w-full max-w-[440px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300" >
 
             <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
               <h2 className="text-[14px] font-bold text-[#236B28] tracking-tight">
@@ -306,7 +306,7 @@ export default function BranchPage() {
 
             <div className="p-4 bg-[#ddf4e2]/20">
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 gap-3 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                <div className="grid grid-cols-1 gap-3 bg-white p-4 rounded-md border border-gray-300 shadow-sm">
 
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
@@ -395,7 +395,7 @@ export default function BranchPage() {
                       </select>
 
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 group-focus-within:text-[#236B28]">
-                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/3000/svg" viewBox="0 0 20 20">
                           <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                         </svg>
                       </div>
@@ -426,13 +426,13 @@ export default function BranchPage() {
 
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                <th className="w-[40px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">S.N.</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Name</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Email</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Address</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Phone</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Restaurant</th>
-                <th className="w-[80px] border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700">Action</th>
+                <th className="w-[40px] border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">S.N.</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Name</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Email</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Address</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Phone</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Restaurant</th>
+                <th className="w-[80px] border-b border-gray-300 px-2 py-1 text-right font-bold text-gray-700">Action</th>
               </tr>
             </thead>
 
@@ -440,7 +440,7 @@ export default function BranchPage() {
             <tbody className="bg-white">
               {filteredBranches.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-400 border-b border-gray-200">
+                  <td colSpan={7} className="text-center py-8 text-gray-400 border-b border-gray-300">
                     {search ? "Branch not matching your search" : "No branches found"}
                   </td>
                 </tr>
@@ -448,35 +448,35 @@ export default function BranchPage() {
                 filteredBranches.map((b, index) => (
                   <tr key={b.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 text-center">
                       {index + 1}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5">
-                      <div className=" border-gray-200 px-1 py-0.5 text-gray-800 font-medium truncate">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5">
+                      <div className=" border-gray-300 px-1 py-0.5 text-gray-800 font-medium truncate">
                         {b.name}
                       </div>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 truncate">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 truncate">
                       {b.email}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 truncate">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 truncate">
                       {b.address}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500">
                       {b.mobile_number}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5">
                       <span className="text-[10px] px-1.5 py-0">
                         {b.restaurant_name}
                       </span>
                     </td>
 
-                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                    <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => handleEdit(b)}

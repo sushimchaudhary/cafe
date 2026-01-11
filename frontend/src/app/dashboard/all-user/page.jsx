@@ -241,14 +241,14 @@ export default function AdminManagementPage() {
 
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 w-[40px]">S.N.</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Username</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Name</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Email</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Mobile</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Restaurant</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Branch</th>
-                <th className="border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700 w-[80px]">Action</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700 w-[40px]">S.N.</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Username</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Name</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Email</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Mobile</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Restaurant</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Branch</th>
+                <th className="border-b border-gray-300 px-2 py-1 text-right font-bold text-gray-700 w-[80px]">Action</th>
               </tr>
             </thead>
 
@@ -283,33 +283,33 @@ export default function AdminManagementPage() {
                   .map((admin, index) => (
                     <tr key={admin.reference_id || index} className="hover:bg-blue-50/30 transition-all">
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600">{index + 1}</td>
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-600">{index + 1}</td>
 
-                      <td className="border-b border-r border-gray-200 px-1 py-0.5">
+                      <td className="border-b border-r border-gray-300 px-1 py-0.5">
                         <div className="  px-1 py-0.5 text-gray-800 truncate">
                           {admin.username}
                         </div>
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-700">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-700">
                         {admin.first_name} {admin.last_name}
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 truncate">{admin.email}</td>
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 truncate">{admin.email}</td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">{admin.mobile_number}</td>
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500">{admin.mobile_number}</td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5">
                         <span className="text-[10px] px-1.5 py-0   bg-white text-gray-800 truncate block">
                           {admin.restaurant_name || "-"}
                         </span>
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 italic">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 italic">
                         {admin.branch_name || "-"}
                       </td>
 
-                      <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => openEditModal(admin)}
@@ -329,7 +329,7 @@ export default function AdminManagementPage() {
                   ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400 border-b border-gray-200">
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-400 border-b border-gray-300">
                     User not found.
                   </td>
                 </tr>

@@ -1,15 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Eye,
-  EyeOff,
-  Lock,
-  LogIn,
-  User,
-  ShieldCheck,
-  ChevronRight,
-} from "lucide-react";
+import { Eye, EyeOff, Lock, User, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
 
@@ -47,8 +39,14 @@ const AdminLoginPage = () => {
 
       const data = await res.json();
 
-      if (!res.ok || !data?.is_staff) {
-        toast.error("Invalid credentials or not admin!");
+      if (!res.ok) {
+        toast.error(data.detail || "Invalid credentials! Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!data?.is_staff) {
+        toast.error("Access Denied: You do not have admin privileges!");
         setLoading(false);
         return;
       }
@@ -68,6 +66,12 @@ const AdminLoginPage = () => {
         data.is_superuser ? "true" : "false"
       );
 
+      const displayName = data.first_name || username;
+      toast.success(`welcome back, ${displayName}!`, {
+        duration: 2000,
+        
+      });
+
       try {
         const userId = data.user_id || data.userId || data.user || null;
         if (userId) {
@@ -78,7 +82,8 @@ const AdminLoginPage = () => {
             }
           );
           if (profileRes.ok) {
-            const src = (await profileRes.json()).data || {};
+            const profileData = await profileRes.json();
+            const src = profileData.data || {};
             if (src.first_name)
               localStorage.setItem("first_name", src.first_name);
             if (src.last_name) localStorage.setItem("last_name", src.last_name);
@@ -88,32 +93,41 @@ const AdminLoginPage = () => {
           }
         }
       } catch (err) {
-        console.warn(err);
+        console.warn("Profile fetch error:", err);
       }
 
       if (data.is_superuser) {
-        const r = await fetch(`${API_URL}/api/restaurants/`, {
-          headers: { Authorization: `Token ${data.token}` },
-        });
+        const [resRest, resBranch] = await Promise.all([
+          fetch(`${API_URL}/api/restaurants/`, {
+            headers: { Authorization: `Token ${data.token}` },
+          }),
+          fetch(`${API_URL}/api/branches/`, {
+            headers: { Authorization: `Token ${data.token}` },
+          }),
+        ]);
+
+        const restData = await resRest.json();
+        const branchData = await resBranch.json();
+
         localStorage.setItem(
           "restaurants",
-          JSON.stringify((await r.json()).data || [])
+          JSON.stringify(restData.data || [])
         );
-        const b = await fetch(`${API_URL}/api/branches/`, {
-          headers: { Authorization: `Token ${data.token}` },
-        });
-        localStorage.setItem(
-          "branches",
-          JSON.stringify((await b.json()).data || [])
-        );
-        router.push("/dashboard/restaurant");
+        localStorage.setItem("branches", JSON.stringify(branchData.data || []));
+
+        setTimeout(() => {
+          router.push("/dashboard/restaurant");
+        }, 1000);
       } else {
-        router.push("/dashboard");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
       }
     } catch (err) {
-      toast.error("Something went wrong!");
+      console.error(err);
+      toast.error("Something went wrong! Please check your connection.");
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 
@@ -224,7 +238,6 @@ const AdminLoginPage = () => {
                   </button>
                 </div>
 
- 
                 <div className="flex justify-end">
                   <span className="text-xs text-[#1C4D21] font-semibold cursor-pointer hover:underline transition-all">
                     Forgot password?

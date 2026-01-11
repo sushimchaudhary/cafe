@@ -197,7 +197,7 @@ export default function TableManager() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px] 
-        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[200px]"
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[300px]"
               />
             </div>
 
@@ -262,7 +262,7 @@ export default function TableManager() {
         {/* FORM MODAL */}
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-            <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
                 <h2 className="text-[13px] font-bold text-gray-700">
                   {editId ? "Edit Table" : "Add New Table"}
@@ -318,16 +318,16 @@ export default function TableManager() {
             <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
               <thead className="sticky top-0 bg-[#fafafa] z-10">
                 <tr>
-                  <th className="w-[50px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">
+                  <th className="w-[50px] border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">
                     S.N.
                   </th>
-                  <th className="border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">
+                  <th className="border-b border-r border-gray-300 px-4 py-1 text-left font-bold text-gray-700">
                     Table Name
                   </th>
-                  <th className="w-[100px] border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">
+                  <th className="w-[100px] border-b border-r border-gray-300 px-4 py-1 text-left font-bold text-gray-700">
                     QR Code
                   </th>
-                  <th className="w-[80px] border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700">
+                  <th className="w-[80px] border-b border-gray-300 px-2 py-1 text-right font-bold text-gray-700">
                     Action
                   </th>
                 </tr>
@@ -338,7 +338,7 @@ export default function TableManager() {
                   <tr>
                     <td
                       colSpan={4}
-                      className="text-center py-8 text-gray-400 border-b border-gray-200"
+                      className="text-center py-8 text-gray-400 border-b border-gray-300"
                     >
                       {searchQuery
                         ? "No tables match your search"
@@ -351,17 +351,17 @@ export default function TableManager() {
                       key={t.reference_id}
                       className="hover:bg-blue-50/30 transition-all"
                     >
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 text-center">
                         {index + 1}
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5">
-                        <div className=" border-gray-200 rounded px-2 py-0.5  text-gray-800 font-medium">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5">
+                        <div className=" border-gray-300 rounded px-2 py-0.5  text-gray-800 font-medium">
                           T {t.table_number}
                         </div>
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5">
                         <div className="flex items-center justify-start h-full">
                           {t.qr_code ? (
                             <div className="p-0.5   ">
@@ -380,7 +380,7 @@ export default function TableManager() {
                         </div>
                       </td>
 
-                      <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                         <div className="flex justify-end gap-1">
                           <button
                             onClick={() => handleEdit(t)}

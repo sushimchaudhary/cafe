@@ -205,7 +205,7 @@ export default function AdminMenuUnitPage() {
         {/* FORM MODAL */}
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
-            <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
                 <h2 className="text-[13px] font-bold text-gray-700">
                   {editId ? "Edit Unit" : "Add New Unit"}
@@ -264,7 +264,7 @@ export default function AdminMenuUnitPage() {
                   {["S.N.", "Name", "Action"].map((header) => (
                     <th
                       key={header}
-                      className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
+                      className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
                       style={{
                         width:
                           header === "SN"
@@ -285,7 +285,7 @@ export default function AdminMenuUnitPage() {
                   <tr>
                     <td
                       colSpan={3}
-                      className="text-center py-6 text-gray-400 border-b border-gray-200"
+                      className="text-center py-6 text-gray-400 border-b border-gray-300"
                     >
                       {search ? "units not match search" : "unit not found"}
                     </td>
@@ -296,17 +296,17 @@ export default function AdminMenuUnitPage() {
                       key={u.reference_id}
                       className="hover:bg-blue-50/30 transition-all"
                     >
-                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">
+                      <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-600 last:border-r-0">
                         {index + 1}
                       </td>
 
-                      <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
+                      <td className="border-b border-r border-gray-300 px-1 py-0.5 last:border-r-0">
                         <div className="px-1 py-0.5  text-gray-800 truncate">
                           {u.name}
                         </div>
                       </td>
 
-                      <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleEdit(u)}

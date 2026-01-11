@@ -168,7 +168,7 @@ export default function RestaurantPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px] 
-        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[200px]"
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[300px]"
             />
           </div>
 
@@ -219,7 +219,7 @@ export default function RestaurantPage() {
       {/* ================= FORM MODAL ================= */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-4">
-          <div className="bg-white w-full max-w-[480px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-[480px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
             <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100 bg-white">
               <h2 className="text-[14px] font-bold text-[#236B28] tracking-tight">
                 {editId ? "Edit Restaurant" : "Add New Restaurant"}
@@ -234,7 +234,7 @@ export default function RestaurantPage() {
 
             <div className="p-4 bg-[#ddf4e2]/20">
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 bg-white p-4 rounded-md border border-gray-200 shadow-sm">
+                <div className="grid grid-cols-1 gap-4 bg-white p-4 rounded-md border border-gray-300 shadow-sm">
 
                   <div className="space-y-1">
                     <label className="block text-[12px] font-semibold text-gray-600">
@@ -303,11 +303,11 @@ export default function RestaurantPage() {
           <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                <th className="w-[40px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">S.N.</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Name</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Address</th>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Phone</th>
-                <th className="w-[80px] border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700">Action</th>
+                <th className="w-[40px] border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">S.N.</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Name</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Address</th>
+                <th className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700">Phone</th>
+                <th className="w-[80px] border-b border-gray-300 px-2 py-1 text-right font-bold text-gray-700">Action</th>
               </tr>
             </thead>
 
@@ -315,7 +315,7 @@ export default function RestaurantPage() {
             <tbody className="bg-white">
               {filteredRestaurants.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-400 border-b border-gray-200">
+                  <td colSpan={5} className="text-center py-8 text-gray-400 border-b border-gray-300">
                     {search ? "Restaurant not matching your search" : "No restaurants found"}
                   </td>
                 </tr>
@@ -323,25 +323,25 @@ export default function RestaurantPage() {
                 filteredRestaurants.map((r, index) => (
                   <tr key={r.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 text-center">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-600 text-center">
                       {index + 1}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5">
                       <div className=" px-1 py-0.5  text-gray-800 truncate font-medium">
                         {r.name}
                       </div>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500">
                       {r.address}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500">
                       {r.mobile_number}
                     </td>
 
-                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                    <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(r)}
