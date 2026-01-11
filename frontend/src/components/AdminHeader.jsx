@@ -97,7 +97,7 @@ export default function AdminHeader() {
       <div className="flex items-center gap-3 md:gap-5 pr-5">
         <div
           className="relative cursor-pointer"
-          onClick={() => router.push("/dashboard/orders")}
+          onClick={() => router.push("/dashboard/order")}
         >
           <Bell className="w-5 h-5 text-[#EAF5EA]" />
           {pendingCount > 0 && (
