@@ -171,7 +171,7 @@ export default function AdminManagementPage() {
               className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold 
       bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
             >
-              Register
+              Create
             </button>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default function AdminManagementPage() {
 
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 w-[40px]">SN</th>
+                <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 w-[40px]">S.N.</th>
                 <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Username</th>
                 <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Name</th>
                 <th className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">Email</th>
@@ -286,7 +286,7 @@ export default function AdminManagementPage() {
                       <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600">{index + 1}</td>
 
                       <td className="border-b border-r border-gray-200 px-1 py-0.5">
-                        <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                        <div className="  px-1 py-0.5 text-gray-800 truncate">
                           {admin.username}
                         </div>
                       </td>
@@ -300,7 +300,7 @@ export default function AdminManagementPage() {
                       <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500">{admin.mobile_number}</td>
 
                       <td className="border-b border-r border-gray-200 px-2 py-0.5">
-                        <span className="text-[10px] px-1.5 py-0 border border-gray-200 rounded bg-white text-gray-500 truncate block">
+                        <span className="text-[10px] px-1.5 py-0   bg-white text-gray-800 truncate block">
                           {admin.restaurant_name || "-"}
                         </span>
                       </td>
@@ -319,7 +319,7 @@ export default function AdminManagementPage() {
                           </button>
                           <button
                             onClick={() => { setDeleteAdmin(admin); setShowDeleteModal(true); }}
-                            className="text-red-400 hover:scale-110 transition p-1"
+                            className="text-red-500 hover:scale-110 transition p-1"
                           >
                             <TrashIcon className="w-3.5 h-3.5" />
                           </button>

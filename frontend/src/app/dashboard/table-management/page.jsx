@@ -319,7 +319,7 @@ export default function TableManager() {
               <thead className="sticky top-0 bg-[#fafafa] z-10">
                 <tr>
                   <th className="w-[50px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">
-                    SN
+                    S.N.
                   </th>
                   <th className="border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">
                     Table Name
@@ -356,7 +356,7 @@ export default function TableManager() {
                       </td>
 
                       <td className="border-b border-r border-gray-200 px-2 py-0.5">
-                        <div className="border border-gray-200 rounded px-2 py-0.5 bg-gray-50/50 text-gray-800 font-medium">
+                        <div className=" border-gray-200 rounded px-2 py-0.5  text-gray-800 font-medium">
                           T {t.table_number}
                         </div>
                       </td>
@@ -364,7 +364,7 @@ export default function TableManager() {
                       <td className="border-b border-r border-gray-200 px-2 py-0.5">
                         <div className="flex items-center justify-start h-full">
                           {t.qr_code ? (
-                            <div className="p-0.5 border border-gray-200 rounded bg-white shadow-sm">
+                            <div className="p-0.5   ">
                               <img
                                 src={t.qr_code}
                                 alt="QR"
@@ -381,7 +381,7 @@ export default function TableManager() {
                       </td>
 
                       <td className="border-b border-gray-200 px-2 py-0.5 text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
                           <button
                             onClick={() => handleEdit(t)}
                             className="p-1 text-blue-500 hover:bg-blue-50 rounded transition"
@@ -393,7 +393,7 @@ export default function TableManager() {
                               setDeleteTable(t);
                               setShowDeleteModal(true);
                             }}
-                            className="p-1 text-red-400 hover:bg-red-50 rounded transition"
+                            className="p-1 text-red-500 hover:bg-red-50 rounded transition"
                           >
                             <TrashIcon className="w-3.5 h-3.5" />
                           </button>

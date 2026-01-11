@@ -632,7 +632,19 @@ export default function AdminMenuManager() {
               </thead>
 
               <tbody className="bg-white">
-                {filteredMenus.map((menu, index) => (
+                   {filteredMenus.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="text-center py-6 text-gray-400 border-b"
+                  >
+                    {search
+                      ? "Menu not match your search"
+                      : "Menu not found"}
+                  </td>
+                </tr>
+              ) : (
+                filteredMenus.map((menu, index) => (
                   <tr key={menu.reference_id} className="hover:bg-blue-50/30 transition-all">
 
                     <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">{index + 1}</td>
@@ -673,14 +685,16 @@ export default function AdminMenuManager() {
                         </button>
                         <button
                           onClick={() => { setDeleteMenu(menu); setShowDeleteModal(true); }}
-                          className="text-red-400 hover:scale-110 transition"
+                          className="text-red-500 hover:scale-110 transition"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))}
+                  ))
+              )}
+              
               </tbody>
             </table>
           </div>

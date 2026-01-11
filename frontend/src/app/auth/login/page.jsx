@@ -106,7 +106,7 @@ const AdminLoginPage = () => {
           "branches",
           JSON.stringify((await b.json()).data || [])
         );
-        router.push("/dashboard/restaurants");
+        router.push("/dashboard/restaurant");
       } else {
         router.push("/dashboard");
       }

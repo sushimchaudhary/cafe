@@ -32,18 +32,18 @@ export default function DesktopSidebar({ is_superuser, children }) {
   if (!mounted) return null;
 
   const menuItemsSuperUser = [
-    { label: "Restaurants", route: "/dashboard/restaurants", icon: Store },
-    { label: "Branches", route: "/dashboard/branches", icon: Building2 },
-    { label: "User", route: "/dashboard/all-users", icon: User },
+    { label: "Restaurant", route: "/dashboard/restaurant", icon: Store },
+    { label: "Branche", route: "/dashboard/branche", icon: Building2 },
+    { label: "User", route: "/dashboard/all-user", icon: User },
   ];
 
   const menuItemsStaff = [
     {label: "Dashboard",route: "/dashboard",icon: GaugeCircle,},
-    { label: "Orders", route: "/dashboard/orders", icon: ShoppingCart },
-    { label: "Menus", route: "/dashboard/menus", icon: Menu },
-    { label: "Tables", route: "/dashboard/table-management", icon: Table },
-    { label: "Units", route: "/dashboard/units", icon: Box },
-    { label: "Categories", route: "/dashboard/category", icon: Tag },
+    { label: "Order", route: "/dashboard/order", icon: ShoppingCart },
+    { label: "Menu", route: "/dashboard/menu", icon: Menu },
+    { label: "Table", route: "/dashboard/table-management", icon: Table },
+    { label: "Unit", route: "/dashboard/unit", icon: Box },
+    { label: "Categorie", route: "/dashboard/category", icon: Tag },
   ];
 
   const menuItems = isSuperUser ? menuItemsSuperUser : menuItemsStaff;
