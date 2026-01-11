@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -18,7 +18,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [username, setUsername] = useState("");
-
+  const isFetched = useRef(false);
   const [token, setToken] = useState("");
   const [nepalTime, setNepalTime] = useState(new Date());
 
@@ -72,10 +72,10 @@ export default function AdminDashboard() {
       const normalizedOrders = ordersData.map((o) => {
         const items = Array.isArray(o.items)
           ? o.items.map((i) => ({
-            name: i.menu_name,
-            quantity: Number(i.quantity),
-            total_price: Number(i.total_price),
-          }))
+              name: i.menu_name,
+              quantity: Number(i.quantity),
+              total_price: Number(i.total_price),
+            }))
           : [];
 
         return {
@@ -97,13 +97,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     const storedToken = localStorage.getItem("adminToken");
     const storedUsername = localStorage.getItem("username");
-    if (storedToken) {
+
+    if (storedToken && !isFetched.current) {
       setToken(storedToken);
       fetchOrders(storedToken);
-
-      const interval = setInterval(() => fetchOrders(storedToken), 10000);
-      return () => clearInterval(interval);
+      isFetched.current = true;
     }
+
     if (storedUsername) {
       setUsername(storedUsername);
     }
@@ -126,25 +126,31 @@ export default function AdminDashboard() {
   ).length;
 
   const getLast7DaysData = () => {
-  
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      
-      
-      const dateStr = d.toISOString().split('T')[0]; 
+
+      const dateStr = d.toISOString().split("T")[0];
       const dayLabel = d.toLocaleDateString("en-US", { weekday: "short" });
-  
+
       const dayOrders = orders.filter((o) => {
         if (!o.created_at) return false;
-        const orderDate = new Date(o.created_at).toISOString().split('T')[0];
+        const orderDate = new Date(o.created_at).toISOString().split("T")[0];
         return orderDate === dateStr;
       });
-  
+
       return {
         day: dayLabel,
-        revenue: dayOrders.reduce((sum, o) => sum + (o.status !== "cancelled" ? Number(o.total_price) : 0), 0),
-        itemsSold: dayOrders.reduce((sum, o) => sum + o.items.reduce((iSum, i) => iSum + Number(i.quantity), 0), 0),
+        revenue: dayOrders.reduce(
+          (sum, o) =>
+            sum + (o.status !== "cancelled" ? Number(o.total_price) : 0),
+          0
+        ),
+        itemsSold: dayOrders.reduce(
+          (sum, o) =>
+            sum + o.items.reduce((iSum, i) => iSum + Number(i.quantity), 0),
+          0
+        ),
         ordersCount: dayOrders.length,
       };
     });
@@ -155,15 +161,16 @@ export default function AdminDashboard() {
   return (
     <>
       <div className="min-h-screen font-sans antialiased text-slate-900 p-4 bg-[#ddf4e2]">
-
         <div
           className="max-w-8xl mx-auto mb-3 flex justify-between items-center rounded 
    from-[#EAF5EA] via-[#DFF0E0] to-[#CFE8D2]"
         >
           <div className="flex flex-col">
-            <h1 className="text-2xl font-extrabold
+            <h1
+              className="text-2xl font-extrabold
       bg-gradient-to-r from-[#236B28] to-[#1F7A34]
-      bg-clip-text text-transparent">
+      bg-clip-text text-transparent"
+            >
               {getGreeting()},{username}
             </h1>
           </div>
@@ -234,9 +241,7 @@ export default function AdminDashboard() {
                   {stat.title}
                 </p>
 
-                <div className="p-2 rounded-lg bg-[#EAF5EA]">
-                  {stat.icon}
-                </div>
+                <div className="p-2 rounded-lg bg-[#EAF5EA]">{stat.icon}</div>
               </div>
 
               <p className="text-xl font-bold text-[#1C5721] relative z-10">
@@ -245,7 +250,6 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
-
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mx-auto">
           {/* ---- LINE CHART CARD ---- */}
@@ -272,10 +276,23 @@ export default function AdminDashboard() {
 
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData} margin={{ top: 0, right: 10, left: -20, bottom: 2 }}>
+                <LineChart
+                  data={weeklyData}
+                  margin={{ top: 0, right: 10, left: -20, bottom: 2 }}
+                >
                   <defs>
-                    <linearGradient id="lineGradGreen" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#236B28" stopOpacity={0.25} />
+                    <linearGradient
+                      id="lineGradGreen"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor="#236B28"
+                        stopOpacity={0.25}
+                      />
                       <stop offset="95%" stopColor="#236B28" stopOpacity={0} />
                     </linearGradient>
                   </defs>
@@ -360,7 +377,10 @@ export default function AdminDashboard() {
 
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData} margin={{ top: 0, right: 0, left: -20, bottom: 2 }}>
+                  <BarChart
+                    data={weeklyData}
+                    margin={{ top: 0, right: 0, left: -20, bottom: 2 }}
+                  >
                     <XAxis
                       dataKey="day"
                       axisLine={false}
@@ -398,9 +418,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-
-
-
       </div>
     </>
   );

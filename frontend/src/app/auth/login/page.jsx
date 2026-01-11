@@ -1,7 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, LogIn, User, ShieldCheck, ChevronRight } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  LogIn,
+  User,
+  ShieldCheck,
+  ChevronRight,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
 
@@ -55,30 +63,50 @@ const AdminLoginPage = () => {
       localStorage.setItem("restaurant_name", data.restaurant_name || "");
       localStorage.setItem("branch_id", data.branch_id || "");
       localStorage.setItem("branch_name", data.branch_name || "");
-      localStorage.setItem("is_superuser", data.is_superuser ? "true" : "false");
+      localStorage.setItem(
+        "is_superuser",
+        data.is_superuser ? "true" : "false"
+      );
 
       try {
         const userId = data.user_id || data.userId || data.user || null;
         if (userId) {
-          const profileRes = await fetch(`${API_URL}/api/user/admins/${userId}/`, {
-            headers: { Authorization: `Token ${data.token}` },
-          });
+          const profileRes = await fetch(
+            `${API_URL}/api/user/admins/${userId}/`,
+            {
+              headers: { Authorization: `Token ${data.token}` },
+            }
+          );
           if (profileRes.ok) {
             const src = (await profileRes.json()).data || {};
-            if (src.first_name) localStorage.setItem("first_name", src.first_name);
+            if (src.first_name)
+              localStorage.setItem("first_name", src.first_name);
             if (src.last_name) localStorage.setItem("last_name", src.last_name);
             if (src.email) localStorage.setItem("email", src.email);
-            if (src.mobile_number) localStorage.setItem("mobile_number", src.mobile_number);
+            if (src.mobile_number)
+              localStorage.setItem("mobile_number", src.mobile_number);
           }
         }
-      } catch (err) { console.warn(err); }
+      } catch (err) {
+        console.warn(err);
+      }
 
       if (data.is_superuser) {
-        const r = await fetch(`${API_URL}/api/restaurants/`, { headers: { Authorization: `Token ${data.token}` } });
-        localStorage.setItem("restaurants", JSON.stringify((await r.json()).data || []));
-        const b = await fetch(`${API_URL}/api/branches/`, { headers: { Authorization: `Token ${data.token}` } });
-        localStorage.setItem("branches", JSON.stringify((await b.json()).data || []));
-        router.push("/dashboard/restaurants");
+        const r = await fetch(`${API_URL}/api/restaurants/`, {
+          headers: { Authorization: `Token ${data.token}` },
+        });
+        localStorage.setItem(
+          "restaurants",
+          JSON.stringify((await r.json()).data || [])
+        );
+        const b = await fetch(`${API_URL}/api/branches/`, {
+          headers: { Authorization: `Token ${data.token}` },
+        });
+        localStorage.setItem(
+          "branches",
+          JSON.stringify((await b.json()).data || [])
+        );
+        router.push("/dashboard/restaurant");
       } else {
         router.push("/dashboard");
       }
@@ -91,121 +119,144 @@ const AdminLoginPage = () => {
 
   return (
     <>
-    <div className="min-h-screen flex bg-white font-sans">
-      <ToastProvider />
+      <div className="min-h-screen flex bg-white font-sans">
+        <ToastProvider />
 
-      <div className="hidden lg:flex w-1/2 bg-[#1C4D21] relative overflow-hidden flex-col justify-between p-12">
-        <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-green-400/10 rounded-full blur-3xl" />
+        <div className="hidden lg:flex w-1/2 bg-[#1C4D21] relative overflow-hidden flex-col justify-between p-12">
+          <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-green-400/10 rounded-full blur-3xl" />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-12 text-white/90">
-            <ShieldCheck size={32} className="text-green-400" />
-            <span className="text-xl font-bold tracking-widest uppercase">Admin</span>
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-12 text-white/90">
+              <ShieldCheck size={32} className="text-green-400" />
+              <span className="text-xl font-bold tracking-widest uppercase">
+                Admin
+              </span>
+            </div>
+
+            <div className="mt-20">
+              <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
+                Welcome Back to <br />
+                <span className="text-green-400">Control Center.</span>
+              </h1>
+              <p className="text-green-100/70 text-lg max-w-md leading-relaxed">
+                Manage your orders, menu, and branches with our high-performance
+                administrative suite. Secure, fast, and easy to use.
+              </p>
+            </div>
           </div>
 
-          <div className="mt-20">
-            <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
-              Welcome Back to <br />
-              <span className="text-green-400">Control Center.</span>
-            </h1>
-            <p className="text-green-100/70 text-lg max-w-md leading-relaxed">
-              Manage your orders, menu, and branches with our high-performance administrative suite.
-              Secure, fast, and easy to use.
+          <div className="relative z-10 flex items-center gap-6 text-sm text-green-200/50">
+            <span>Privacy Policy</span>
+            <span>Terms of Service</span>
+            <span className=" text-sm">
+              © {new Date().getFullYear()} Sajha Infotech
+            </span>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 md:p-20 bg-gray-50/50">
+          <div className="w-full max-w-[420px]">
+            <div className="lg:hidden flex justify-center mb-8">
+              <div className="bg-[#1C4D21] p-3 rounded-xl">
+                <ShieldCheck className="text-white w-8 h-8" />
+              </div>
+            </div>
+
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
+              <p className="text-gray-500 font-medium">
+                Enter your credentials to access your account
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex items-center gap-1 mb-4 text-black">
+                <ShieldCheck size={25} className="text-green-400" />
+                <span className="text-sm font-bold tracking-widest uppercase">
+                  Admin Access
+                </span>
+              </div>
+              {/* Username */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 block">
+                  Username <span className="text-red-400">*</span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
+                    <User size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter your username"
+                    required
+                    className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 block">
+                  Password <span className="text-red-400">*</span>
+                </label>
+
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    required
+                    className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+ 
+                <div className="flex justify-end">
+                  <span className="text-xs text-[#1C4D21] font-semibold cursor-pointer hover:underline transition-all">
+                    Forgot password?
+                  </span>
+                </div>
+              </div>
+
+              {/* Login Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#1C4D21] hover:bg-[#143918] text-white py-4 rounded-xl font-bold text-[16px] transition-all duration-300 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 shadow-xl shadow-green-900/10 mt-8"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Login</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="mt-10 text-center text-sm text-gray-500">
+              Having trouble logging in?{" "}
+              <span className="text-[#1C4D21] font-bold cursor-pointer underline">
+                Contact Support
+              </span>
             </p>
           </div>
         </div>
-
-        <div className="relative z-10 flex items-center gap-6 text-sm text-green-200/50">
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
-          <span>© 2026 Sajha Intotech</span>
-        </div>
       </div>
-
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 md:p-20 bg-gray-50/50">
-        <div className="w-full max-w-[420px]">
-
-          <div className="lg:hidden flex justify-center mb-8">
-            <div className="bg-[#1C4D21] p-3 rounded-xl">
-              <ShieldCheck className="text-white w-8 h-8" />
-            </div>
-          </div>
-
-          <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
-            <p className="text-gray-500 font-medium">Enter your credentials to access your account</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 block">Username <span className="text-red-400">*</span></label>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
-                  <User size={18} />
-                </div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
-                />
-              </div>
-            </div>
-
-            {/* Password */}
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <label className="text-sm font-semibold text-gray-700 block">Password <span className="text-red-400">*</span></label>
-                <span className="text-xs text-[#1C4D21] font-semibold cursor-pointer hover:underline">Forgot password?</span>
-              </div>
-              <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
-                  <Lock size={18} />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  required
-                  className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#1C4D21] hover:bg-[#143918] text-white py-4 rounded-xl font-bold text-[16px] transition-all duration-300 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 shadow-xl shadow-green-900/10 mt-8"
-            >
-              {loading ? (
-                <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Login</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Having trouble logging in? <span className="text-[#1C4D21] font-bold cursor-pointer underline">Contact Support</span>
-          </p>
-        </div>
-      </div>
-    </div>
     </>
   );
 };

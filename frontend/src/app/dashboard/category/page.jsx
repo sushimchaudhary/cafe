@@ -265,7 +265,7 @@ export default function AdminCategoryManager() {
 
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                {["SN", "Name", "Description", "Action"].map((header) => (
+                {["S.N.", "Name", "Description", "Action"].map((header) => (
                   <th
                     key={header}
                     className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
@@ -288,7 +288,7 @@ export default function AdminCategoryManager() {
               {filteredCategories.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={7}
                     className="text-center py-6 text-gray-400 border-b"
                   >
                     {search
@@ -307,13 +307,13 @@ export default function AdminCategoryManager() {
                     </td>
 
                     <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                      <div className=" px-1 py-0.5  text-gray-800 truncate">
                         {cat.name}
                       </div>
                     </td>
 
                     <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-white text-gray-500 text-[10px] max-h-8 overflow-y-auto custom-scrollbar">
+                      <div className=" px-1 py-0.5 bg-white text-gray-500 text-[10px] max-h-8 overflow-y-auto custom-scrollbar">
                         {cat.description || "-"}
                       </div>
                     </td>
@@ -331,7 +331,7 @@ export default function AdminCategoryManager() {
                             setDeleteCategory(cat);
                             setShowDeleteModal(true);
                           }}
-                          className="text-red-400 hover:scale-110 transition"
+                          className="text-red-500 hover:scale-110 transition"
                         >
                           <TrashIcon className="w-3.5 h-3.5" />
                         </button>

@@ -21,9 +21,10 @@ export default function AdminRegisterPage({
   const [form, setForm] = useState({
     username: "",
     password: "",
+     email: "",
     first_name: "",
     last_name: "",
-    email: "",
+   
     mobile_number: "",
     address: "",
     restaurant: "",
@@ -164,7 +165,7 @@ export default function AdminRegisterPage({
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-4 right-4 z-10 text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-all"
+            className="absolute top-4 right-4 z-10 text-red-500 hover:text-red-500 hover:bg-gray-50 p-1.5 rounded transition-all"
           >
             <svg viewBox="64 64 896 896" width="1.2em" height="1.2em" fill="currentColor">
               <path d="M563.8 512l262.5-312.9c4.4-5.2.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 00203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z"></path>
@@ -215,6 +216,21 @@ export default function AdminRegisterPage({
               </div>
             </div>
 
+              <div className="space-y-1">
+              <label className="text-[13px] text-gray-700">Email Address <span className="text-red-500">*</span></label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                <input
+                  type="email"
+                  placeholder="example@mail.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                  className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-[13px] text-gray-700">First Name <span className="text-red-500">*</span></label>
@@ -240,20 +256,7 @@ export default function AdminRegisterPage({
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[13px] text-gray-700">Email Address <span className="text-red-500">*</span></label>
-              <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
-                <input
-                  type="email"
-                  placeholder="example@mail.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
-                />
-              </div>
-            </div>
+          
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -414,7 +417,7 @@ export default function AdminRegisterPage({
                 type="submit"
                 className="px-6 py-1.5 bg-[#1C4D21] text-white rounded text-[14px] font-semibold hover:bg-[#143918] transition-all shadow-sm active:scale-95"
               >
-                {adminData ? "Update Admin" : "Register"}
+                {adminData ? "Update Admin" : "Create"}
               </button>
             </div>
 
