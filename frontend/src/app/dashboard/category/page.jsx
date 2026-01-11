@@ -199,7 +199,7 @@ export default function AdminCategoryManager() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px] p-3">
-          <div className="bg-white w-full max-w-md rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-200">
+          <div className="bg-white w-full max-w-md rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-300">
 
             <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-white">
               <h2 className="text-[14px] font-semibold text-gray-800 tracking-tight">
@@ -265,10 +265,10 @@ export default function AdminCategoryManager() {
 
             <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                {["SN", "Name", "Description", "Action"].map((header) => (
+                {["S.N.", "Name", "Description", "Action"].map((header) => (
                   <th
                     key={header}
-                    className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
+                    className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
                     style={{
                       width:
                         header === "SN"
@@ -288,7 +288,7 @@ export default function AdminCategoryManager() {
               {filteredCategories.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={7}
                     className="text-center py-6 text-gray-400 border-b"
                   >
                     {search
@@ -302,23 +302,23 @@ export default function AdminCategoryManager() {
                     key={cat.reference_id}
                     className="hover:bg-blue-50/30 transition-all"
                   >
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-600 last:border-r-0">
                       {index + 1}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5 last:border-r-0">
+                      <div className=" px-1 py-0.5  text-gray-800 truncate">
                         {cat.name}
                       </div>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-white text-gray-500 text-[10px] max-h-8 overflow-y-auto custom-scrollbar">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5 last:border-r-0">
+                      <div className=" px-1 py-0.5 bg-white text-gray-500 text-[10px] max-h-8 overflow-y-auto custom-scrollbar">
                         {cat.description || "-"}
                       </div>
                     </td>
 
-                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                    <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(cat)}
@@ -331,7 +331,7 @@ export default function AdminCategoryManager() {
                             setDeleteCategory(cat);
                             setShowDeleteModal(true);
                           }}
-                          className="text-red-400 hover:scale-110 transition"
+                          className="text-red-500 hover:scale-110 transition"
                         >
                           <TrashIcon className="w-3.5 h-3.5" />
                         </button>

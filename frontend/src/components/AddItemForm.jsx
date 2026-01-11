@@ -1,5 +1,5 @@
 "use client";
-
+import { Select } from 'antd'; // Make sure to import this at the top
 import { Trash2, Edit2, X, Plus, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -19,7 +19,8 @@ export default function AdminMenuManager() {
   const [search, setSearch] = useState("");
   const [deleteMenu, setDeleteMenu] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+  const [openDropdownIdx, setOpenDropdownIdx] = useState(null);
+  const [openUnitDropdownIdx, setOpenUnitDropdownIdx] = useState(null);
   const [form, setForm] = useState({
     menu_date: "",
     categories: [
@@ -385,7 +386,7 @@ export default function AdminMenuManager() {
     setShowForm(false);
   };
   return (
-    
+
     <>
       <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2] ">
         <ToastProvider />
@@ -426,7 +427,7 @@ export default function AdminMenuManager() {
                 resetForm();
                 setShowForm(true);
               }}
-              className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold
+              className="flex items-center gap-1 px-4 py-1 text-[12px] font-semibold
       bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
             >
               Create
@@ -464,18 +465,18 @@ export default function AdminMenuManager() {
 
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
-            <div className="bg-white w-full max-w-2xl rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-200">
+            <div className="bg-white w-full max-w-4xl rounded shadow-lg overflow-hidden animate-in fade-in zoom-in duration-150 border border-gray-300">
               <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-white">
                 <h2 className="text-[14px] font-semibold text-gray-800 tracking-tight">Menu Categorie</h2>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-all p-1 hover:bg-gray-100 rounded"
+                  className="text-red-500 hover:text-red-600 transition-all p-1 hover:bg-gray-100 rounded"
                 >
                   <X size={16} strokeWidth={2} />
                 </button>
               </div>
 
-              <div className="p-3">
+              <div className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <label className="text-[12px] text-gray-600 font-medium whitespace-nowrap">Menu Date:</label>
                   <input
@@ -486,93 +487,129 @@ export default function AdminMenuManager() {
                     required
                   />
                 </div>
-
-                <div className="overflow-hidden border border-gray-100 rounded">
-                  <table className="w-full border-collapse">
-                    <thead className="bg-[#fafafa] border-b border-gray-200">
-                      <tr className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
-                        <th className="px-2 py-1.5 text-left border-r border-gray-100">Name</th>
-                        <th className="px-2 py-1.5 text-left w-20 border-r border-gray-100">Price</th>
-                        <th className="px-2 py-1.5 text-left border-r border-gray-100">Category</th>
-                        <th className="px-2 py-1.5 text-left w-24 border-r border-gray-100">Unit</th>
-                        <th className="px-2 py-1.5 text-center w-12 border-r border-gray-100">Img</th>
-                        <th className="px-2 py-1.5 text-center w-16">Action</th>
+                {/* Wrapper div ma height ra overflow thapiyeko cha */}
+                <div className="overflow-x-auto border border-gray-300 rounded-lg bg-white max-h-[400px] overflow-y-auto">
+                  <table className="w-full border-collapse relative">
+                    {/* HEADER - Sticky banauko lagi z-10 ra sticky top-0 halnu parcha */}
+                    <thead className="bg-white border-b border-gray-300 sticky top-0 z-10 shadow-[0_1px_0_0_rgba(229,231,235,1)]">
+                      <tr className="text-[14px] text-gray-600 font-medium">
+                        <th className="px-4 py-1 text-left border-r border-gray-300 w-56 bg-white sticky top-0">Name</th>
+                        <th className="px-4 py-1 text-left border-r border-gray-300 w-24 bg-white sticky top-0">Price</th>
+                        <th className="px-4 py-1 text-left border-r border-gray-300 w-45 bg-white sticky top-0">Category</th>
+                        <th className="px-4 py-1 text-left border-r border-gray-300 w-35 bg-white sticky top-0">Unit</th>
+                        <th className="px-4 py-1 text-center border-r border-gray-300 w-16 bg-white sticky top-0">Img</th>
+                        <th className="px-4 py-1 text-center w-20 bg-white sticky top-0">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+
+                    {/* BODY */}
+                    {/* BODY */}
+                    <tbody>
                       {form.categories.map((cat, idx) => (
-                        <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
-                          <td className="p-1">
+                        <tr key={idx} className="border-b border-gray-300">
+                          {/* Name - Height matched to 30px */}
+                          <td className="p-1.5 border-r border-gray-300">
                             <input
                               type="text"
                               value={cat.name}
-                              placeholder="Enter your menu name"
+                              placeholder="Enter menu name"
                               onChange={(e) => handleCategoryChange(idx, "name", e.target.value)}
-                              className="w-full border border-gray-200 px-2 py-1 rounded text-[12px] focus:border-blue-400 outline-none transition-all"
+                              className="w-full border border-gray-300 rounded-md px-3 h-[30px] text-[14px] outline-none focus:border-blue-500"
                               required
                             />
                           </td>
-                          <td className="p-1">
+
+                          {/* Price - Height matched to 30px */}
+                          <td className="p-1.5 border-r border-gray-300">
                             <input
                               type="number"
                               value={cat.price}
                               placeholder="0.00"
                               onChange={(e) => handleCategoryChange(idx, "price", e.target.value)}
-                              className="w-full border border-gray-200 px-2 py-1 rounded text-[12px] focus:border-blue-400 outline-none transition-all"
+                              className="w-full border border-gray-300 rounded-md px-3 h-[30px] text-[14px] outline-none focus:border-blue-500"
                               required
                             />
                           </td>
-                          <td className="p-1">
-                            <div className="relative group">
-                              <select
-                                value={cat.item_category}
-                                onChange={(e) => handleCategoryChange(idx, "item_category", e.target.value)}
-                                className="w-full appearance-none bg-white border border-[#d9d9d9] hover:border-[#40a9ff] focus:border-[#40a9ff] focus:shadow-[0_0_0_2px_rgba(24,144,255,0.2)] px-2 py-1 pr-6 rounded text-[12px] transition-all outline-none cursor-pointer"
-                                required
-                              >
-                                <option value="" disabled>Select</option>
-                                {categoriesList.map((c) => (
-                                  <option key={c.reference_id} value={c.reference_id}>{c.name}</option>
-                                ))}
-                              </select>
-                              <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
-                                <ChevronDown size={12} />
-                              </div>
+
+                          {/* Category Select - style height already 30px cha */}
+                          <td className="p-1.5 border-r border-gray-300">
+                            <div className="relative">
+                              <Select
+                                showSearch
+                                allowClear
+                                open={openDropdownIdx === idx}
+                                onDropdownVisibleChange={(visible) => setOpenDropdownIdx(visible ? idx : null)}
+                                value={cat.item_category || undefined}
+                                placeholder="Select"
+                                className="w-full text-[14px] custom-card-select"
+                                style={{ height: '30px' }}
+                                optionFilterProp="label"
+                                filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+                                onChange={(value) => {
+                                  handleCategoryChange(idx, "item_category", value);
+                                  setOpenDropdownIdx(null);
+                                }}
+                                popupClassName="custom-dropdown-card"
+                                options={categoriesList.map((c) => ({ value: c.reference_id, label: c.name }))}
+                              />
                             </div>
                           </td>
 
-                          <td className="p-1">
-                            <div className="relative group">
-                              <select
-                                value={cat.unit}
-                                onChange={(e) => handleCategoryChange(idx, "unit", e.target.value)}
-                                className="w-full appearance-none bg-white border border-[#d9d9d9] hover:border-[#40a9ff] focus:border-[#40a9ff] focus:shadow-[0_0_0_2px_rgba(24,144,255,0.2)] px-2 py-1 pr-6 rounded text-[12px] transition-all outline-none cursor-pointer"
-                                required
-                              >
-                                <option value="" disabled>Unit</option>
-                                {units.map((u) => (
-                                  <option key={u.reference_id} value={u.reference_id}>{u.name}</option>
-                                ))}
-                              </select>
-                              <div className="pointer-events-none absolute inset-y-0 right-1.5 flex items-center text-gray-400 group-hover:text-gray-500">
-                                <ChevronDown size={12} />
-                              </div>
+                          {/* Unit Select - style height already 30px cha */}
+                          <td className="p-1.5 border-r border-gray-300">
+                            <div className="relative">
+                              <Select
+                                showSearch
+                                allowClear
+                                open={openUnitDropdownIdx === idx}
+                                onDropdownVisibleChange={(visible) => setOpenUnitDropdownIdx(visible ? idx : null)}
+                                value={cat.unit || undefined}
+                                placeholder="Unit"
+                                className="w-full text-[14px] custom-card-select"
+                                style={{ height: '30px' }}
+                                optionFilterProp="label"
+                                popupClassName="custom-dropdown-card"
+                                onChange={(value) => {
+                                  handleCategoryChange(idx, "unit", value);
+                                  setOpenUnitDropdownIdx(null);
+                                }}
+                                filterOption={(input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase())}
+                                options={units.map((u) => ({ value: u.reference_id, label: u.name }))}
+                              />
                             </div>
                           </td>
-                          <td className="p-1 text-center">
-                            <input type="file" id={`upload-${idx}`} onChange={(e) => handleCategoryImage(idx, e)} className="hidden" />
-                            <label htmlFor={`upload-${idx}`} className="mx-auto w-6 h-6 flex items-center justify-center border border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-500 bg-white">
-                              {cat.imagePreview ? <img src={cat.imagePreview} className="w-full h-full object-cover rounded" /> : <Plus size={10} className="text-gray-400" />}
+
+                          {/* Image - Height matched to 30px */}
+                          <td className="p-1.5 border-r border-gray-300 text-center">
+                            <input
+                              type="file"
+                              id={`upload-${idx}`}
+                              onChange={(e) => handleCategoryImage(idx, e)}
+                              className="hidden"
+                            />
+                            <label
+                              htmlFor={`upload-${idx}`}
+                              className="inline-flex w-full h-[30px] items-center justify-center border border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 bg-white"
+                            >
+                              {cat.imagePreview ? (
+                                <img src={cat.imagePreview} className="w-full h-full object-cover rounded-md" />
+                              ) : (
+                                <Plus size={14} className="text-gray-400" />
+                              )}
                             </label>
                           </td>
-                          <td className="p-1 text-center">
-                            <div className="flex justify-center items-center gap-1">
-                              <button type="button" onClick={() => handleDeleteCategoryForm(idx)} className="p-1 text-gray-400 hover:text-red-500">
-                                <X size={14} />
-                              </button>
+
+                          {/* Action - Vertically centered in 30px line */}
+                          <td className="p-1.5 text-center">
+                            <div className="flex justify-center items-center gap-4 h-[30px]">
                               {idx === form.categories.length - 1 && (
-                                <button type="button" onClick={handleAddCategory} className="p-1 text-blue-500 hover:bg-blue-50 rounded">
-                                  <Plus size={14} strokeWidth={3} />
+                                <button type="button" onClick={handleAddCategory} className="text-green-500 hover:text-green-600">
+                                  <Plus size={16} />
+                                </button>
+                              )}
+                              {idx !== 0 && (
+                                <button type="button" onClick={() => handleDeleteCategoryForm(idx)} className="text-red-500 hover:text-red-600">
+                                  <X size={16} />
                                 </button>
                               )}
                             </div>
@@ -582,6 +619,9 @@ export default function AdminMenuManager() {
                     </tbody>
                   </table>
                 </div>
+
+
+
               </div>
 
               <div className="flex justify-end gap-2 px-4 py-2 border-t border-gray-100 bg-gray-50/50">
@@ -592,7 +632,7 @@ export default function AdminMenuManager() {
                   onClick={handleSubmit}
                   className="px-4 py-1 bg-[#236B28] text-white rounded text-[12px] hover:bg-green-800 transition-all font-medium shadow-sm"
                 >
-                  {loading ? "saving..." : "save"}
+                  {loading ? "Creating..." : "Create"}
                 </button>
               </div>
             </div>
@@ -605,10 +645,10 @@ export default function AdminMenuManager() {
 
               <thead className="sticky top-0 bg-[#fafafa] z-10">
                 <tr>
-                  {["SN", "Date", "Name", "Price", "Category", "Unit", "Image", "Action"].map((header, i) => (
+                  {["S.N.", "Date", "Name", "Price", "Category", "Unit", "Image", "Action"].map((header, i) => (
                     <th
                       key={header}
-                      className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
+                      className="border-b border-r border-gray-300 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
                       style={{ width: header === "SN" ? "40px" : header === "Action" ? "80px" : "auto" }}
                     >
                       {header}
@@ -621,38 +661,38 @@ export default function AdminMenuManager() {
                 {filteredMenus.map((menu, index) => (
                   <tr key={menu.reference_id} className="hover:bg-blue-50/30 transition-all">
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">{index + 1}</td>
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 last:border-r-0">{menu.menu_date}</td>
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-600 last:border-r-0">{index + 1}</td>
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 text-gray-500 last:border-r-0">{menu.menu_date}</td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5 last:border-r-0">
+                      <div className="border-gray-300 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
                         {menu.name}
                       </div>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
-                      <div className="border border-gray-200 rounded px-1 py-0.5 text-center">
+                    <td className="border-b border-r border-gray-300 px-1 py-0.5 last:border-r-0">
+                      <div className=" border-gray-300 rounded px-1 py-0.5 text-center">
                         {menu.price}
                       </div>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0">
-                      <span className="text-[10px] px-1.5 py-0 border border-gray-200 rounded bg-white text-gray-500">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 last:border-r-0">
+                      <span className="text-[10px] px-1.5 py-0  border-gray-300 rounded bg-white text-gray-500">
                         {getCategoryName(menu.item_category)}
                       </span>
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0 text-gray-500">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 last:border-r-0 text-gray-500">
                       {getUnitName(menu.unit)}
                     </td>
 
-                    <td className="border-b border-r border-gray-200 px-2 py-0.5 last:border-r-0">
-                      <div className="w-6 h-6 rounded border border-gray-200 overflow-hidden mx-auto bg-gray-50">
+                    <td className="border-b border-r border-gray-300 px-2 py-0.5 last:border-r-0">
+                      <div className="w-6 h-6 rounded  border-gray-300 overflow-hidden mx-auto bg-gray-50">
                         <MenuImageHover src={menu.image || menu.image_url} />
                       </div>
                     </td>
 
-                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                    <td className="border-b border-gray-300 px-2 py-0.5 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleEditMenu(menu)} className="text-blue-500 hover:scale-110 transition">
                           <PencilIcon className="w-3.5 h-3.5" />
@@ -672,7 +712,7 @@ export default function AdminMenuManager() {
           </div>
         </div>
       </div>
-      
+
     </>
   );
 }

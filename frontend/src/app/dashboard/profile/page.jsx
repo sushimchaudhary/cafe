@@ -10,13 +10,10 @@ import {
   Mail,
   Phone,
   Circle,
-  Edit3,
   Activity,
   Calendar,
   Briefcase,
   Users,
-  Settings,
-  Bell,
 } from "lucide-react";
 
 export default function Profile() {
@@ -73,46 +70,45 @@ export default function Profile() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 font-sans">
+    // Background changed to #ddf4e2
+    <div className="min-h-screen bg-[#ddf4e2] font-sans">
       <div className="px-4 sm:px-6 md:px-8 lg:px-10 py-6 max-w-7xl mx-auto">
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-3xl blur-xl"></div>
-          <div className="relative bg-gradient-to-br from-white/80 to-amber-50/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-white/40 shadow-lg shadow-amber-100/50">
+          <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-[#236B28]/10 shadow-xl shadow-[#236B28]/5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full blur-lg opacity-30 animate-pulse"></div>
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 p-1">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#236B28] p-1 shadow-lg shadow-[#236B28]/20">
                   <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-                      <User size={40} className="text-white" />
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#ddf4e2] flex items-center justify-center">
+                      <User size={40} className="text-[#236B28]" />
                     </div>
                   </div>
                 </div>
-                <div className="absolute -bottom-2 -right-2 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                <div className="absolute -bottom-2 -right-2 bg-[#236B28] text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
                   Admin
                 </div>
               </div>
 
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-amber-700 to-orange-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#236B28]">
                     {profile.username}
                   </h1>
-                  <ShieldCheck className="text-amber-500" size={24} />
+                  <ShieldCheck className="text-[#236B28]" size={24} />
                 </div>
-                <p className="text-gray-600 mb-3">
+                <p className="text-gray-600 mb-3 font-medium">
                   Welcome back to your administrative dashboard
                 </p>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-medium">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#236B28]/10 text-[#236B28] text-sm font-semibold">
                     <Store size={14} /> {profile.restaurant_name}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-sm font-medium">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#236B28]/10 text-[#236B28] text-sm font-semibold">
                     <Building2 size={14} /> {profile.branch_name}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
-                    <Circle size={14} fill="currentColor" /> Active
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">
+                    <Circle size={10} fill="currentColor" /> Active
                   </span>
                 </div>
               </div>
@@ -120,255 +116,178 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-amber-50 p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-100 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 flex items-center justify-center shadow-lg">
-                  <Store className="text-white" size={24} />
-                </div>
+          {[
+            { title: "Restaurant", val: profile.restaurant_name, Icon: Store },
+            { title: "Branch", val: profile.branch_name, Icon: Building2 },
+            {
+              title: "Role",
+              val: "Admin",
+              Icon: ShieldCheck,
+              sub: "Full Access",
+            },
+            {
+              title: "Status",
+              val: "Online",
+              Icon: Activity,
+              sub: "Last login: Today",
+            },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="bg-white p-6 rounded-2xl shadow-md border border-[#236B28]/5 hover:shadow-lg transition-all border-b-4 border-b-[#236B28]"
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#ddf4e2] flex items-center justify-center mb-4">
+                <item.Icon className="text-[#236B28]" size={24} />
               </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Restaurant</h3>
-              <p className="text-gray-600 text-sm truncate">
-                {profile.restaurant_name}
+              <h3 className="font-bold text-[#236B28] mb-1">{item.title}</h3>
+              <p className="text-gray-700 text-sm font-medium truncate">
+                {item.val}
               </p>
+              {item.sub && (
+                <p className="text-gray-400 text-xs mt-1">{item.sub}</p>
+              )}
             </div>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-orange-50 p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-100 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-400 flex items-center justify-center shadow-lg">
-                  <Building2 className="text-white" size={24} />
-                </div>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Branch</h3>
-              <p className="text-gray-600 text-sm truncate">
-                {profile.branch_name}
-              </p>
-            </div>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-yellow-50 p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-100 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-400 flex items-center justify-center shadow-lg">
-                  <ShieldCheck className="text-white" size={24} />
-                </div>
-                <div className="text-right">
-                  <span className="text-3xl font-bold bg-gradient-to-r from-yellow-700 to-yellow-900 bg-clip-text text-transparent">
-                    Admin
-                  </span>
-                </div>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Role</h3>
-              <p className="text-gray-600 text-sm">Full Access</p>
-            </div>
-          </div>
-
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-rose-50 p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-rose-100 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-400 flex items-center justify-center shadow-lg">
-                  <Activity className="text-white" size={24} />
-                </div>
-                <div className="text-right">
-                  <span className="text-3xl font-bold bg-gradient-to-r from-rose-700 to-pink-900 bg-clip-text text-transparent">
-                    24h
-                  </span>
-                </div>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Active</h3>
-              <p className="text-gray-600 text-sm">Last login: Today</p>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+          {/* Info Sections */}
+          {[
+            {
+              title: "Personal Information",
+              Icon: User,
+              items: [
+                {
+                  label: "Full Name",
+                  val: `${profile.first_name} ${profile.last_name}`,
+                  subIcon: User,
+                },
+                { label: "Email Address", val: profile.email, subIcon: Mail },
+                {
+                  label: "Mobile Number",
+                  val: profile.mobile_number,
+                  subIcon: Phone,
+                },
+                {
+                  label: "Member Since",
+                  val: "January 2024",
+                  subIcon: Calendar,
+                },
+              ],
+            },
+            {
+              title: "Professional Information",
+              Icon: Briefcase,
+              items: [
+                {
+                  label: "Restaurant",
+                  val: profile.restaurant_name,
+                  subIcon: Store,
+                },
+                {
+                  label: "Branch",
+                  val: profile.branch_name,
+                  subIcon: Building2,
+                },
+                {
+                  label: "Access Level",
+                  val: "Administrator",
+                  subIcon: ShieldCheck,
+                  badge: "Full Access",
+                },
+                {
+                  label: "Team Status",
+                  val: "12 Active Members",
+                  subIcon: Users,
+                },
+              ],
+            },
+          ].map((section, idx) => (
+            <div
+              key={idx}
+              className="bg-white rounded-2xl p-6 shadow-lg border-t-4 border-[#236B28]"
+            >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-400 flex items-center justify-center">
-                  <User className="text-white" size={20} />
+                <div className="w-10 h-10 rounded-lg bg-[#236B28] flex items-center justify-center shadow-md shadow-[#236B28]/20">
+                  <section.Icon className="text-white" size={20} />
                 </div>
                 <h2 className="text-xl font-bold text-gray-800">
-                  Personal Information
+                  {section.title}
                 </h2>
               </div>
-
-              <div className="space-y-5">
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <User className="text-amber-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium text-gray-800">
-                      {profile.first_name} {profile.last_name}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Mail className="text-amber-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Email Address</p>
-                    <p className="font-medium text-gray-800">{profile.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Phone className="text-amber-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Mobile Number</p>
-                    <p className="font-medium text-gray-800">
-                      {profile.mobile_number}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-amber-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Calendar className="text-amber-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Member Since</p>
-                    <p className="font-medium text-gray-800">January 2024</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-lg border border-gray-100">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500"></div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-400 flex items-center justify-center">
-                  <Briefcase className="text-white" size={20} />
-                </div>
-                <h2 className="text-xl font-bold text-gray-800">
-                  Professional Information
-                </h2>
-              </div>
-
-              <div className="space-y-5">
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <Store className="text-orange-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Restaurant</p>
-                    <p className="font-medium text-gray-800">
-                      {profile.restaurant_name}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <Building2 className="text-orange-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Branch</p>
-                    <p className="font-medium text-gray-800">
-                      {profile.branch_name}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <ShieldCheck className="text-orange-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Role</p>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-800">
-                        Administrator
-                      </span>
-                      <span className="px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs rounded-full font-semibold">
-                        Full Access
-                      </span>
+              <div className="space-y-4">
+                {section.items.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#ddf4e2]/30 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[#ddf4e2] flex items-center justify-center">
+                      <item.subIcon className="text-[#236B28]" size={18} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-[#236B28]/60 uppercase tracking-wider">
+                        {item.label}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-800">{item.val}</p>
+                        {item.badge && (
+                          <span className="px-2 py-0.5 bg-[#236B28] text-white text-[10px] rounded-full font-bold">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-orange-50/50 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <Users className="text-orange-600" size={18} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Team Members</p>
-                    <p className="font-medium text-gray-800">
-                      12 Active Members
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="fixed bottom-6 right-6 z-50">
-              <div className="relative group">
-                <button
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 flex items-center justify-center"
-                >
-                  <Calendar className="text-white" size={24} />
-                </button>
+        {/* Floating Calendar */}
+        <div
+          className="fixed bottom-6 right-6 z-50"
+          onMouseEnter={() => setShowCalendar(true)}
+          onMouseLeave={() => setShowCalendar(false)}
+        >
+          <button className="w-14 h-14 rounded-full bg-[#236B28] shadow-xl hover:shadow-[#236B28]/30 transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-default">
+            <Calendar className="text-white" size={24} />
+          </button>
 
-                {showCalendar && (
-                  <div className="absolute bottom-16 right-0 md:right-0 w-72 md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 z-50">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-gray-900">
-                        Today's Schedule
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {new Date().toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-1 mb-4">
-                      {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
-                        <div
-                          key={day}
-                          className="text-center text-xs text-gray-500 font-semibold py-1"
-                        >
-                          {day}
-                        </div>
-                      ))}
-
-                      {Array.from({ length: 31 }, (_, i) => {
-                        const day = i + 1;
-                        const isToday = day === new Date().getDate();
-                        return (
-                          <div
-                            key={day}
-                            className={`text-center text-sm py-1 rounded cursor-pointer ${
-                              isToday
-                                ? "bg-amber-600 text-white"
-                                : "hover:bg-gray-100"
-                            }`}
-                          >
-                            {day}
-                          </div>
-                        );
-                      })}
-                    </div>
+          {showCalendar && (
+            <div className="absolute bottom-16 right-0 w-72 bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 z-50 animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-200">
+              <div className="flex items-center justify-between mb-4 border-b pb-2">
+                <h3 className="font-bold text-[#236B28]">Today's Date</h3>
+                <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  {new Date().toLocaleDateString()}
+                </span>
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
+                  <div
+                    key={d}
+                    className="text-center text-[10px] font-bold text-[#236B28]/40"
+                  >
+                    {d}
                   </div>
-                )}
+                ))}
+                {Array.from({ length: 31 }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`text-center text-sm py-1 rounded font-medium ${
+                      i + 1 === new Date().getDate()
+                        ? "bg-[#236B28] text-white"
+                        : "text-gray-600 hover:bg-[#ddf4e2]"
+                    }`}
+                  >
+                    {i + 1}
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
