@@ -1,8 +1,7 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Lock, LogIn, User } from "lucide-react";
+import { Eye, EyeOff, Lock, LogIn, User, ShieldCheck, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
 
@@ -27,10 +26,8 @@ const AdminLoginPage = () => {
     setLoading(true);
 
     try {
-      // Basic Auth Header
       const authHeader = "Basic " + btoa(`${username}:${password}`);
 
-      // Login request
       const res = await fetch(`${API_URL}/api/user/login/`, {
         method: "POST",
         headers: {
@@ -41,7 +38,6 @@ const AdminLoginPage = () => {
       });
 
       const data = await res.json();
-      console.log("Login response:", data);
 
       if (!res.ok || !data?.is_staff) {
         toast.error("Invalid credentials or not admin!");
@@ -50,341 +46,167 @@ const AdminLoginPage = () => {
       }
 
       localStorage.setItem("adminToken", data.token || "");
-      localStorage.setItem("username", username || "");  
-      
+      localStorage.setItem("username", username || "");
       localStorage.setItem("first_name", data.first_name || "");
       localStorage.setItem("last_name", data.last_name || "");
       localStorage.setItem("email", data.email || "");
       localStorage.setItem("mobile_number", data.mobile_number || "");
-
       localStorage.setItem("restaurant_id", data.restaurant_id || "");
       localStorage.setItem("restaurant_name", data.restaurant_name || "");
-
       localStorage.setItem("branch_id", data.branch_id || "");
       localStorage.setItem("branch_name", data.branch_name || "");
+      localStorage.setItem("is_superuser", data.is_superuser ? "true" : "false");
 
-      localStorage.setItem(
-        "is_superuser",
-        data.is_superuser ? "true" : "false"
-      );
-
-      // Try fetching admin details (use available admins API) to populate missing fields
       try {
         const userId = data.user_id || data.userId || data.user || null;
         if (userId) {
-          const profileRes = await fetch(
-            `${API_URL}/api/user/admins/${userId}/`,
-            {
-              headers: { Authorization: `Token ${data.token}` },
-            }
-          );
-
-          if (profileRes.ok) {
-            const profileJson = await profileRes.json();
-            const src = profileJson?.response || profileJson?.data || profileJson;
-
-            const firstName = src?.first_name || src?.firstName || data.first_name || "";
-            const lastName = src?.last_name || src?.lastName || data.last_name || "";
-            const emailAddr = src?.email || data.email || "";
-            const mobile = src?.mobile_number || src?.mobile || data.mobile_number || "";
-            const restaurantName = src?.restaurant_name || src?.restaurant || localStorage.getItem("restaurant_name") || "";
-            const branchName = src?.branch_name || src?.branch || localStorage.getItem("branch_name") || "";
-
-            if (firstName) localStorage.setItem("first_name", firstName);
-            if (lastName) localStorage.setItem("last_name", lastName);
-            if (emailAddr) localStorage.setItem("email", emailAddr);
-            if (mobile) localStorage.setItem("mobile_number", mobile);
-            if (restaurantName) localStorage.setItem("restaurant_name", restaurantName);
-            if (branchName) localStorage.setItem("branch_name", branchName);
-          }
-        }
-      } catch (err) {
-        console.warn("Admin detail fetch failed:", err);
-      }
-
-      if (data.is_superuser) {
-        const r = await fetch(`${API_URL}/api/restaurants/`, {
-          headers: { Authorization: `Token ${data.token}` },
-        });
-        const rData = await r.json();
-        const restaurantData = rData.data || [];
-        localStorage.setItem("restaurants", JSON.stringify(restaurantData));
-      } else if (data.restaurant_id) {
-        const r = await fetch(
-          `${API_URL}/api/restaurants/${data.restaurant_id}/`,
-          {
+          const profileRes = await fetch(`${API_URL}/api/user/admins/${userId}/`, {
             headers: { Authorization: `Token ${data.token}` },
+          });
+          if (profileRes.ok) {
+            const src = (await profileRes.json()).data || {};
+            if (src.first_name) localStorage.setItem("first_name", src.first_name);
+            if (src.last_name) localStorage.setItem("last_name", src.last_name);
+            if (src.email) localStorage.setItem("email", src.email);
+            if (src.mobile_number) localStorage.setItem("mobile_number", src.mobile_number);
           }
-        );
-        const rData = await r.json();
-        const restaurantData = rData.response ? [rData.response] : [];
-        localStorage.setItem("restaurants", JSON.stringify(restaurantData));
-
-        if (restaurantData.length > 0) {
-          localStorage.setItem(
-            "restaurant_id",
-            restaurantData[0].id || restaurantData[0]._id
-          );
         }
-      }
+      } catch (err) { console.warn(err); }
 
       if (data.is_superuser) {
-        const b = await fetch(`${API_URL}/api/branches/`, {
-          headers: { Authorization: `Token ${data.token}` },
-        });
-        const bData = await b.json();
-        const branchData = bData.data || [];
-        localStorage.setItem("branches", JSON.stringify(branchData));
-      } else if (data.branch_id) {
-        const b = await fetch(`${API_URL}/api/branches/${data.branch_id}/`, {
-          headers: { Authorization: `Token ${data.token}` },
-        });
-        const bData = await b.json();
-        const branchData = bData.response ? [bData.response] : [];
-        localStorage.setItem("branches", JSON.stringify(branchData));
-
-        if (branchData.length > 0) {
-          localStorage.setItem(
-            "branch_id",
-            branchData[0].id || branchData[0]._id
-          );
-        }
-      }
-
-      toast.success("Login successful!");
-      if (data.is_superuser) {
+        const r = await fetch(`${API_URL}/api/restaurants/`, { headers: { Authorization: `Token ${data.token}` } });
+        localStorage.setItem("restaurants", JSON.stringify((await r.json()).data || []));
+        const b = await fetch(`${API_URL}/api/branches/`, { headers: { Authorization: `Token ${data.token}` } });
+        localStorage.setItem("branches", JSON.stringify((await b.json()).data || []));
         router.push("/dashboard/restaurants");
       } else {
         router.push("/dashboard");
       }
     } catch (err) {
-      console.error("Login error:", err);
-      toast.error("Something went wrong! Please try again.");
+      toast.error("Something went wrong!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 px-4 py-8">
+    <>
+    <div className="min-h-screen flex bg-white font-sans">
       <ToastProvider />
-      <svg
-        className="absolute inset-0 w-full h-full top-0 left-0 opacity-[0.25] pointer-events-none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern
-            id="momo-pattern"
-            x="0"
-            y="0"
-            width="150"
-            height="150"
-            patternUnits="userSpaceOnUse"
-          >
-            {/* Momo dumpling with fold details */}
-            <g transform="translate(35, 50)">
-              <ellipse
-                cx="0"
-                cy="8"
-                rx="18"
-                ry="5"
-                fill="#d97706"
-                opacity="0.3"
-              />
-              <circle cx="0" cy="0" r="15" fill="#f59e0b" opacity="0.4" />
-              <path
-                d="M -12 0 Q 0 -8 12 0"
-                stroke="#d97706"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.6"
-              />
-              <path
-                d="M -10 -2 Q 0 -10 10 -2"
-                stroke="#d97706"
-                strokeWidth="1.5"
-                fill="none"
-                opacity="0.5"
-              />
-              <path
-                d="M -8 -4 Q 0 -12 8 -4"
-                stroke="#d97706"
-                strokeWidth="1"
-                fill="none"
-                opacity="0.4"
-              />
-              {/* Steam */}
-              <path
-                d="M -8 -18 Q -6 -25 -8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 0 -20 Q 2 -27 0 -34"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 8 -18 Q 10 -25 8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-            </g>
 
-            {/* Decorative plate with food */}
-            <g transform="translate(100, 100)">
-              <ellipse
-                cx="0"
-                cy="0"
-                rx="25"
-                ry="8"
-                fill="none"
-                stroke="#d97706"
-                strokeWidth="2"
-                opacity="0.4"
-              />
-              <ellipse
-                cx="0"
-                cy="-2"
-                rx="28"
-                ry="6"
-                fill="#f59e0b"
-                opacity="0.2"
-              />
-              <circle cx="-8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="0" cy="-10" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-            </g>
+      <div className="hidden lg:flex w-1/2 bg-[#1C4D21] relative overflow-hidden flex-col justify-between p-12">
+        <div className="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-green-400/10 rounded-full blur-3xl" />
 
-            {/* Fork and spoon icons */}
-            <g transform="translate(115, 35)" opacity="0.25">
-              <rect x="0" y="0" width="1.5" height="25" fill="#d97706" />
-              <circle cx="0.75" cy="-2" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-6" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-10" r="2" fill="#d97706" />
-            </g>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#momo-pattern)" />
-      </svg>
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-12 text-white/90">
+            <ShieldCheck size={32} className="text-green-400" />
+            <span className="text-xl font-bold tracking-widest uppercase">Admin</span>
+          </div>
 
-      <div className="z-10 bg-white/90 rounded-2xl shadow-2xl p-5 md:p-7 w-[350px] max-w-md border border-amber-100">
-        {/* Header */}
-        <div className="text-center mb-3">
-          
-          <h2 className="text-[20px] font-bold text-amber-600">
-            Admin Login
-          </h2>
-          <p className="text-gray-600 text-[13px]">
-            Sign in to access your dashboard
-          </p>
+          <div className="mt-20">
+            <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
+              Welcome Back to <br />
+              <span className="text-green-400">Control Center.</span>
+            </h1>
+            <p className="text-green-100/70 text-lg max-w-md leading-relaxed">
+              Manage your orders, menu, and branches with our high-performance administrative suite.
+              Secure, fast, and easy to use.
+            </p>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-1 ">
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Username
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                required
-                className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-              />
+        <div className="relative z-10 flex items-center gap-6 text-sm text-green-200/50">
+          <span>Privacy Policy</span>
+          <span>Terms of Service</span>
+          <span>© 2026 Sajha Intotech</span>
+        </div>
+      </div>
+
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 md:p-20 bg-gray-50/50">
+        <div className="w-full max-w-[420px]">
+
+          <div className="lg:hidden flex justify-center mb-8">
+            <div className="bg-[#1C4D21] p-3 rounded-xl">
+              <ShieldCheck className="text-white w-8 h-8" />
             </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-                className="w-full pl-8 pr-11 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-500"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+          <div className="mb-10 text-center lg:text-left">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In</h2>
+            <p className="text-gray-500 font-medium">Enter your credentials to access your account</p>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 mt-4 text-white py-2 rounded
-          font-semibold shadow-lg transition duration-300
-          hover:bg-amber-700 focus:ring-2 focus:ring-amber-400
-          disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 block">Username <span className="text-red-400">*</span></label>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
+                  <User size={18} />
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <label className="text-sm font-semibold text-gray-700 block">Password <span className="text-red-400">*</span></label>
+                <span className="text-xs text-[#1C4D21] font-semibold cursor-pointer hover:underline">Forgot password?</span>
+              </div>
+              <div className="relative group">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21] transition-colors">
+                  <Lock size={18} />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                  className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl focus:border-[#1C4D21] focus:ring-4 focus:ring-[#1C4D21]/5 outline-none transition-all placeholder:text-gray-300 text-gray-700 shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Logging in...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4" />
-                Login
-              </>
-            )}
-          </button>
-        </form>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#1C4D21] hover:bg-[#143918] text-white py-4 rounded-xl font-bold text-[16px] transition-all duration-300 active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 shadow-xl shadow-green-900/10 mt-8"
+            >
+              {loading ? (
+                <div className="h-5 w-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Login</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-10 text-center text-sm text-gray-500">
+            Having trouble logging in? <span className="text-[#1C4D21] font-bold cursor-pointer underline">Contact Support</span>
+          </p>
+        </div>
       </div>
     </div>
+    </>
   );
 };
 

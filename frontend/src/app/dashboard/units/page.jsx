@@ -116,18 +116,18 @@ export default function AdminMenuUnitPage() {
   };
 
   return (
-    <div className="container mx-auto h-screen flex flex-col font-sans px-1">
+    <>
+    <div className="mx-auto min-h-screen  font-sans p-4 bg-[#ddf4e2]">
       <ToastProvider />
-
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
-        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
+        <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
           Unit
         </h1>
 
         <div className="flex w-full md:w-auto items-center gap-2">
           <div className="relative">
             <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -145,19 +145,21 @@ export default function AdminMenuUnitPage() {
               placeholder="Search Unit..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
-             focus:outline-none focus:ring-1 focus:ring-amber-200"
+              className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px]
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40"
             />
           </div>
 
           <button
             onClick={() => setShowForm(true)}
-            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
+            className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold
+      bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
           >
             Create
           </button>
         </div>
       </div>
+
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -185,49 +187,52 @@ export default function AdminMenuUnitPage() {
         </div>
       )}
 
-     
 
+      {/* FORM MODAL */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
-          <div className="bg-white w-full max-w-md lg:max-w-lg rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200 lg:mb-34">
-            {/* Header */}
-            <div className="flex justify-end p-1 border-b border-gray-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
+
+          <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+
+
+            <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-[13px] font-bold text-gray-700">
+                {editId ? "Edit Unit" : "Add New Unit"}
+              </h2>
               <button
                 onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-red-500 transition"
+                className="text-gray-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-gray-100"
               >
-                <X size={20} />
+                <X size={16} />
               </button>
             </div>
 
-            {/* FORM */}
-            <form onSubmit={handleSubmit} className="p-2 space-y-1">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Unit Name
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
+
+              <div className="space-y-1.5">
+                <label className="block text-[12px] font-semibold text-gray-600">
+                  Unit Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={unitName}
                   onChange={(e) => setUnitName(e.target.value)}
                   placeholder="e.g. Kg, Plate, Piece"
-                  className="border p-1 w-full text-sm border-amber-300 rounded
-            focus:outline-none focus:ring-1 focus:ring-amber-200"
+                  className="w-full px-3 py-1.5 text-[12px] border border-gray-300 rounded focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 outline-none transition-all placeholder:text-gray-400"
                   required
                 />
               </div>
 
-              {/* ACTIONS */}
-              <div className="flex justify-end ">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="formCancleButton px-3 py-1"
-                >
-                  Cancel
-                </button>
 
-                <button type="submit" disabled={loading} className="formButton">
+              <div className="flex justify-end gap-2 pt-1">
+
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`px-4 py-1.5 text-[12px] font-semibold text-white rounded shadow-sm transition-all
+              ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#236B28] hover:bg-[#1C5721] active:scale-95'}`}
+                >
                   {loading ? "Saving..." : editId ? "Update" : "Create"}
                 </button>
               </div>
@@ -237,21 +242,40 @@ export default function AdminMenuUnitPage() {
       )}
 
       {/* UNIT TABLE */}
-      <div className="min-h-0 bg-white rounded border shadow-sm overflow-hidden">
-        <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
-          <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
+      <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
+        <div
+          className="flex-1 overflow-y-auto scrollbar-hide"
+          style={{ maxHeight: 'calc(100vh - 150px)' }}>
+          <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
+
+            <thead className="sticky top-0 bg-[#fafafa] z-10">
               <tr>
-                <th className="w-1/12 border px-4 py-2 text-left">SN</th>
-                <th className="w-3/4 border px-6 py-2 text-left">Name</th>
-                <th className="w-1/8 border px-6 py-2 text-end pr-4">Action</th>
+                {["SN", "Name", "Action"].map((header) => (
+                  <th
+                    key={header}
+                    className="border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700 last:border-r-0"
+                    style={{
+                      width:
+                        header === "SN"
+                          ? "50px"
+                          : header === "Action"
+                            ? "90px"
+                            : "auto",
+                    }}
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            <tbody className="text-sm">
+            <tbody className="bg-white">
               {filteredUnits.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-6 text-gray-400">
+                  <td
+                    colSpan={3}
+                    className="text-center py-6 text-gray-400 border-b border-gray-200"
+                  >
                     {search ? "units not match search" : "unit not found"}
                   </td>
                 </tr>
@@ -259,30 +283,37 @@ export default function AdminMenuUnitPage() {
                 filteredUnits.map((u, index) => (
                   <tr
                     key={u.reference_id}
-                    className="hover:bg-gray-50 transition duration-150"
+                    className="hover:bg-blue-50/30 transition-all"
                   >
-                    <td className="px-4 py-1 border">{index + 1}</td>
+                    <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-600 last:border-r-0">
+                      {index + 1}
+                    </td>
 
-                    <td className="px-4 py-1 border">{u.name}</td>
+                    <td className="border-b border-r border-gray-200 px-1 py-0.5 last:border-r-0">
+                      <div className="border border-gray-200 rounded px-1 py-0.5 bg-gray-50/50 text-gray-800 truncate">
+                        {u.name}
+                      </div>
+                    </td>
 
-                    <td className="px-2 py-1 border">
-                      <div className="flex justify-end gap-1">
+                    <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                      <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEdit(u)}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
+                          className="text-blue-500 hover:scale-110 transition"
                           title="Edit"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className="w-3.5 h-3.5" />
                         </button>
+
                         <button
                           onClick={() => {
                             setDeleteUnit(u);
                             setShowDeleteModal(true);
                           }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
+                          className="text-red-400 hover:scale-110 transition"
                           title="Delete"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -294,5 +325,6 @@ export default function AdminMenuUnitPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
-
+import { useRouter } from 'next/navigation';
 import ToastProvider from "@/components/ToastProvider";
-import { Lock, Mail, MapPin, Phone, User, UserPlus } from "lucide-react";
+import { Lock, Mail, MapPin, Phone, User, UserPlus, Eye, EyeOff, Building2, Landmark, ChevronDown, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -16,7 +16,8 @@ export default function AdminRegisterPage({
   const [branches, setBranches] = useState([]);
   const [filteredBranches, setFilteredBranches] = useState([]);
   const [adminToken, setAdminToken] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -29,7 +30,6 @@ export default function AdminRegisterPage({
     branch: "",
   });
 
-  // Fetch token on mount
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -37,7 +37,6 @@ export default function AdminRegisterPage({
       return;
     }
     setAdminToken(token);
-
     fetchRestaurants(token);
     fetchBranches(token);
   }, []);
@@ -47,11 +46,9 @@ export default function AdminRegisterPage({
       const res = await fetch(`${API_URL}/api/restaurants/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch restaurants");
       const data = await res.json();
       setRestaurants(data.data || []);
     } catch (err) {
-      console.error(err);
       toast.error("Failed to fetch restaurants.");
     }
   };
@@ -61,16 +58,13 @@ export default function AdminRegisterPage({
       const res = await fetch(`${API_URL}/api/branches/`, {
         headers: { Authorization: `Token ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to fetch branches");
       const data = await res.json();
       setBranches(data.data || []);
     } catch (err) {
-      console.error(err);
       toast.error("Failed to fetch branches.");
     }
   };
 
-  // Filter branches based on selected restaurant
   useEffect(() => {
     if (form.restaurant) {
       const filtered = branches.filter(
@@ -86,27 +80,15 @@ export default function AdminRegisterPage({
   useEffect(() => {
     if (adminData) {
       setForm({
-        username: adminData.username,
+        username: adminData.username || "",
         password: "",
-        first_name: adminData.first_name,
-        last_name: adminData.last_name,
-        email: adminData.email,
-        mobile_number: adminData.mobile_number,
-        address: adminData.address,
-        restaurant: adminData.restaurant,
-        branch: adminData.branch,
-      });
-    } else {
-      setForm({
-        username: "",
-        password: "",
-        first_name: "",
-        last_name: "",
-        email: "",
-        mobile_number: "",
-        address: "",
-        restaurant: "",
-        branch: "",
+        first_name: adminData.first_name || "",
+        last_name: adminData.last_name || "",
+        email: adminData.email || "",
+        mobile_number: adminData.mobile_number || "",
+        address: adminData.address || "",
+        restaurant: adminData.restaurant?.reference_id || "",
+        branch: adminData.branch?.reference_id || "",
       });
     }
   }, [adminData]);
@@ -118,18 +100,14 @@ export default function AdminRegisterPage({
     try {
       let res;
       if (adminData?.reference_id) {
-        // Edit mode
-        res = await fetch(
-          `${API_URL}/api/user/admins/${adminData.reference_id}/`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Token ${adminToken}`,
-            },
-            body: JSON.stringify(form),
-          }
-        );
+        res = await fetch(`${API_URL}/api/user/admins/${adminData.reference_id}/`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${adminToken}`,
+          },
+          body: JSON.stringify(form),
+        });
       } else {
         res = await fetch(`${API_URL}/api/user/admins/`, {
           method: "POST",
@@ -142,349 +120,309 @@ export default function AdminRegisterPage({
       }
 
       const data = await res.json();
-      if (!res.ok) return toast.error(data.response || "Failed");
+      if (!res.ok) return toast.error(data.response || "Failed to register");
 
-      toast.success(adminData ? "Admin updated!" : "Admin registered!");
+      toast.success(adminData ? "Admin updated!" : "Admin registered successfully!");
 
-      // 🔹 Save all fields in localStorage
-      localStorage.setItem("username", form.username);
-      localStorage.setItem("first_name", form.first_name);
-      localStorage.setItem("last_name", form.last_name);
-      localStorage.setItem("email", form.email);
-      localStorage.setItem("mobile_number", form.mobile_number);
-      localStorage.setItem("address", form.address);
-      localStorage.setItem(
-        "restaurant_name",
-        restaurants.find((r) => r.reference_id === form.restaurant)?.name || "-"
-      );
-      localStorage.setItem(
-        "branch_name",
-        branches.find((b) => b.reference_id === form.branch)?.name || "-"
-      );
+      if (refreshAdmins) refreshAdmins();
 
-      // Refresh parent table
+      if (closeModal) closeModal();
 
-      closeModal();
-
-      setForm({
-        username: "",
-        password: "",
-        first_name: "",
-        last_name: "",
-        email: "",
-        mobile_number: "",
-        address: "",
-        restaurant: "",
-        branch: "",
-      });
     } catch (err) {
-      console.error(err);
-      toast.error(err.message);
+      toast.error("Something went wrong!");
     }
   };
 
+
+  const router = useRouter();
+
+  const handleClose = () => {
+    if (closeModal) {
+      closeModal(); 
+    } else {
+      router.back(); 
+    }
+  };
+
+
+
   return (
-    <div
-    className="
-      relative rounded flex justify-center items-center
-      bg-amber-50 lg:bg-amber-50
-      sm:bg-transparent md:bg-transparent
-      min-h-[400px] sm:min-h-[500px] md:min-h-[600px] lg:min-h-screen
-    "
-  >
+    <>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#236B28]/10 backdrop-blur-md">
       <ToastProvider />
 
-      <svg
-        className="not-last:absolute inset-0 w-full h-full top-0  left-0 opacity-[0.25] pointer-events-none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern
-            id="momo-pattern"
-            x="0"
-            y="0"
-            width="150"
-            height="150"
-            patternUnits="userSpaceOnUse"
+      <div className="relative w-full max-w-[670px] bg-white rounded-lg shadow-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+          <div className="flex items-center gap-2">
+            <UserPlus className="text-[#1C4D21] w-5 h-5" />
+            <h2 className="text-[16px] font-semibold text-gray-800">
+              {adminData ? "Edit Admin Account" : "Admin Registration"}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="absolute top-4 right-4 z-10 text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-all"
           >
-            {/* Momo dumpling with fold details */}
-            <g transform="translate(35, 50)">
-              <ellipse
-                cx="0"
-                cy="8"
-                rx="18"
-                ry="5"
-                fill="#d97706"
-                opacity="0.3"
-              />
-              <circle cx="0" cy="0" r="15" fill="#f59e0b" opacity="0.4" />
-              <path
-                d="M -12 0 Q 0 -8 12 0"
-                stroke="#d97706"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.6"
-              />
-              <path
-                d="M -10 -2 Q 0 -10 10 -2"
-                stroke="#d97706"
-                strokeWidth="1.5"
-                fill="none"
-                opacity="0.5"
-              />
-              <path
-                d="M -8 -4 Q 0 -12 8 -4"
-                stroke="#d97706"
-                strokeWidth="1"
-                fill="none"
-                opacity="0.4"
-              />
-              {/* Steam */}
-              <path
-                d="M -8 -18 Q -6 -25 -8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 0 -20 Q 2 -27 0 -34"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-              <path
-                d="M 8 -18 Q 10 -25 8 -32"
-                stroke="#f59e0b"
-                strokeWidth="2"
-                fill="none"
-                opacity="0.3"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* Decorative plate with food */}
-            <g transform="translate(100, 100)">
-              <ellipse
-                cx="0"
-                cy="0"
-                rx="25"
-                ry="8"
-                fill="none"
-                stroke="#d97706"
-                strokeWidth="2"
-                opacity="0.4"
-              />
-              <ellipse
-                cx="0"
-                cy="-2"
-                rx="28"
-                ry="6"
-                fill="#f59e0b"
-                opacity="0.2"
-              />
-              <circle cx="-8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="0" cy="-10" r="6" fill="#d97706" opacity="0.4" />
-              <circle cx="8" cy="-8" r="6" fill="#d97706" opacity="0.4" />
-            </g>
-
-            {/* Fork and spoon icons */}
-            <g transform="translate(115, 35)" opacity="0.25">
-              <rect x="0" y="0" width="1.5" height="25" fill="#d97706" />
-              <circle cx="0.75" cy="-2" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-6" r="2" fill="#d97706" />
-              <circle cx="0.75" cy="-10" r="2" fill="#d97706" />
-            </g>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#momo-pattern)" />
-      </svg>
-
-      <div className="w-full max-w-2xl bg-white rounded-xl border border-amber-200 p-2 m-1 sm:p-8 z-10">
-        <div className="text-center mb-6">
-          <h2 className="text-[20px] font-bold text-amber-600 ">
-            Admin Register
-          </h2>
-          <p className="text-gray-600 text-[13px]">
-            Create a new admin account
-          </p>
+            <svg viewBox="64 64 896 896" width="1.2em" height="1.2em" fill="currentColor">
+              <path d="M563.8 512l262.5-312.9c4.4-5.2.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3-3.6-7.5-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 00203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3 3.6 7.5 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z"></path>
+            </svg>
+          </button>
         </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-        >
-          {/* Username */}
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Username"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              required
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+        {/* Body */}
+        <div className="px-6 py-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+          <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Password */}
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700 flex items-center gap-1">
+                  Username <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    required
+                    className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none transition-all placeholder:text-gray-300"
+                  />
+                </div>
+              </div>
 
-          {/* First Name */}
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="First Name"
-              value={form.first_name}
-              onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-              required
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700 flex items-center gap-1">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    required={!adminData}
+                    className="w-full pl-9 pr-10 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none transition-all placeholder:text-gray-300"
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
 
-          {/* Last Name */}
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={form.last_name}
-              onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-              required
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700">First Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  placeholder="First name"
+                  value={form.first_name}
+                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  required
+                  className="w-full px-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700">Last Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  placeholder="Last name"
+                  value={form.last_name}
+                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  required
+                  className="w-full px-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                />
+              </div>
+            </div>
 
-          {/* Email */}
-          <div className="relative sm:col-span-2">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-[13px] text-gray-700">Email Address <span className="text-red-500">*</span></label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                <input
+                  type="email"
+                  placeholder="example@mail.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                  className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                />
+              </div>
+            </div>
 
-          {/* Address */}
-          <div className="relative sm:col-span-2">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Address"
-              value={form.address || ""}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-              focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-              outline-none transition"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700">Mobile <span className="text-red-500">*</span></label>
+                <div className="relative group">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                  <input
+                    type="tel"
+                    placeholder="98XXXXXXXX"
+                    value={form.mobile_number}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setForm({ ...form, mobile_number: value });
+                    }}
+                    required
+                    className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[13px] text-gray-700">Address <span className="text-red-500">*</span></label>
+                <div className="relative group">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1C4D21]" size={14} />
+                  <input
+                    type="text"
+                    placeholder="City, Street"
+                    value={form.address || ""}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    className="w-full pl-9 pr-3 py-1.5 text-[14px] border border-gray-300 rounded focus:border-[#1C4D21] outline-none"
+                  />
+                </div>
+              </div>
+            </div>
 
-          {/* Mobile */}
-          <div className="relative sm:col-span-2">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 w-4 h-4" />
 
-            <input
-              type="tel"
-              placeholder="Mobile Number"
-              value={form.mobile_number}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                if (value.length <= 10) {
-                  setForm({ ...form, mobile_number: value });
-                }
-              }}
-              required
-              maxLength={10}
-              pattern="[0-9]{10}"
-              title="Mobile number must be exactly 10 digits"
-              className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-    focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-    outline-none transition"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5 relative" onMouseLeave={() => setOpenDropdown(null)}>
+                <label className="text-[13px] font-semibold text-gray-600 block ml-0.5">
+                  Restaurant <span className="text-red-500">*</span>
+                </label>
 
-          {/* Restaurant */}
-          <select
-            value={form.restaurant}
-            onChange={(e) => setForm({ ...form, restaurant: e.target.value })}
-            required
-            className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-            focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-            outline-none transition"
-          >
-            <option value="">Select Restaurant</option>
-            {restaurants.map((r) => (
-              <option key={r.reference_id} value={r.reference_id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
+                <div className="relative">
+                  <div
+                    onClick={() => setOpenDropdown(openDropdown === 'res' ? null : 'res')}
+                    className={`relative w-full flex items-center h-[38px] pl-9 pr-10 bg-white border rounded-[6px] cursor-pointer transition-all duration-200
+                  ${openDropdown === 'res' ? 'border-[#236B28] ring-[3px] ring-[#236B28]/10 shadow-sm' : 'border-[#d9d9d9] hover:border-[#236B28] shadow-sm'}
+                 `}
+                  >
+                    <Building2 className={`absolute left-3 text-gray-400 ${openDropdown === 'res' ? 'text-[#236B28]' : ''}`} size={14} />
+                    <span className={`text-[13px] truncate ${!form.restaurant ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>
+                      {restaurants.find(r => r.reference_id === form.restaurant)?.name || "Select Restaurant"}
+                    </span>
+                    <div className="absolute right-3 border-l border-gray-100 pl-2 text-gray-400">
+                      <ChevronDown size={14} className={`transition-transform duration-300 ${openDropdown === 'res' ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
 
-          {/* Branch */}
-          <select
-            value={form.branch}
-            onChange={(e) => setForm({ ...form, branch: e.target.value })}
-            required
-            className="w-full pl-8 pr-4 py-1 placeholder:text-sm border border-amber-300 rounded
-            focus:ring-1 focus:ring-amber-300 focus:border-amber-300
-            outline-none transition"
-          >
-            <option value="">Select Branch</option>
-            {filteredBranches.map((b) => (
-              <option key={b.reference_id} value={b.reference_id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+                  {openDropdown === 'res' && (
+                    <div className="absolute bottom-full z-[100] w-full mb-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-bottom">
+                      <div className="bg-[#f1f3f5] px-4 py-2.5 border-b border-gray-200">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Select Restaurant</span>
+                      </div>
 
-          <div className="sm:col-span-2 flex flex-col items-center gap-2">
-            <button
-              type="submit"
-              className="w-full bg-amber-600 text-white py-2 rounded font-medium hover:bg-amber-700 transition transform active:scale-95 text-sm"
-            >
-              Register Admin
-            </button>
+                      <div className="p-2 max-h-[220px] overflow-y-auto space-y-2 bg-white">
+                        {restaurants.map((r) => (
+                          <div
+                            key={r.reference_id}
+                            onClick={() => {
+                              setForm({ ...form, restaurant: r.reference_id });
+                              setOpenDropdown(null);
+                            }}
+                            className={`group px-3 py-2.5 text-[13px] flex items-center justify-between rounded-lg cursor-pointer transition-all border
+                  ${form.restaurant === r.reference_id
+                                ? 'bg-[#eef5ee] border-[#236B28] text-[#236B28] font-bold shadow-sm'
+                                : 'bg-[#f8f9fa] border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-[#f1f3f5]'}
+                `}
+                          >
+                            <span className="truncate">{r.name}</span>
+                            {form.restaurant === r.reference_id && (
+                              <div className="bg-[#236B28] rounded-full p-0.5">
+                                <Check size={10} className="text-white" strokeWidth={4} />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <a
-                href="/auth/login"
-                className="text-amber-600 hover:underline font-medium"
+              <div className="space-y-1.5 relative" onMouseLeave={() => setOpenDropdown(null)}>
+                <label className="text-[13px] font-semibold text-gray-600 block ml-0.5">
+                  Branch <span className="text-red-500">*</span>
+                </label>
+
+                <div className="relative">
+                  <div
+                    onClick={() => setOpenDropdown(openDropdown === 'br' ? null : 'br')}
+                    className={`relative w-full flex items-center h-[38px] pl-9 pr-10 bg-white border rounded-[6px] cursor-pointer transition-all duration-200
+          ${openDropdown === 'br' ? 'border-[#236B28] ring-[3px] ring-[#236B28]/10 shadow-sm' : 'border-[#d9d9d9] hover:border-[#236B28] shadow-sm'}
+        `}
+                  >
+                    <Landmark className={`absolute left-3 text-gray-400 ${openDropdown === 'br' ? 'text-[#236B28]' : ''}`} size={14} />
+                    <span className={`text-[13px] truncate ${!form.branch ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>
+                      {filteredBranches.find(b => b.reference_id === form.branch)?.name || "Select Branch"}
+                    </span>
+                    <div className="absolute right-3 border-l border-gray-100 pl-2 text-gray-400">
+                      <ChevronDown size={14} className={`transition-transform duration-300 ${openDropdown === 'br' ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
+
+                  {openDropdown === 'br' && (
+                    <div className="absolute bottom-full z-[100] w-full mb-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-bottom">
+                      <div className="bg-[#f1f3f5] px-4 py-2.5 border-b border-gray-200">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Select Branch</span>
+                      </div>
+
+                      <div className="p-2 max-h-[220px] overflow-y-auto space-y-2 bg-white">
+                        {filteredBranches.length === 0 ? (
+                          <div className="py-8 text-center text-gray-400 text-[12px] bg-[#f8f9fa] rounded-lg border border-dashed border-gray-200">
+                            Please select a restaurant first
+                          </div>
+                        ) : (
+                          filteredBranches.map((b) => (
+                            <div
+                              key={b.reference_id}
+                              onClick={() => {
+                                setForm({ ...form, branch: b.reference_id });
+                                setOpenDropdown(null);
+                              }}
+                              className={`group px-3 py-2.5 text-[13px] flex items-center justify-between rounded-lg cursor-pointer transition-all border
+                                ${form.branch === b.reference_id
+                                  ? 'bg-[#eef5ee] border-[#236B28] text-[#236B28] font-bold shadow-sm'
+                                  : 'bg-[#f8f9fa] border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-[#f1f3f5]'}
+                                 `}
+                            >
+                              <span className="truncate">{b.name}</span>
+                              {form.branch === b.reference_id && (
+                                <div className="bg-[#236B28] rounded-full p-0.5">
+                                  <Check size={10} className="text-white" strokeWidth={4} />
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+            <div className="pt-4 flex items-center justify-end gap-3">
+
+              <button
+                type="submit"
+                className="px-6 py-1.5 bg-[#1C4D21] text-white rounded text-[14px] font-semibold hover:bg-[#143918] transition-all shadow-sm active:scale-95"
               >
-                Login
-              </a>
-            </p>
-          </div>
-        </form>
+                {adminData ? "Update Admin" : "Register"}
+              </button>
+            </div>
+
+            
+          </form>
+        </div>
       </div>
     </div>
+    </>
   );
 }

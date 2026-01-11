@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  
   Store,
   Building2,
   Table,
@@ -13,13 +12,14 @@ import {
   User,
   Menu,
   LayoutDashboardIcon,
+  GaugeCircle,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 
 export default function DesktopSidebar({ is_superuser, children }) {
   const { collapsed, setCollapsed, setSidebarOpen } = useSidebar();
   const pathname = usePathname();
-  const router = useRouter(); 
+  const router = useRouter();
   const isSuperUser = is_superuser === true;
 
   const [hovered, setHovered] = useState(false);
@@ -38,11 +38,7 @@ export default function DesktopSidebar({ is_superuser, children }) {
   ];
 
   const menuItemsStaff = [
-    {
-      label: "Dashboard",
-      route: "/dashboard",
-      icon: (props) => <img src="/statisctics.png" alt="Dashboard" {...props} />,
-    },
+    {label: "Dashboard",route: "/dashboard",icon: GaugeCircle,},
     { label: "Orders", route: "/dashboard/orders", icon: ShoppingCart },
     { label: "Menus", route: "/dashboard/menus", icon: Menu },
     { label: "Tables", route: "/dashboard/table-management", icon: Table },
@@ -68,14 +64,24 @@ export default function DesktopSidebar({ is_superuser, children }) {
               }
               setSidebarOpen(false);
             }}
-            className={`flex items-center gap-1 px-2 py-1 rounded border-b w-full transition
-              ${active
-                ? "bg-amber-100 text-amber-700 font-semibold"
-                : "text-gray-800 hover:bg-amber-50 hover:text-amber-600"
-              }`}
+            className={`flex items-center gap-1 px-2 py-1 rounded border-b border-[#1C5721] w-full transition-colors
+      ${
+        active
+          ? "bg-white text-[#236B28] font-semibold"
+          : "text-[#EAF5EA] hover:bg-[#1C5721] hover:text-white"
+      }`}
           >
-            <Icon size={10} className="w-4 h-4" />
-            {(!collapsed || hovered) && <span>{item.label}</span>}
+            <Icon
+              size={10}
+              className={`w-4 h-4 ${
+                active ? "text-[#236B28]" : "text-[#EAF5EA]"
+              }`}
+            />
+            {(!collapsed || hovered) && (
+              <span className={active ? "text-[#236B28]" : "text-[#EAF5EA]"}>
+                {item.label}
+              </span>
+            )}
           </button>
         );
       })}
@@ -83,56 +89,78 @@ export default function DesktopSidebar({ is_superuser, children }) {
   );
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <aside
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className={`hidden lg:flex flex-col bg-white text-gray-800 shadow-md border border-gray-200 transition-all duration-300
-          ${collapsed && !hovered ? "w-13" : "w-50"}`}
-      >
-        <div className="flex items-center px-2 py-1 h-16">
-          <div className="p-1 rounded hover:bg-gray-100">
-            <LayoutDashboardIcon size={20} />
-          </div>
-          {(!collapsed || hovered) && (
-            <h2 className="font-bold text-md">Admin Panel</h2>
-          )}
-        </div>
-        <nav className="flex-1 p-1">
-          <SidebarContent />
-        </nav>
-      </aside>
-
-      {/* Mobile Sidebar */}
-      <div className={`fixed inset-0 z-40 lg:hidden transition-all ${collapsed ? "pointer-events-none" : ""}`}>
-        {!collapsed && (
-          <div
-            onClick={() => setCollapsed(true)}
-            className="absolute inset-0 bg-black/40"
-          />
-        )}
+    <>
+      <div className="flex min-h-screen">
+        {/* Desktop Sidebar */}
         <aside
-          className={`absolute left-0 top-0 h-full w-45 bg-white shadow-md transform transition-transform duration-300
-            ${collapsed ? "-translate-x-full" : "translate-x-0"}`}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          className={`hidden lg:flex flex-col bg-[#236B28] text-[#EAF5EA]
+            shadow-md border-r border-[#1C5721] transition-all duration-300
+            ${collapsed && !hovered ? "w-13" : "w-50"}`}
         >
-          <div className="flex items-center justify-between  px-2 py-1 h-14">
-            <div className="flex items-center gap-1">
-              <LayoutDashboardIcon size={18} />
-              <h2 className="font-bold text-sm ">Admin Panel</h2>
+          {/* Header */}
+          <div className="flex items-center gap-2 px-3 py-2 h-16">
+            <div className="p-2 rounded-md bg-[#1C5721] hover:bg-[#184A1C] transition-colors">
+              <LayoutDashboardIcon size={20} className="text-[#EAF5EA]" />
             </div>
-            <button onClick={() => setCollapsed(true)} className="lg:hidden text-sm font-bold">
-              ✕
-            </button>
+
+            {(!collapsed || hovered) && (
+              <h2 className="font-semibold text-sm tracking-wide text-[#EAF5EA]">
+                Admin Panel
+              </h2>
+            )}
           </div>
-          <nav className="p-1 ">
+
+          <nav className="flex-1 px-2 py-1">
             <SidebarContent />
           </nav>
         </aside>
-      </div>
 
-      {/* Content */}
-      <main className="flex-1 lg:mt-0">{children}</main>
-    </div>
+        {/* Mobile Sidebar */}
+        <div
+          className={`fixed inset-0 z-40 lg:hidden transition-all ${
+            collapsed ? "pointer-events-none" : ""
+          }`}
+        >
+          {!collapsed && (
+            <div
+              onClick={() => setCollapsed(true)}
+              className="absolute inset-0 bg-black/40"
+            />
+          )}
+
+          <aside
+            className={`absolute left-0 top-0 h-full w-45 bg-[#236B28] text-[#EAF5EA]
+      shadow-md transform transition-transform duration-300
+      ${collapsed ? "-translate-x-full" : "translate-x-0"}`}
+          >
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 h-14 border-b border-[#1C5721]">
+              <div className="flex items-center gap-2">
+                <LayoutDashboardIcon size={18} className="text-[#EAF5EA]" />
+                <h2 className="font-semibold text-sm text-[#EAF5EA]">
+                  Admin Panel
+                </h2>
+              </div>
+
+              <button
+                onClick={() => setCollapsed(true)}
+                className="text-[#EAF5EA] text-lg leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            <nav className="px-2 py-2">
+              <SidebarContent />
+            </nav>
+          </aside>
+        </div>
+
+        {/* Content */}
+        <main className="flex-1 lg:mt-0">{children}</main>
+      </div>
+    </>
   );
 }

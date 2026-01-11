@@ -74,7 +74,7 @@ function DashboardContainer({ children, isSuperUser, handleLogout }) {
         />
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto  p-2">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>
