@@ -87,7 +87,7 @@ export default function CustomerMenu() {
   const handleSubmitOrder = async () => {
     if (!totalItems) return toast.error("Your cart is empty!");
 
-    // const loadingToast = toast.loading("Placing your order...");
+  
 
     try {
       const payload = {
@@ -139,11 +139,11 @@ export default function CustomerMenu() {
 
   return (
     <>
-      <div className="min-h-screen bg-slate-50 font-sans pb-40">
+      <div className="min-h-screen bg-slate-50 font-sans pb-40 ">
         <ToastProvider />
 
         <header className="sticky top-0 z-50 p-2 bg-[#236B28] text-white shadow-xl">
-          <div className="max-w-2xl mx-auto px-3 py-3">
+          <div className=" px-3 py-3 md:p-3">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <h1 className="text-md font-black leading-none uppercase tracking-tighter">
@@ -186,7 +186,7 @@ export default function CustomerMenu() {
         </header>
 
         {/* Menu List */}
-        <main className="max-w-2xl mx-auto px-3 mt-6 space-y-3">
+        <main className=" px-3 mt-6 space-y-3">
           {filteredMenu.length === 0 ? (
             <div className="text-center py-20 opacity-40">
               <Soup className="w-16 h-16 mx-auto mb-4" />
@@ -198,7 +198,7 @@ export default function CustomerMenu() {
             </div>
           ) : (
             filteredMenu.map((menu, index) => {
-              // खास इन्डेक्स पत्ता लगाउन (फिल्टर हुँदा पनि सही क्वान्टिटी अपडेट होस् भनेर)
+             
               const originalIndex = menuList.findIndex(
                 (m) => m.reference_id === menu.reference_id
               );
@@ -257,18 +257,18 @@ export default function CustomerMenu() {
         </main>
 
         {totalItems > 0 && (
-          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 animate-slideUp">
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-40 animate-slideUp">
             <div className="bg-[#236B28] p-2 shadow-2xl border border-white/20 backdrop-blur-lg">
               <div className="flex justify-between items-center mb-3 text-white">
+                <div >
+                  <p className="text-white/70 text-sm">Item</p>
+                  <p className="text-md  font-bold">{totalItems}</p>
+                </div>
                 <div>
                   <p className="text-white/70 text-sm">Total Amount</p>
                   <p className="text-md font-black">
                     Rs {totalPrice.toFixed(2)}
                   </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-white/70 text-sm">Items</p>
-                  <p className="text-md font-bold">{totalItems}</p>
                 </div>
               </div>
               <button

@@ -84,6 +84,8 @@ const AdminOrdersDashboard = () => {
   const audioRef = useRef(null);
   const lastOrderIdRef = useRef(null);
   const [filter, setFilter] = useState("today");
+ 
+  const isMounted = useRef(false);
 
   const playNotificationSound = () => {
     if (audioRef.current) {
@@ -200,17 +202,17 @@ const AdminOrdersDashboard = () => {
 
   useEffect(() => {
     const t = localStorage.getItem("adminToken");
-    if (t) {
-      setToken(t);
+    if (!t) return;
+
+    setToken(t);
+
+    if (!isMounted.current) {
       fetchOrders(t);
-
-      const interval = setInterval(() => {
-        fetchOrders(t);
-      }, 10000);
-
-      return () => clearInterval(interval);
+      isMounted.current = true;
+    } else {
+      fetchOrders(t);
     }
-  }, []);
+  }, [filter]);
 
   const todayNepal = getNepalDateString(new Date());
   const todayOrders = orders.filter(
@@ -278,17 +280,16 @@ const AdminOrdersDashboard = () => {
           </div>
 
           <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-3 w-fit">
-  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider whitespace-nowrap">
-    {filter === "today" ? "Today's Revenue" : "7 Days Revenue"}
-  </span>
-  
+            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider whitespace-nowrap">
+              {filter === "today" ? "Today's Revenue" : "7 Days Revenue"}
+            </span>
 
-  <div className="h-4 w-[1px] bg-gray-200"></div>
+            <div className="h-4 w-[1px] bg-gray-200"></div>
 
-  <span className="text-lg font-bold text-emerald-600 whitespace-nowrap">
-    Rs. {totalRevenue.toFixed(2)}
-  </span>
-</div>
+            <span className="text-lg font-bold text-emerald-600 whitespace-nowrap">
+              Rs. {totalRevenue.toFixed(2)}
+            </span>
+          </div>
         </header>
 
         <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
@@ -298,8 +299,14 @@ const AdminOrdersDashboard = () => {
               className={`flex flex-col justify-between border rounded-xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative
             ${
               order.status === "Cancelled"
-                ? "bg-red-50 border-red-200 opacity-90"
-                : "bg-white border-gray-200"
+                ? "bg-red-100 border-red-300 text-red-700"
+                : order.status === "Served"
+                ? "bg-green-100 border-green-300 text-green-700"
+                : order.status === "Ready"
+                ? "bg-indigo-100 border-indigo-300 text-indigo-700"
+                : order.status === "Preparing"
+                ? "bg-blue-100 border-blue-300 text-blue-700"
+                : "bg-amber-100 border-amber-300 text-amber-700"
             }`}
             >
               <div className="p-3 border-b border-gray-100">
@@ -433,9 +440,34 @@ const AdminOrdersDashboard = () => {
         <div className="mt-8 mx-auto border-t border-[#236B28]/20 pt-6 flex flex-col md:flex-row justify-between items-center text-sm">
           <span className="text-[#236B28]/70 font-medium">End of list</span>
 
-          <span className="mt-2 md:mt-0 text-[#236B28]/80 font-semibold">
-            Total Orders: {todayOrders.length}
-          </span>
+          <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-center">
+            <span className="text-[#236B28]/80 font-semibold">
+              Today's Orders:{" "}
+              <span className="font-black">
+                {
+                  orders.filter(
+                    (o) => getNepalDateString(o.created_at) === todayNepal
+                  ).length
+                }
+              </span>
+            </span>
+
+            <div className="hidden md:block h-4 w-[1px] bg-[#236B28]/20"></div>
+
+            <span className="text-[#236B28]/80 font-semibold">
+              {filter === "today"
+                ? "Current View (Today): "
+                : "Current View (7 Days): "}
+              <span className="font-black">{filteredOrders.length}</span>
+            </span>
+
+            <div className="hidden md:block h-4 w-[1px] bg-[#236B28]/20"></div>
+
+            <span className="text-[#236B28]/80 font-semibold">
+              Total Revenue:{" "}
+              <span className="font-black">Rs. {totalRevenue.toFixed(0)}</span>
+            </span>
+          </div>
         </div>
       </div>
     </>

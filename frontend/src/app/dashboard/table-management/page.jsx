@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import toast from "react-hot-toast";
 import ToastProvider from "@/components/ToastProvider";
@@ -17,8 +17,6 @@ export default function TableManager() {
   const [editId, setEditId] = useState(null);
   const [tableName, setTableName] = useState("");
   const [search, setSearch] = useState("");
-  // const [capacity, setCapacity] = useState("");
-  // const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openQr, setOpenQr] = useState(null);
@@ -59,8 +57,18 @@ export default function TableManager() {
     }
   };
 
+  const isFetched = useRef(false);
   useEffect(() => {
-    fetchTables();
+    if (!isFetched.current) {
+      const loadInitialData = async () => {
+        const token = localStorage.getItem("adminToken");
+        if (token) {
+          await Promise.all([fetchTables()]);
+        }
+      };
+      loadInitialData();
+      isFetched.current = true;
+    }
   }, []);
 
   const filteredTables = tables.filter((t) =>
@@ -74,8 +82,7 @@ export default function TableManager() {
   // ---------------- Form ----------------
   const resetForm = () => {
     setTableName("");
-    // setCapacity("");
-    // setLocation("");
+
     setEditId(null);
   };
 
@@ -97,8 +104,7 @@ export default function TableManager() {
 
       const formData = new FormData();
       formData.append("table_number", tableName);
-      // formData.append("capacity", capacity);
-      // if (location) formData.append("location", location);
+
       formData.append("qr_code", qr);
       formData.append("token", tableToken);
       if (editId) formData.append("table_id", editId);
@@ -132,8 +138,7 @@ export default function TableManager() {
   const handleEdit = (t) => {
     setEditId(t.reference_id);
     setTableName(t.table_number);
-    // setCapacity(t.capacity || "");
-    // setLocation(t.location || "");
+
     setShowForm(true);
   };
 
@@ -161,241 +166,282 @@ export default function TableManager() {
   };
 
   return (
-    <div className="mx-auto min-h-screen font-sans p-4">
-      <ToastProvider />
+    <>
+      <div className="mx-auto min-h-screen font-sans p-4 bg-[#ddf4e2]">
+        <ToastProvider />
 
-      {/* HEADER + SEARCH */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-1">
-        <h1 className="self-start text-left text-lg md:text-[15px] font-bold">
-          Table
-        </h1>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2 mb-2">
+          <h1 className="self-start text-left text-[15px] font-bold text-[#236B28]">
+            Table
+          </h1>
 
-        <div className="flex w-full md:w-auto items-center gap-2">
-          <div className="relative">
-            <svg
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
-              />
-            </svg>
-
-            <input
-              type="text"
-              placeholder="Search Table..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border border-amber-200 rounded pl-8 pr-3 py-1 text-sm
-             focus:outline-none focus:ring-1 focus:ring-amber-200"
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              resetForm();
-              setShowForm(true);
-            }}
-            className="button flex items-center gap-1 px-4 py-1.5 text-sm font-semibold bg-amber-500 text-white rounded-lg shadow-sm hover:bg-amber-600 transition"
-          >
-            Create
-          </button>
-        </div>
-      </div>
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
-            <h2 className="text-lg font-bold text-red-600 mb-3">
-              Confirm Delete
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Are you sure you want to delete table{" "}
-              <span className="font-semibold">{deleteTable?.table_number}</span>
-              ?
-            </p>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+          <div className="flex w-full md:w-auto items-center gap-2">
+            <div className="relative">
+              <svg
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[#236B28]/60"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirmed}
-                className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FORM MODAL */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3">
-          <div className="bg-white w-full max-w-md lg:max-w-lg rounded shadow-md overflow-hidden animate-in fade-in zoom-in duration-200 lg:mb-34">
-            <div className="flex justify-end items-end p-1 border-b border-gray-100">
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-gray-400 hover:text-red-500 transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-2 space-y-1">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Table
-                </label>
-                <input
-                  type="text"
-                  value={tableName}
-                  onChange={(e) => setTableName(e.target.value)}
-                  placeholder="Table Number"
-                  className="border w-full p-1 text-sm border-amber-300  rounded focus:outline-none focus:ring-1 focus:ring-amber-200"
-                  required
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
                 />
-              </div>
+              </svg>
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="formCancleButton px-3 py-1 border-2 cursor-pointer text-gray-600 hover:bg-gray-100 rounded transition"
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={loading} className="formButton">
-                  {loading ? "Saving..." : editId ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <input
+                type="text"
+                placeholder="Search Table..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-[#236B28]/30 rounded-md pl-8 pr-3 py-1 text-[12px] 
+        focus:outline-none focus:ring-1 focus:ring-[#236B28]/40 w-full md:w-[200px]"
+              />
+            </div>
 
-      {/* TABLE */}
-      <div className="flex-1 min-h-0 bg-white rounded border shadow-sm overflow-hidden">
-        <div className="max-h-[450px] overflow-y-auto custom-scrollbar">
-          <table className="min-w-full border-collapse table-fixed">
-            <thead className="sticky top-0 bg-amber-100 uppercase text-sm font-bold text-black z-10">
-              <tr>
-                <th className="w-1/12 border px-4 py-2 text-left">SN</th>
-
-                <th className="w-1/4 border px-6 py-2 text-left">Table</th>
-                <th className="w-1/4 border px-4 py-2 text-left">QR</th>
-                <th className="w-1/15 border px-2 py-2 text-end pr-4">
-                  Action
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="text-sm">
-              {filteredTables.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-6 text-gray-400 border "
-                  >
-                    {searchQuery
-                      ? "table not match your search"
-                      : "table not found"}
-                  </td>
-                </tr>
-              ) : (
-                filteredTables.map((t, index) => (
-                  <tr
-                    key={t.reference_id}
-                    className="hover:bg-gray-50 transition"
-                  >
-                    <td className="px-4 py-1 border ">{index + 1}</td>
-
-                    <td className="px-4 py-1 border">T {t.table_number}</td>
-                    <td className="px-4 py-1 border  ">
-                      {t.qr_code ? (
-                        <img
-                          src={t.qr_code}
-                          alt="QR"
-                          className="w-7 h-7  cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => setOpenQr(t.qr_code)}
-                        />
-                      ) : (
-                        <span className="text-gray-400">No QR</span>
-                      )}
-                    </td>
-                    <td className="px-2 py-1 border ">
-                      <div className="flex justify-end ">
-                        <button
-                          onClick={() => handleEdit(t)}
-                          className="p-1 text-amber-600 hover:bg-amber-100 rounded-full transition"
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDeleteTable(t);
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-full transition"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* QR MODAL */}
-      {openQr && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={() => setOpenQr(null)}
-        >
-          <div
-            className="relative bg-white p-4 rounded-lg max-w-sm w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Download Button Top Right */}
-            <a
-              href={openQr}
-              download={`Table_${selectedTable?.table_number || "QR"}.png`}
-              className="absolute top-2 right-2 text-gray-600 hover:text-amber-500"
-              title="Download QR"
-            >
-              <Download className="h-5 w-5 cursor-pointer" />
-            </a>
-
-            {/* QR Image */}
-            <img
-              src={openQr}
-              alt={`Table ${selectedTable?.table_number} QR`}
-              className="w-full h-auto object-contain"
-            />
-
-            {/* Close Button */}
             <button
-              onClick={() => setOpenQr(null)}
-              className="mt-4 w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-900 cursor-pointer"
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="flex items-center gap-1 px-4 py-1.5 text-[12px] font-semibold 
+      bg-[#236B28] text-white rounded-md shadow-sm hover:bg-[#1C5721] transition"
             >
-              Close
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Create
             </button>
           </div>
         </div>
-      )}
-    </div>
+
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-white rounded-lg shadow-md w-[90%] max-w-sm p-4">
+              <h2 className="text-lg font-bold text-red-600 mb-3">
+                Confirm Delete
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Are you sure you want to delete table{" "}
+                <span className="font-semibold">
+                  {deleteTable?.table_number}
+                </span>
+                ?
+              </p>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirmed}
+                  className="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FORM MODAL */}
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]">
+            <div className="bg-white w-full max-w-[320px] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50/50">
+                <h2 className="text-[13px] font-bold text-gray-700">
+                  {editId ? "Edit Table" : "Add New Table"}
+                </h2>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-gray-100"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[12px] font-semibold text-gray-600">
+                    Table Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={tableName}
+                    onChange={(e) => setTableName(e.target.value)}
+                    placeholder="e.g. T-01"
+                    className="w-full px-3 py-1.5 text-[12px] border border-gray-300 rounded focus:border-[#236B28] focus:ring-[2px] focus:ring-[#236B28]/10 outline-none transition-all placeholder:text-gray-400"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`px-4 py-1.5 text-[12px] font-semibold text-white rounded shadow-sm transition-all
+              ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#236B28] hover:bg-[#1C5721] active:scale-95"
+              }`}
+                  >
+                    {loading ? "Saving..." : editId ? "Update" : "Create"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* TABLE WRAPPER */}
+        <div className="flex-1 min-h-0 bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden flex flex-col">
+          <div
+            className="flex-1 overflow-y-auto scrollbar-hide"
+            style={{ maxHeight: "calc(100vh - 150px)" }}
+          >
+            <table className="min-w-full border-separate border-spacing-0 table-fixed text-[11px]">
+              <thead className="sticky top-0 bg-[#fafafa] z-10">
+                <tr>
+                  <th className="w-[50px] border-b border-r border-gray-200 px-2 py-1 text-left font-bold text-gray-700">
+                    SN
+                  </th>
+                  <th className="border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">
+                    Table Name
+                  </th>
+                  <th className="w-[100px] border-b border-r border-gray-200 px-4 py-1 text-left font-bold text-gray-700">
+                    QR Code
+                  </th>
+                  <th className="w-[80px] border-b border-gray-200 px-2 py-1 text-right font-bold text-gray-700">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="bg-white">
+                {filteredTables.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="text-center py-8 text-gray-400 border-b border-gray-200"
+                    >
+                      {searchQuery
+                        ? "No tables match your search"
+                        : "No tables found"}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTables.map((t, index) => (
+                    <tr
+                      key={t.reference_id}
+                      className="hover:bg-blue-50/30 transition-all"
+                    >
+                      <td className="border-b border-r border-gray-200 px-2 py-0.5 text-gray-500 text-center">
+                        {index + 1}
+                      </td>
+
+                      <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                        <div className="border border-gray-200 rounded px-2 py-0.5 bg-gray-50/50 text-gray-800 font-medium">
+                          T {t.table_number}
+                        </div>
+                      </td>
+
+                      <td className="border-b border-r border-gray-200 px-2 py-0.5">
+                        <div className="flex items-center justify-start h-full">
+                          {t.qr_code ? (
+                            <div className="p-0.5 border border-gray-200 rounded bg-white shadow-sm">
+                              <img
+                                src={t.qr_code}
+                                alt="QR"
+                                className="w-6 h-6 cursor-pointer hover:scale-110 transition-transform"
+                                onClick={() => setOpenQr(t.qr_code)}
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">
+                              No QR
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="border-b border-gray-200 px-2 py-0.5 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => handleEdit(t)}
+                            className="p-1 text-blue-500 hover:bg-blue-50 rounded transition"
+                          >
+                            <PencilIcon className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteTable(t);
+                              setShowDeleteModal(true);
+                            }}
+                            className="p-1 text-red-400 hover:bg-red-50 rounded transition"
+                          >
+                            <TrashIcon className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* QR MODAL */}
+        {openQr && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            onClick={() => setOpenQr(null)}
+          >
+            <div
+              className="relative bg-white p-4 rounded-lg max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <a
+                href={openQr}
+                download={`Table_${selectedTable?.table_number || "QR"}.png`}
+                className="absolute top-2 right-2 text-gray-600 hover:text-amber-500"
+                title="Download QR"
+              >
+                <Download className="h-5 w-5 cursor-pointer" />
+              </a>
+
+              <img
+                src={openQr}
+                alt={`Table ${selectedTable?.table_number} QR`}
+                className="w-full h-auto object-contain"
+              />
+
+              <button
+                onClick={() => setOpenQr(null)}
+                className="mt-4 w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-900 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

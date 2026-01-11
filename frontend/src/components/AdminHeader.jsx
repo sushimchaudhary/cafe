@@ -11,12 +11,12 @@ export default function AdminHeader() {
   const router = useRouter();
   const { collapsed, setCollapsed } = useSidebar();
   const [showProfile, setShowProfile] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0); 
+  const [pendingCount, setPendingCount] = useState(0);
   const dropdownRef = useRef(null);
   const lastOrderIdRef = useRef(null);
   const audioRef = useRef(null);
+  const isMounted = useRef(false);
 
-  
   useEffect(() => {
     audioRef.current = new Audio("/notification.mp3");
   }, []);
@@ -24,7 +24,9 @@ export default function AdminHeader() {
   const playSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => console.log("Click page to enable sound"));
+      audioRef.current
+        .play()
+        .catch(() => console.log("Click page to enable sound"));
     }
   };
 
@@ -39,14 +41,14 @@ export default function AdminHeader() {
       const result = await res.json();
       const orders = result?.data || [];
 
-      
-      const pendingOrders = orders.filter(o => o.status?.toLowerCase() === "pending");
+      const pendingOrders = orders.filter(
+        (o) => o.status?.toLowerCase() === "pending"
+      );
       setPendingCount(pendingOrders.length);
 
-   
       if (orders.length > 0) {
         const latestId = orders[0].reference_id;
-  
+
         if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
           playSound();
         }
@@ -58,9 +60,11 @@ export default function AdminHeader() {
   };
 
   useEffect(() => {
-    fetchNotificationData(); 
-    const interval = setInterval(fetchNotificationData, 10000);
-    return () => clearInterval(interval);
+    if (isMounted.current) return;
+
+    fetchNotificationData();
+
+    isMounted.current = true;
   }, []);
 
   const handleLogout = () => {
@@ -91,8 +95,10 @@ export default function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-3 md:gap-5 pr-5">
-    
-        <div className="relative cursor-pointer" onClick={() => router.push("/dashboard/orders")}>
+        <div
+          className="relative cursor-pointer"
+          onClick={() => router.push("/dashboard/orders")}
+        >
           <Bell className="w-5 h-5 text-[#EAF5EA]" />
           {pendingCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-bounce">
@@ -101,7 +107,6 @@ export default function AdminHeader() {
           )}
         </div>
 
-      
         <div className="relative" ref={dropdownRef}>
           <button
             className="p-2 rounded-full cursor-pointer bg-[#1C5721] hover:bg-[#184A1C] transition-colors"
@@ -112,7 +117,7 @@ export default function AdminHeader() {
 
           {showProfile && (
             <div className="absolute right-0 mt-3 w-32 bg-white border border-gray-200 shadow-lg rounded-lg z-50 overflow-hidden">
-              <button 
+              <button
                 onClick={() => router.push("/dashboard/profile")}
                 className="w-full flex items-center gap-2 p-3 hover:bg-gray-100 text-sm text-gray-700"
               >
