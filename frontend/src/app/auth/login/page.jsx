@@ -14,12 +14,38 @@ const AdminLoginPage = () => {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  useEffect(() => {
-    const adminToken = localStorage.getItem("adminToken");
-    if (adminToken) {
-      router.replace("/");
+ 
+  const getCookie = (name) => {
+    if (typeof document === "undefined") return null;
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(";");
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === " ") c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
     }
-  }, []);
+    return null;
+  };
+
+  const setCookie = (name, value, days = 1) => {
+    const date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    const expires = "; expires=" + date.toUTCString();
+    document.cookie =
+      name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+  };
+
+  useEffect(() => {
+    const token = getCookie("adminToken");
+
+    if (token) {
+
+      router.replace("/dashboard");
+      return;
+    }
+
+    localStorage.clear();
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,37 +66,22 @@ const AdminLoginPage = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.detail || "Invalid credentials! Please try again.");
+        toast.error(data.detail || "Invalid credentials!");
         setLoading(false);
         return;
       }
 
       if (!data?.is_staff) {
-        toast.error("Access Denied: You do not have admin privileges!");
+        toast.error("Access Denied!");
         setLoading(false);
         return;
       }
 
-      localStorage.setItem("adminToken", data.token || "");
-      localStorage.setItem("username", username || "");
-      localStorage.setItem("first_name", data.first_name || "");
-      localStorage.setItem("last_name", data.last_name || "");
-      localStorage.setItem("email", data.email || "");
-      localStorage.setItem("mobile_number", data.mobile_number || "");
-      localStorage.setItem("restaurant_id", data.restaurant_id || "");
-      localStorage.setItem("restaurant_name", data.restaurant_name || "");
-      localStorage.setItem("branch_id", data.branch_id || "");
-      localStorage.setItem("branch_name", data.branch_name || "");
-      localStorage.setItem(
-        "is_superuser",
-        data.is_superuser ? "true" : "false"
-      );
+      setCookie("adminToken", data.token || "");
+      setCookie("is_superuser", data.is_superuser ? "true" : "false");
 
       const displayName = data.first_name || username;
-      toast.success(`welcome back, ${displayName}!`, {
-        duration: 2000,
-        
-      });
+      toast.success(`Welcome back, ${displayName}!`);
 
       try {
         const userId = data.user_id || data.userId || data.user || null;
@@ -81,19 +92,23 @@ const AdminLoginPage = () => {
               headers: { Authorization: `Token ${data.token}` },
             }
           );
+
           if (profileRes.ok) {
             const profileData = await profileRes.json();
             const src = profileData.data || {};
-            if (src.first_name)
-              localStorage.setItem("first_name", src.first_name);
-            if (src.last_name) localStorage.setItem("last_name", src.last_name);
-            if (src.email) localStorage.setItem("email", src.email);
-            if (src.mobile_number)
-              localStorage.setItem("mobile_number", src.mobile_number);
+
+            sessionStorage.setItem(
+              "user_info",
+              JSON.stringify({
+                first_name: src.first_name,
+                last_name: src.last_name,
+                email: src.email,
+              })
+            );
           }
         }
       } catch (err) {
-        console.warn("Profile fetch error:", err);
+        console.warn("Profile error:", err);
       }
 
       if (data.is_superuser) {
@@ -109,23 +124,23 @@ const AdminLoginPage = () => {
         const restData = await resRest.json();
         const branchData = await resBranch.json();
 
-        localStorage.setItem(
+
+        sessionStorage.setItem(
           "restaurants",
           JSON.stringify(restData.data || [])
         );
-        localStorage.setItem("branches", JSON.stringify(branchData.data || []));
+        sessionStorage.setItem(
+          "branches",
+          JSON.stringify(branchData.data || [])
+        );
 
-        setTimeout(() => {
-          router.push("/dashboard/restaurant");
-        }, 1000);
+        setTimeout(() => router.push("/dashboard/restaurant"), 1000);
       } else {
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
+        setTimeout(() => router.push("/dashboard"), 1000);
       }
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong! Please check your connection.");
+      toast.error("Connection Error!");
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }

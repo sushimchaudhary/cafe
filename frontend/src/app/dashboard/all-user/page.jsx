@@ -11,6 +11,14 @@ import "@/styles/customButtons.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 export default function AdminManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
@@ -31,7 +39,7 @@ export default function AdminManagementPage() {
 
   // Initial fetch
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
+    const token = getCookie("adminToken");
 
     if (!token) {
       toast.error("Admin token missing. Please login!");
@@ -44,27 +52,28 @@ export default function AdminManagementPage() {
     fetchBranches(token);
   }, []);
 
-  // Fetch admins
-  const fetchAdmins = async (token) => {
-    try {
-      const res = await fetch(`${API_URL}/api/user/admins/`, {
-        headers: { Authorization: `Token ${token}` },
-      });
+ const fetchAdmins = async (token) => {
+  if (!token) return; 
 
-      console.log("Raw Response:", res);
-      const data = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/api/user/admins/`, {
+      headers: { Authorization: `Token ${token}` },
+    });
 
-      if (!res.ok) throw new Error(data.response || "Failed to fetch admins");
+    const data = await res.json();
 
-      // Always ensure array
-      console.log("Admins:", data.data);
-
+    if (res.ok) {
       setAdmins(data.data || []);
-    } catch (err) {
-      console.error("Fetch admins error:", err);
-      toast.error("Failed to fetch admins");
+    } else {
+
+      console.error("Server Error:", data);
+
     }
-  };
+  } catch (err) {
+    console.error("Fetch admins error:", err);
+   
+  }
+};
 
   // Fetch restaurants
   const fetchRestaurants = async (token) => {

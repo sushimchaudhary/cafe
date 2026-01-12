@@ -11,6 +11,14 @@ import MenuImageHover from "./ImageHover";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 export default function AdminMenuManager() {
   const formRef = useRef(null);
   const [units, setUnits] = useState([]);
@@ -51,7 +59,7 @@ export default function AdminMenuManager() {
   // --- Fetch Units & Categories ---
   const fetchUnits = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) return;
       const res = await fetch(`${API_URL}/api/units/`, {
         headers: { Authorization: `Token ${token}` },
@@ -66,7 +74,7 @@ export default function AdminMenuManager() {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) return;
       const res = await fetch(`${API_URL}/api/item-categories/`, {
         headers: { Authorization: `Token ${token}` },
@@ -81,7 +89,7 @@ export default function AdminMenuManager() {
 
   const fetchMenus = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) return;
       const res = await fetch(`${API_URL}/api/menus/`, {
         headers: { Authorization: `Token ${token}` },
@@ -110,7 +118,7 @@ export default function AdminMenuManager() {
    
     if (!isFetched.current) {
       const loadInitialData = async () => {
-        const token = localStorage.getItem("adminToken");
+        const token = getCookie("adminToken");
         if (token) {
        await Promise.all([
             fetchUnits(),
@@ -261,7 +269,7 @@ export default function AdminMenuManager() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) throw new Error("Login again!");
 
       const formData = new FormData();
@@ -366,7 +374,7 @@ export default function AdminMenuManager() {
     if (!deleteMenu) return;
 
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       const res = await fetch(
         `${API_URL}/api/menus/${deleteMenu.reference_id}/`,
         {

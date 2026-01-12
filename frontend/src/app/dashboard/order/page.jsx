@@ -74,6 +74,16 @@ const getStatusIndicator = (status) => {
 
 const statusOptions = ["Pending", "Preparing", "Ready", "Served"];
 
+
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
+
 const AdminOrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState("");
@@ -200,9 +210,14 @@ const AdminOrdersDashboard = () => {
     w.print();
   };
 
-  useEffect(() => {
-    const t = localStorage.getItem("adminToken");
-    if (!t) return;
+useEffect(() => {
+   
+    const t = getCookie("adminToken"); 
+    
+    if (!t) {
+      
+      return;
+    }
 
     setToken(t);
 
@@ -210,8 +225,13 @@ const AdminOrdersDashboard = () => {
       fetchOrders(t);
       isMounted.current = true;
     } else {
+      
       fetchOrders(t);
     }
+    
+    const interval = setInterval(() => fetchOrders(t), 5000);
+    return () => clearInterval(interval);
+
   }, [filter]);
 
   const todayNepal = getNepalDateString(new Date());
