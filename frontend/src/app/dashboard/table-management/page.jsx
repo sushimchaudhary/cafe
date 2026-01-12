@@ -11,6 +11,15 @@ import "@/styles/customButtons.css";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const FRONTEND_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
 
+
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 export default function TableManager() {
   const [tables, setTables] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -27,7 +36,7 @@ export default function TableManager() {
   // ---------------- Fetch Tables ----------------
   const fetchTables = async () => {
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) return toast.error("Login first!");
 
       const res = await fetch(`${API_URL}/api/tables/`, {
@@ -61,7 +70,7 @@ export default function TableManager() {
   useEffect(() => {
     if (!isFetched.current) {
       const loadInitialData = async () => {
-        const token = localStorage.getItem("adminToken");
+        const token = getCookie("adminToken");
         if (token) {
           await Promise.all([fetchTables()]);
         }
@@ -91,7 +100,7 @@ export default function TableManager() {
     if (!tableName) return toast.error("Table number required");
     setLoading(true);
     try {
-      const token = localStorage.getItem("adminToken");
+      const token = getCookie("adminToken");
       if (!token) throw new Error("Login required");
 
       const tableToken = editId
@@ -145,7 +154,7 @@ export default function TableManager() {
   const handleDeleteConfirmed = async () => {
     if (!deleteTable) return;
     try {
-      const token = localStorage.getItem("adminToken");
+      const token =getCookie("adminToken");
       const res = await fetch(
         `${API_URL}/api/tables/${deleteTable.reference_id}/`,
         {
