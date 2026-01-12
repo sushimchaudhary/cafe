@@ -27,11 +27,13 @@ export default function AdminHeader() {
   const dropdownRef = useRef(null);
   const lastOrderIdRef = useRef(null);
   const audioRef = useRef(null);
-  const isMounted = useRef(false);
 
-  useEffect(() => {
-    audioRef.current = new Audio("/notification.mp3");
-  }, []);
+
+ useEffect(() => {
+  const audio = new Audio("/notification.mp3");
+  audio.load(); 
+  audioRef.current = audio;
+}, []);
 
   const playSound = () => {
     if (audioRef.current) {
@@ -61,10 +63,16 @@ export default function AdminHeader() {
       if (orders.length > 0) {
         const latestId = orders[0].reference_id;
 
-        if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
-          playSound();
+        if (lastOrderIdRef.current === null) {
+          lastOrderIdRef.current = latestId;
+          return;
         }
-        lastOrderIdRef.current = latestId;
+
+        if (lastOrderIdRef.current !== latestId) {
+          console.log("New order detected!");
+          playSound();
+          lastOrderIdRef.current = latestId;
+        }
       }
     } catch (err) {
       console.error("Header fetch error:", err);
@@ -72,16 +80,14 @@ export default function AdminHeader() {
   };
 
   useEffect(() => {
-    if (isMounted.current) return;
-
     fetchNotificationData();
 
-    isMounted.current = true;
+   
   }, []);
 
   const handleLogout = () => {
     deleteCookie("adminToken");
-  deleteCookie("is_superuser");
+    deleteCookie("is_superuser");
     router.push("/auth/login");
   };
 

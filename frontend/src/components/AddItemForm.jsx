@@ -29,6 +29,7 @@ export default function AdminMenuManager() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [openDropdownIdx, setOpenDropdownIdx] = useState(null);
   const [openUnitDropdownIdx, setOpenUnitDropdownIdx] = useState(null);
+  const isFetched = useRef(false);
   const [form, setForm] = useState({
     menu_date: "",
     categories: [
