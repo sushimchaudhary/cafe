@@ -9,14 +9,28 @@ import AdminHeader from "@/components/AdminHeader";
 import ToastProvider from "@/components/ToastProvider";
 
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
+// कुकी हटाउनका लागि हेल्पर
+const deleteCookie = (name) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
+
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSuperUser, setIsSuperUser] = useState(false);
+  
 
   useEffect(() => {
-    const superUserFlag = localStorage.getItem("is_superuser") === "true";
-    const token = localStorage.getItem("adminToken");
+    const superUserFlag = getCookie("is_superuser") === "true";
+    const token = getCookie("adminToken");
 
     if (!token) {
       router.push("/auth/login");
@@ -43,7 +57,8 @@ export default function DashboardLayout({ children }) {
   }, [pathname, router]);
 
   const handleLogout = () => {
-    localStorage.clear();
+   deleteCookie("adminToken");
+    deleteCookie("is_superuser");
     router.push("/auth/login");
   };
 

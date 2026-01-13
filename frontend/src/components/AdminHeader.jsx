@@ -7,6 +7,18 @@ import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
+const deleteCookie = (name) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
+
 export default function AdminHeader() {
   const router = useRouter();
   const { collapsed, setCollapsed } = useSidebar();
@@ -15,11 +27,13 @@ export default function AdminHeader() {
   const dropdownRef = useRef(null);
   const lastOrderIdRef = useRef(null);
   const audioRef = useRef(null);
-  const isMounted = useRef(false);
 
-  useEffect(() => {
-    audioRef.current = new Audio("/notification.mp3");
-  }, []);
+
+ useEffect(() => {
+  const audio = new Audio("/notification.mp3");
+  audio.load(); 
+  audioRef.current = audio;
+}, []);
 
   const playSound = () => {
     if (audioRef.current) {
@@ -31,7 +45,7 @@ export default function AdminHeader() {
   };
 
   const fetchNotificationData = async () => {
-    const token = localStorage.getItem("adminToken");
+    const token = getCookie("adminToken");
     if (!token) return;
 
     try {
@@ -49,10 +63,16 @@ export default function AdminHeader() {
       if (orders.length > 0) {
         const latestId = orders[0].reference_id;
 
-        if (lastOrderIdRef.current && lastOrderIdRef.current !== latestId) {
-          playSound();
+        if (lastOrderIdRef.current === null) {
+          lastOrderIdRef.current = latestId;
+          return;
         }
-        lastOrderIdRef.current = latestId;
+
+        if (lastOrderIdRef.current !== latestId) {
+          console.log("New order detected!");
+          playSound();
+          lastOrderIdRef.current = latestId;
+        }
       }
     } catch (err) {
       console.error("Header fetch error:", err);
@@ -60,15 +80,14 @@ export default function AdminHeader() {
   };
 
   useEffect(() => {
-    if (isMounted.current) return;
-
     fetchNotificationData();
 
-    isMounted.current = true;
+   
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
+    deleteCookie("adminToken");
+    deleteCookie("is_superuser");
     router.push("/auth/login");
   };
 

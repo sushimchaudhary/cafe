@@ -7,10 +7,19 @@ import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
 export default function AdminRegisterPage({
-  adminData = null,
+ adminData = null,
   refreshAdmins,
   closeModal,
+    
+  
 }) {
   const [restaurants, setRestaurants] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -32,7 +41,7 @@ export default function AdminRegisterPage({
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("adminToken");
+    const token = getCookie("adminToken");
     if (!token) {
       toast.error("Admin token not found. Please login first.");
       return;
@@ -346,6 +355,7 @@ export default function AdminRegisterPage({
                     </div>
                   )}
                 </div>
+                
               </div>
 
               <div className="space-y-1.5 relative" onMouseLeave={() => setOpenDropdown(null)}>

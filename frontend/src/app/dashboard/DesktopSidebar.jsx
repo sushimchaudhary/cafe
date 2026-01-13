@@ -20,7 +20,9 @@ export default function DesktopSidebar({ is_superuser, children }) {
   const { collapsed, setCollapsed, setSidebarOpen } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
-  const isSuperUser = is_superuser === true;
+
+
+  const isSuperUser = is_superuser === true || is_superuser === "true";
 
   const [hovered, setHovered] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -37,8 +39,9 @@ export default function DesktopSidebar({ is_superuser, children }) {
     { label: "User", route: "/dashboard/all-user", icon: User },
   ];
 
+  
   const menuItemsStaff = [
-    {label: "Dashboard",route: "/dashboard",icon: GaugeCircle,},
+    { label: "Dashboard", route: "/dashboard", icon: GaugeCircle },
     { label: "Order", route: "/dashboard/order", icon: ShoppingCart },
     { label: "Menu", route: "/dashboard/menu", icon: Menu },
     { label: "Table", route: "/dashboard/table-management", icon: Table },
@@ -107,7 +110,8 @@ export default function DesktopSidebar({ is_superuser, children }) {
 
             {(!collapsed || hovered) && (
               <h2 className="font-semibold text-sm tracking-wide text-[#EAF5EA]">
-                Admin Panel
+               
+                {isSuperUser ? "Super Admin" : "Staff Panel"}
               </h2>
             )}
           </div>
@@ -140,7 +144,8 @@ export default function DesktopSidebar({ is_superuser, children }) {
               <div className="flex items-center gap-2">
                 <LayoutDashboardIcon size={18} className="text-[#EAF5EA]" />
                 <h2 className="font-semibold text-sm text-[#EAF5EA]">
-                  Admin Panel
+                   
+                   {isSuperUser ? "Super Admin" : "Staff Panel"}
                 </h2>
               </div>
 
@@ -158,7 +163,7 @@ export default function DesktopSidebar({ is_superuser, children }) {
           </aside>
         </div>
 
-        {/* Content */}
+     
         <main className="flex-1 lg:mt-0">{children}</main>
       </div>
     </>

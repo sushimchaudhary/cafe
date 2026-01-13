@@ -13,14 +13,24 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Package, Tag, DollarSign, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export default function AdminDashboard() {
+  const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [username, setUsername] = useState("");
   const isFetched = useRef(false);
   const [token, setToken] = useState("");
   const [nepalTime, setNepalTime] = useState(new Date());
+
+  const getCookie = (name) => {
+    if (typeof document === "undefined") return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
 
   const toNepalDateString = (date) => {
     const d = new Date(date);
@@ -94,20 +104,30 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem("adminToken");
-    const storedUsername = localStorage.getItem("username");
+useEffect(() => {
+  const storedToken = getCookie("adminToken");
+  
+  if (!storedToken) {
+    router.replace("/auth/login");
+    return;
+  }
 
-    if (storedToken && !isFetched.current) {
-      setToken(storedToken);
-      fetchOrders(storedToken);
-      isFetched.current = true;
-    }
+  if (!isFetched.current) {
+    setToken(storedToken);
+    fetchOrders(storedToken);
+    isFetched.current = true;
+  }
 
-    if (storedUsername) {
-      setUsername(storedUsername);
+  const storedUserInfo = sessionStorage.getItem("user_info");
+  if (storedUserInfo) {
+    try {
+      const userData = JSON.parse(storedUserInfo);
+      setUsername(userData.first_name || userData.username || "Admin");
+    } catch (e) {
+      console.error("Error parsing user info");
     }
-  }, []);
+  }
+}, []); // यहाँ [router] को सट्टा [] राख्नुहोस्
 
   const todayNepal = getNepalTodayString();
   const todayOrders = orders.filter(
